@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<HTML>
+<HEAD>
+    <META content=
+            "HTML Tidy for Java (vers. 2009-12-01), see jtidy.sourceforge.net" name="generator">
+    <META content="en-us" http-equiv="Content-Language">
+    <META content="text/html; charset=windows-1252" http-equiv="Content-Type">
+    <META content="Microsoft FrontPage 4.0" name="GENERATOR">
+    <META content="FrontPage.Editor.Document" name="ProgId">
+
+    <TITLE>OpenFiDb</TITLE>
+    <LINK href="../../shared/Frontpage.css" rel="stylesheet" type="text/css">
+</HEAD>
+
+<BODY>
+<H1>OpenFunctionID</H1>
+
+<H2><a name="overview"></a>Overview</H2>
+<P><i>OpenFiDb</i> is a collaborative Function ID datasets plugin for Ghidra.</P>
+
+<p>The <i>OpenFiDb</i> plugin allows every user to easily get a large dataset of <code>.fidb</code> files. These are used by the plugin <b>FunctionID</b> of Ghidra in order to recognize well known functions signatures based on their binary format.</p>
+<p>Once a researcher identified a function in Ghidra, he can share it thanks to the <i>OpenFiDb</i> plugin and it will increase the collaborative dataset.</p>
+<p>This plugin uses the repository of threatrack : <a href="https://github.com/threatrack/ghidra-fidb-repo">https://github.com/threatrack/ghidra-fidb-repo</a> as the base of <code>.fidb</code> files. For more information about how it was generated and about which libraries are included, please see the <a href="https://github.com/Cyjanss/OpenFiDb">Online Readme</a></p>
+<p>Menus actions can be accessed through <code>Tools->FunctionID->OpenFiDb</code></p>
+<p><img src="img/menuOpenFiDb.png" alt="OpenFunctionID Menu entries"></p>
+
+<H2><a name="pulltherepo"></a>Pull the repository</H2>
+
+<p>The first thing a user of <i>OpenFunctionID</i> would want is to download all available
+    <code>FiDbs</code> from the <i>OpenFiDb</i> repository to be able to use them with <b>FunctionID</b>.
+    This can be done while accessing to the <i>Pull the repo</i> menu entry. Some popup
+    windows inform the user and then all <code>FiDbs</code> are downloaded to the local installation
+    of <i>OpenFunctionID</i>. Currently, the repository contains 64 MiB of <code>FiDbs</code> and is
+    expected to grow thanks to the community. Thus, a loading screen is displayed
+    while downloading. The CodeBrowser tool has a scripting console where some
+    information is printed by OpenFunctionID to inform the user of the process. An
+    example of this console after download of the repository is shown in image below.</p>
+
+<p><img src="img/consoleCloning.png" alt="Console output after cloning OpenFiDb repository"></p>
+
+<p>At first, it will clone the repository, afterwards it will only pull incoming changes.</p>
+
+<p>Once the download is finished, a popup window appears
+    prompting the user which <code>FiDb</code> he wants to use.</p>
+
+<p><img src="img/selectActive.png" alt="Select FiDbs to use after pulling OpenFiDb repository"></p>
+
+<p>Although all FiDbs have been
+    uploaded, not all of them will be of interest to all researchers. They have the
+    possibility to check <code>Fidbs</code> that they want to attach and use, depending on the
+    processor for example. The name of each <code>FiDb</code> is composed by a name and the
+    Language. After this, <i>OpenFiDb</i> <code>Fidbs</code> are used by <b>FunctionID</b> to recognise function
+    names. If the user wants to select and use other <code>FiDbs</code>, he can use the <b>FunctionID</b>
+    plugin.</p>
+
+<H2><a name="delete"></a>Delete all local OpenFiDb files</H2>
+<p>If a user wants to get rid of all the <code>FiDbs</code> provided by <i>OpenFunctionID</i>, he can
+    choose the last menu entry called <i>Delete all OpenFiDb files</i>. It will remove the
+    folder containing the local version of the <i>OpenFiDb</i> repository.</p>
+
+<H2><a name="discardlocal"></a>Discard all local changes</H2>
+
+<p><b>FunctionID</b> Plugin allows users to populate an existing <code>FiDb</code>. Although it is not
+    recommended nor useful to populate an <code>FiDb</code> coming from <i>OpenFiDb</i>, it is possible.
+    If it happens, the pull action described here before would not work since local
+    changes are not committed. While <i>OpenFiDb</i> could have handled it itself and
+    automatically discarded local changes, it was decided to not doing it without user
+    agreement. To allow him to save elsewhere his local changes to <code>FiDbs</code>, another
+    button in the menu is created and called <i>Discard local changes</i>.</p>
+
+<H2><a name="upload"></a>Upload to OpenFiDb</H2>
+<p>The server is down, this functionnality has been depreciated. The community database of <code>.fidb</code> has been removed.</p>
+
+<P class="relatedtopic">Related Topics: Function ID</P>
+<P class="providedbyplugin">Provided by : Zina Rasoamanana and Cyprien Janssens de Bisthoven</P>
+<BR>
+</BODY>
+</HTML>

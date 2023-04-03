@@ -39,8 +39,10 @@ import org.apache.commons.io.FileUtils;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.Point;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
@@ -75,7 +77,7 @@ import javax.swing.JTextField;
 
 public class OpenFunctionIDPlugin extends ProgramPlugin{
 
-    private static final String FUNCTION_ID_NAME = "Function ID";
+	private static final String FUNCTION_ID_NAME = "Function ID";
     private static final String MENU_GROUP_1 = "group1";
     private static final String MENU_GROUP_2 = "group2";
     private static final String REPO_URL = "https://github.com/Cyjanss/OpenFiDb.git";
@@ -87,6 +89,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private List<File> openFiDbFiles;
     private List<String> openFiDbFilesNames;
 
+    private DockingAction loginAction;
     private DockingAction pullAction;
     private DockingAction deleteAction;
     private DockingAction discardAction;
@@ -96,21 +99,23 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
      *
      * @param tool The plugin tool that this plugin is added to.
      */
-    public OpenFunctionIDPlugin(PluginTool tool) {
-        super(tool, true, true);
-
-        // TODO: Customize help (or remove if help is not desired)
-    }
+    public OpenFunctionIDPlugin(PluginTool plugintool) {
+		super(plugintool);
+		// TODO Auto-generated constructor stub
+	}
 
     @Override
     public void init() {
-        super.init();
+        super.init();        
         fidFileManager = FidFileManager.getInstance();
         OpenFunctionIDUploadC uploadCAction = new OpenFunctionIDUploadC();
         tool.getComponentProvider("Decompiler").addLocalAction(uploadCAction);
         updateOpenFiDbFiles();
         createActions();
-        enableActions();
+        loginAction.setEnabled(true);
+        pullAction.setEnabled(false);
+        deleteAction.setEnabled(false);
+        discardAction.setEnabled(false);
     }
 
     @Override
@@ -121,12 +126,25 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private void createActions() {
         DockingAction action;
 
+      // Login
+        action = new DockingAction("Login", getName()) {
+            @Override
+            public void actionPerformed(ActionContext context) {
+            	LoginDialog login = new LoginDialog(loginAction,pullAction,deleteAction,discardAction);
+            }
+        };
+        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "login"));
+        action.setMenuBarData(new MenuData(
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
+                        "Login"},
+                null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
+        this.tool.addAction(action);
+        loginAction = action;
+        
         //Pull the repo
         action = new DockingAction("Pull the repo", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
-                LoginDialog logindial = new LoginDialog(new Frame());
-                LoginDialog.main();
 
                 Msg.showInfo(getClass(), null, "Pull the repo",
                         "The OpenFiDb repository containing all FiDbs is about to be downloaded and all Fidbs files attached...");
@@ -325,6 +343,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     }
 
     private void enableActions() {
+    	loginAction.setEnabled(false);
         pullAction.setEnabled(true);
         deleteAction.setEnabled(true);
         discardAction.setEnabled(true);

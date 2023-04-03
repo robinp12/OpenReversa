@@ -7,6 +7,7 @@ db = client['FunctionID']
 collection = db['fidb']
 users = db['users']
 
+
 # Create operation
 @app.route('/create', methods=['POST'])
 def create():
@@ -14,10 +15,26 @@ def create():
     result = collection.insert_one(data)
     return jsonify(str(result.inserted_id))
 
-@app.route("/adduser/<name>/<password>", methods=['POST'])
-def test(name,password):
-    users.insert_one({"name": name,"password": password})
-    return "Connected to the data base!"
+# Register
+@app.route("/register/<name>/<password>", methods=['POST'])
+def register(name,password):
+    user = users.find_one({'name': name})  
+    if user == None:
+        users.insert_one({"name": name,"password": password})
+        return "Registered to DB"
+    return "User already exists"
+
+# Login
+@app.route("/login/<name>/<password>", methods=['POST'])
+def login(name,password):
+    user = users.find_one({'name': name})  
+    if user != None:
+        user["_id"] = str(user['_id'])
+        pwd = user['password']
+        if password == pwd:
+            return "Logged in : " + user["_id"]
+        return 'Incorrect login'
+    return 'Not registered'
 
 # Read operation
 @app.route('/get/<name>', methods=['GET'])

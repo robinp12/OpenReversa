@@ -24,22 +24,22 @@ public class LoginDialog extends JDialog {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private JTextField tfUsername;
-	private JTextField regtfUsername;
+	private JTextField nameLogField;
+	private JTextField nameRegField;
 
-	private JPasswordField pfPassword;
-	private JPasswordField regpfPassword;
+	private JPasswordField passLogField;
+	private JPasswordField passRegField;
 
-	private JPasswordField regpfConfirm;
+	private JPasswordField confirmRegField;
 
-    private JLabel lbUsername;
-    private JLabel reglbUsername;
+    private JLabel nameLogLabel;
+    private JLabel nameRegLabel;
 
-    private JLabel lbPassword;
-    private JLabel reglbPassword;
-    private JLabel reglbConfirm;
+    private JLabel passLogLabel;
+    private JLabel passRegLabel;
+    private JLabel confirmRegLabel;
     private JButton btnLogin;
-    private JButton regbtnSignin;
+    private JButton confirmRegButt;
 
     private JButton btnCancel;
     private JButton btnRegister;
@@ -50,13 +50,11 @@ public class LoginDialog extends JDialog {
 	private DockingAction deleteAction;
 	private DockingAction discardAction;
 
-	
-	private static final String USER_AGENT = "Mozilla/5.0";
 	private static final String POST_URL = "http://127.0.0.1:5000/";
 	
 	private static String userId = "";
 	private static String message = "Verify credentials";
-	private static String regmessage = "Verify credentials";
+	private static String regmessage = "";
 
 
 	public LoginDialog(DockingAction loginAction, DockingAction pullAction, DockingAction deleteAction,
@@ -71,39 +69,39 @@ public class LoginDialog extends JDialog {
     }
 
 	public String getUsername() {
-        return tfUsername.getText().trim();
+        return nameLogField.getText().trim();
     }
 
     public String getPassword() {
-        return new String(pfPassword.getPassword());
+        return new String(passLogField.getPassword());
     }
     
     public String getRegisterUsername() {
-        return regtfUsername.getText().trim();
+        return nameRegField.getText().trim();
     }
 
     public String getRegisterPassword() {
-        return new String(regpfPassword.getPassword());
+        return new String(passRegField.getPassword());
     }
    
     public String getConfirm() {
-        return new String(regpfConfirm.getPassword());
+        return new String(confirmRegField.getPassword());
     }
 
     public boolean isSucceeded() {
         return succeeded;
     }
     
-    public static String hashString(String message) throws Exception {
+    public static String hashString(String msg) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        byte[] hash = digest.digest(message.getBytes("UTF-8"));
+        byte[] hash = digest.digest(msg.getBytes("UTF-8"));
         return Base64.getEncoder().encodeToString(hash);
     }
     private void loginDialog() {
     	
     	JFrame frame = new JFrame();
-    	JPanel panel = new JPanel();
-    	JPanel panel1 = new JPanel();
+    	JPanel topPanel = new JPanel();
+    	JPanel subPanel = new JPanel();
     	
 	   	frame.setLocationRelativeTo(null);
 	   	frame.setSize(500, 150);
@@ -112,38 +110,38 @@ public class LoginDialog extends JDialog {
 	   	frame.setResizable(false);
 	   	
    		frame.setTitle("Please Login Here !");
-		
-		lbUsername = new JLabel("Username: ");
-		tfUsername = new JTextField(20);
-		lbPassword = new JLabel("Password: ");
-		pfPassword = new JPasswordField(20);
 
-		panel.add(lbUsername);		
-		panel.add(tfUsername);
-		panel.add(lbPassword);
-		panel.add(pfPassword);
+		nameLogLabel = new JLabel("Username: ");
+		nameLogField = new JTextField(20);
+		passLogLabel = new JLabel("Password: ");
+		passLogField = new JPasswordField(20);
+
+		topPanel.add(nameLogLabel);
+		topPanel.add(nameLogField);
+		topPanel.add(passLogLabel);
+		topPanel.add(passLogField);
 		
 		btnLogin = new JButton("Login");
 		btnRegister = new JButton("Register");
-		panel1.add(new JLabel());
-		panel1.add(btnRegister);
-		panel1.add(new JLabel());
+		subPanel.add(new JLabel());
+		subPanel.add(btnRegister);
+		subPanel.add(new JLabel());
 	
 		btnCancel = new JButton("Cancel");		
 	
-		panel.add(btnLogin);
-		panel.add(btnCancel);
-		panel.setLayout(new GridLayout(3,2,5,2));
+		topPanel.add(btnLogin);
+		topPanel.add(btnCancel);
+		topPanel.setLayout(new GridLayout(3,2,5,2));
 		
-		panel1.setLayout(new GridLayout(1,3,5,2));
+		subPanel.setLayout(new GridLayout(1,3,5,2));
 						
-		frame.add(panel);
-		frame.add(panel1);
+		frame.add(topPanel);
+		frame.add(subPanel);
 
 		btnLogin.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
-		    	if(tfUsername.getText().isEmpty() 
-		    			|| pfPassword.getPassword().length == 0) {
+		    	if(nameLogField.getText().isEmpty()
+		    			|| passLogField.getPassword().length == 0) {
 		    		JOptionPane.showMessageDialog(LoginDialog.this,
 		    				"Please fill in the form.",
 	    					"Form not complet !",
@@ -153,8 +151,7 @@ public class LoginDialog extends JDialog {
 		    	boolean isLogged = false;
 				try {
 					isLogged = login_request(getUsername(), getPassword());
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
+				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
 				
@@ -169,16 +166,17 @@ public class LoginDialog extends JDialog {
 	    			pullAction.setEnabled(true);
 	    			deleteAction.setEnabled(true);
 	    			discardAction.setEnabled(true);
+
 	    			frame.dispose();
 	    			dispose();
 	    		} 
 	    		else {
 	    			JOptionPane.showMessageDialog(LoginDialog.this, 
 	    					message, 
-	    					"Login",
+	    					"Login error",
 	    					JOptionPane.ERROR_MESSAGE);
 	    			// reset password
-	    			pfPassword.setText("");
+	    			passLogField.setText("");
 	    			succeeded = false;
 	    		}		    	
 		    }
@@ -202,8 +200,8 @@ public class LoginDialog extends JDialog {
     private void registerDialog() {
     	
     	JFrame frame = new JFrame();
-    	JPanel panel = new JPanel();
-    	JPanel panel1 = new JPanel();
+    	JPanel topPanel = new JPanel();
+    	JPanel subPanel = new JPanel();
     	
 	   	frame.setLocationRelativeTo(null);
 	   	frame.setSize(500, 150);
@@ -212,37 +210,37 @@ public class LoginDialog extends JDialog {
 	   	frame.setResizable(false);
    		frame.setTitle("Please Sign-in Here !");
    				
-		reglbUsername = new JLabel("Username: ");
-		regtfUsername = new JTextField(20);
-		reglbPassword = new JLabel("Password: ");
-		regpfPassword = new JPasswordField(20);
+		nameRegLabel = new JLabel("Username: ");
+		nameRegField = new JTextField(20);
+		passRegLabel = new JLabel("Password: ");
+		passRegField = new JPasswordField(20);
 
-		panel.add(reglbUsername);		
-		panel.add(regtfUsername);
-		panel.add(reglbPassword);
-		panel.add(regpfPassword);
+		topPanel.add(nameRegLabel);
+		topPanel.add(nameRegField);
+		topPanel.add(passRegLabel);
+		topPanel.add(passRegField);
 				
-		reglbConfirm = new JLabel("Confirm Password: ");
-		regpfConfirm = new JPasswordField(20);
+		confirmRegLabel = new JLabel("Confirm Password: ");
+		confirmRegField = new JPasswordField(20);
 		
-		panel.add(reglbConfirm);
-		panel.add(regpfConfirm);
-		
-		regbtnSignin = new JButton("Sign-in");
-		
-		panel1.add(regbtnSignin);
-		panel.setLayout(new GridLayout(3,2,5,2));
-		
-		panel1.setLayout(new GridLayout(1,3,5,2));
-						
-		frame.add(panel);
-		frame.add(panel1);
+		topPanel.add(confirmRegLabel);
+		topPanel.add(confirmRegField);
 
-		regbtnSignin.addActionListener(new ActionListener() {
+		confirmRegButt = new JButton("Sign-in");
+		
+		subPanel.add(confirmRegButt);
+		topPanel.setLayout(new GridLayout(3,2,5,2));
+		
+		subPanel.setLayout(new GridLayout(1,3,5,2));
+						
+		frame.add(topPanel);
+		frame.add(subPanel);
+
+		confirmRegButt.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
-		    	if(regtfUsername.getText().isEmpty() 
-		    			|| regpfPassword.getPassword().length == 0 
-		    			||  regpfConfirm.getPassword().length == 0) {
+		    	if(nameRegField.getText().isEmpty()
+		    			|| passRegField.getPassword().length == 0
+		    			||  confirmRegField.getPassword().length == 0) {
 		    		JOptionPane.showMessageDialog(LoginDialog.this,
 	    					"Please fill in the form.",
 	    					"Form not complet !",
@@ -251,13 +249,13 @@ public class LoginDialog extends JDialog {
 		    	}
 		    	boolean isRegistered = false;
 	    		
-		    	try {
+				try {
 					isRegistered = register_request(getRegisterUsername(), getRegisterPassword(), getConfirm());
-				} catch (Exception e1) {
+				} catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
-		    	
+				
 		    	if (isRegistered) {
 	    			JOptionPane.showMessageDialog(LoginDialog.this,
 	    					"Hi " + getUsername() + "! You are signed in.",
@@ -276,19 +274,25 @@ public class LoginDialog extends JDialog {
 		});    	
     }
         
-    private static boolean login_request(String username, String password) throws Exception {
+    private static boolean login_request(String username, String password) throws IOException {
     	
     	URL obj = new URL(POST_URL + "login");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
-        String payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username,hashString(password));
+        String payload;
+		try {
+			payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username, hashString(password));
+			con.setDoOutput(true);
+	        try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
+	            byte[] postData = payload.getBytes(StandardCharsets.UTF_8);
+	            wr.write(postData);
+	        }
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
-        con.setDoOutput(true);
-        try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
-            byte[] postData = payload.getBytes(StandardCharsets.UTF_8);
-            wr.write(postData);
-        }
         
         int responseCode = con.getResponseCode();
         System.out.println("POST Response Code :: " + responseCode);
@@ -318,19 +322,24 @@ public class LoginDialog extends JDialog {
         }
 		return false;
     }
-    private static boolean register_request(String username, String password, String confirm) throws Exception {
+    private static boolean register_request(String username, String password, String confirm) throws IOException {
     	
     	URL obj = new URL(POST_URL + "register");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
-        String payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username,hashString(password));
-
-        con.setDoOutput(true);
-        try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
-            byte[] postData = payload.getBytes(StandardCharsets.UTF_8);
-            wr.write(postData);
-        }
+        String payload;
+		try {
+			payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username, hashString(password));
+			con.setDoOutput(true);
+	        try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
+	            byte[] postData = payload.getBytes(StandardCharsets.UTF_8);
+	            wr.write(postData);
+	        }
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         
         int responseCode = con.getResponseCode();
         System.out.println("POST Response Code :: " + responseCode);
@@ -354,8 +363,7 @@ public class LoginDialog extends JDialog {
             if(response.toString().contains("User already exists")) {
             	return false;
             }
-            
-        } 
+        }
         else {
         	System.out.println("POST request did not work.");
         	return false;

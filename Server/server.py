@@ -16,22 +16,31 @@ def create():
     return jsonify(str(result.inserted_id))
 
 # Register
-@app.route("/register/<name>/<password>", methods=['POST'])
-def register(name,password):
-    user = users.find_one({'name': name})  
+@app.route("/register", methods=['POST'])
+def register():
+    payload = request.get_json()
+    name = payload['username']
+    hash = payload['pwdHash']
+
+    user = users.find_one({'name': name})
     if user == None:
-        users.insert_one({"name": name,"password": password})
+        users.insert_one({"name": name,"pwdHash": hash})
         return "Registered to DB"
-    return "User already exists"
+    else:
+        return "User already exists"
 
 # Login
-@app.route("/login/<name>/<password>", methods=['POST'])
-def login(name,password):
+@app.route("/login", methods=['POST'])
+def login():
+    payload = request.get_json()
+    name = payload['username']
+    hash = payload['pwdHash']
+
     user = users.find_one({'name': name})  
     if user != None:
         user["_id"] = str(user['_id'])
-        pwd = user['password']
-        if password == pwd:
+        hashServer = user['pwdHash']
+        if hash == hashServer:
             return "Logged in : " + user["_id"]
         return 'Incorrect login'
     return 'Not registered'

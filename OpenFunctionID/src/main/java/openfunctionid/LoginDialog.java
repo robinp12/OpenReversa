@@ -17,7 +17,6 @@ import java.security.MessageDigest;
 import java.util.Base64;
 
 
-
 public class LoginDialog extends JDialog {
 
     /**
@@ -273,7 +272,31 @@ public class LoginDialog extends JDialog {
 		    }
 		});    	
     }
-        
+    
+    /*private static boolean get_salt(String username) throws IOException {
+    	URL obj = new URL(GET_URL);
+		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+		con.setRequestMethod("GET");
+		con.setRequestProperty("Content-Type", "application/json");
+		int responseCode = con.getResponseCode();
+		System.out.println("GET Response Code :: " + responseCode);
+		if (responseCode == HttpURLConnection.HTTP_OK) { // success
+			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
+			}
+			in.close();
+
+			// print result
+			System.out.println(response.toString());
+		} else {
+			System.out.println("GET request did not work.");
+		}
+    }*/
+    
     private static boolean login_request(String username, String password) throws IOException {
     	
     	URL obj = new URL(POST_URL + "login");
@@ -281,11 +304,24 @@ public class LoginDialog extends JDialog {
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
         String payload;
-		try {
+        try {
 			payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username, hashString(password));
 			con.setDoOutput(true);
 	        try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
 	            byte[] postData = payload.getBytes(StandardCharsets.UTF_8);
+	            wr.write(postData);
+	        }
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        
+        String payload2;
+		try {
+			payload2 = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\",\"salt\":\"%s\"}", username, hashString(password));
+			con.setDoOutput(true);
+	        try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
+	            byte[] postData = payload2.getBytes(StandardCharsets.UTF_8);
 	            wr.write(postData);
 	        }
 		} catch (Exception e) {
@@ -324,13 +360,17 @@ public class LoginDialog extends JDialog {
     }
     private static boolean register_request(String username, String password, String confirm) throws IOException {
     	
+    	//Encryption encrypt = new Encryption();
+    	//String saltvalue = encrypt.getSaltvalue(30);
+    	//String encryptedpassword = encrypt.generateSecurePassword(password, saltvalue);
     	URL obj = new URL(POST_URL + "register");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
         String payload;
 		try {
-			payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username, hashString(password));
+			//payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\",\"salt\":\"%s\"}", username, encryptedpassword, saltvalue);
+			payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\",\"salt\":\"%s\"}", username, hashString(password));
 			con.setDoOutput(true);
 	        try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
 	            byte[] postData = payload.getBytes(StandardCharsets.UTF_8);

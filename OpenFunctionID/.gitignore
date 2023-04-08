@@ -3,3 +3,8 @@
 /bin/
 /build/
 /dist/
+.DS_Store
+.antProperties.xml
+.classpath
+.project
+.pydevproject

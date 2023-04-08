@@ -48,6 +48,7 @@ public class LoginDialog extends JDialog {
 	private DockingAction pullAction;
 	private DockingAction deleteAction;
 	private DockingAction discardAction;
+	private DockingAction pushAction;
 
 	private static final String POST_URL = "http://127.0.0.1:5000/";
 	
@@ -56,14 +57,14 @@ public class LoginDialog extends JDialog {
 	private static String regmessage = "";
 
 
-	public LoginDialog(DockingAction loginAction, DockingAction pullAction, DockingAction deleteAction,
+	public LoginDialog(DockingAction loginAction, DockingAction pullAction, DockingAction pushAction, DockingAction deleteAction,
 			DockingAction discardAction) {
 		
 		this.loginAction = loginAction;
 		this.pullAction = pullAction;
 		this.deleteAction = deleteAction;
 		this.discardAction = discardAction;
-		
+		this.pushAction = pushAction;
 		loginDialog();    	
     }
 
@@ -136,6 +137,9 @@ public class LoginDialog extends JDialog {
 						
 		frame.add(topPanel);
 		frame.add(subPanel);
+		
+		JRootPane rootPane = SwingUtilities.getRootPane(btnLogin); 
+		rootPane.setDefaultButton(btnLogin);
 
 		btnLogin.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
@@ -165,6 +169,7 @@ public class LoginDialog extends JDialog {
 	    			pullAction.setEnabled(true);
 	    			deleteAction.setEnabled(true);
 	    			discardAction.setEnabled(true);
+	    			pushAction.setEnabled(true);
 
 	    			frame.dispose();
 	    			dispose();
@@ -234,6 +239,9 @@ public class LoginDialog extends JDialog {
 						
 		frame.add(topPanel);
 		frame.add(subPanel);
+		
+		JRootPane rootPane = SwingUtilities.getRootPane(confirmRegButt); 
+		rootPane.setDefaultButton(confirmRegButt);
 
 		confirmRegButt.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
@@ -370,7 +378,7 @@ public class LoginDialog extends JDialog {
         String payload;
 		try {
 			//payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\",\"salt\":\"%s\"}", username, encryptedpassword, saltvalue);
-			payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\",\"salt\":\"%s\"}", username, hashString(password));
+			payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username, hashString(password));
 			con.setDoOutput(true);
 	        try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
 	            byte[] postData = payload.getBytes(StandardCharsets.UTF_8);

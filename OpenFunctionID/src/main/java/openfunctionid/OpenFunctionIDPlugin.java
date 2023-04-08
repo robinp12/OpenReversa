@@ -60,6 +60,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import javax.swing.JFileChooser;
+import javax.swing.JComponent;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  * TODO: Provide class-level documentation that describes what this plugin does.
@@ -91,6 +94,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
 
     private DockingAction loginAction;
     private DockingAction pullAction;
+    private DockingAction pushAction;
     private DockingAction deleteAction;
     private DockingAction discardAction;
 
@@ -114,6 +118,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         createActions();
         loginAction.setEnabled(true);
         pullAction.setEnabled(false);
+        pushAction.setEnabled(false);
         deleteAction.setEnabled(false);
         discardAction.setEnabled(false);
     }
@@ -126,11 +131,11 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private void createActions() {
         DockingAction action;
 
-      // Login
+      // Login 
         action = new DockingAction("Login", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
-            	LoginDialog login = new LoginDialog(loginAction,pullAction,deleteAction,discardAction);
+            	LoginDialog login = new LoginDialog(loginAction,pullAction,pushAction,deleteAction,discardAction);
             }
         };
         action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "login"));
@@ -176,6 +181,21 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
         pullAction = action;
+        
+        //Push FiDb files
+        action = new DockingAction("Push FiDb files",getName()) {
+            @Override
+            public void actionPerformed(ActionContext context) { 
+            	pushOpenFiDbFiles();
+            }
+        };
+        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "push"));
+        action.setMenuBarData(new MenuData(
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
+                        "Push FiDb files"},
+                null, MENU_GROUP_2, MenuData.NO_MNEMONIC, "1"));
+        this.tool.addAction(action);
+        pushAction = action;
 
         //Delete all openFiDb files
         action = new DockingAction("Delete all openFiDb files",getName()) {
@@ -333,6 +353,23 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         println("OpenFiDb folder deleted.");
         updateOpenFiDbFiles();
     }
+    
+    /*private static boolean pushRequest(List<FidFile> fidFile, File openFiDbFile) {
+    	
+    	return false;
+    }*/
+    
+    private void pushOpenFiDbFiles() {
+    	JFileChooser chooser = new JFileChooser();
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(
+            "fidb files", "fidb");
+        chooser.setFileFilter(filter);
+        int returnVal = chooser.showOpenDialog(null);
+        if(returnVal == JFileChooser.APPROVE_OPTION) {
+           System.out.println("You chose to open this file: " +
+                chooser.getSelectedFile().getName());
+        }
+    }
 
     private void updateOpenFiDbFiles(){
         List<ResourceFile> resourceFiles = Application.findFilesByExtensionInMyModule(".fidb");
@@ -345,6 +382,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private void enableActions() {
     	loginAction.setEnabled(false);
         pullAction.setEnabled(true);
+        pushAction.setEnabled(true);
         deleteAction.setEnabled(true);
         discardAction.setEnabled(true);
     }

@@ -109,7 +109,7 @@ public class LoginDialog extends JDialog {
 	   	frame.setVisible(true);	
 	   	frame.setResizable(false);
 	   	
-   		frame.setTitle("Please Login Here !");
+   		frame.setTitle("Login");
 
 		nameLogLabel = new JLabel("Username: ");
 		nameLogField = new JTextField(20);
@@ -146,9 +146,9 @@ public class LoginDialog extends JDialog {
 		    	if(nameLogField.getText().isEmpty()
 		    			|| passLogField.getPassword().length == 0) {
 		    		JOptionPane.showMessageDialog(LoginDialog.this,
-		    				"Please fill in the form.",
-	    					"Form not complet !",
-	    					JOptionPane.INFORMATION_MESSAGE);
+		    				"Please fill out all required fields to continue.",
+	    					"Error",
+	    					JOptionPane.ERROR_MESSAGE);
 		    		return;
 		    	}
 		    	boolean isLogged = false;
@@ -160,8 +160,8 @@ public class LoginDialog extends JDialog {
 				
 	    		if (isLogged) {
 	    			JOptionPane.showMessageDialog(LoginDialog.this,
-	    					"Hi " + getUsername() + "! You are connected.",
-	    					"Login",
+	    					message,
+	    					"Logged in",
 	    					JOptionPane.INFORMATION_MESSAGE);
 	    			succeeded = true;
 	    			
@@ -212,7 +212,7 @@ public class LoginDialog extends JDialog {
 	   	frame.setLayout(new GridLayout(2,1,5,5));
 	   	frame.setVisible(true);	
 	   	frame.setResizable(false);
-   		frame.setTitle("Please Sign-in Here !");
+   		frame.setTitle("Register");
    				
 		nameRegLabel = new JLabel("Username: ");
 		nameRegField = new JTextField(20);
@@ -249,15 +249,24 @@ public class LoginDialog extends JDialog {
 		    			|| passRegField.getPassword().length == 0
 		    			||  confirmRegField.getPassword().length == 0) {
 		    		JOptionPane.showMessageDialog(LoginDialog.this,
-	    					"Please fill in the form.",
-	    					"Form not complet !",
-	    					JOptionPane.INFORMATION_MESSAGE);
+		    				"Please fill out all required fields to continue.",
+	    					"Error",
+	    					JOptionPane.ERROR_MESSAGE);
 		    		return;
 		    	}
 		    	boolean isRegistered = false;
 	    		
 				try {
-					isRegistered = register_request(getRegisterUsername(), getRegisterPassword(), getConfirm());
+					if(!getRegisterPassword().equals(getConfirm())) {						
+						JOptionPane.showMessageDialog(LoginDialog.this,
+								"The two password fields do not match. Please try again.",
+		    					"Error",
+		    					JOptionPane.ERROR_MESSAGE);
+						return;
+					}
+					else {
+						isRegistered = register_request(getRegisterUsername(), getRegisterPassword(), getConfirm());
+					}
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -265,13 +274,13 @@ public class LoginDialog extends JDialog {
 				
 		    	if (isRegistered) {
 	    			JOptionPane.showMessageDialog(LoginDialog.this,
-	    					"Hi " + getUsername() + "! You are signed in.",
+	    					regmessage,
 	    					"Registred",
 	    					JOptionPane.INFORMATION_MESSAGE);
 	    			frame.dispose();
 
 	    		}
-	    		else {
+	    		if(!isRegistered) {
 	    			JOptionPane.showMessageDialog(LoginDialog.this,
 	    					regmessage,
 	    					"Not registred",
@@ -326,7 +335,7 @@ public class LoginDialog extends JDialog {
         
         String payload2;
 		try {
-			payload2 = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\",\"salt\":\"%s\"}", username, hashString(password));
+			payload2 = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username, hashString(password));
 			con.setDoOutput(true);
 	        try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
 	            byte[] postData = payload2.getBytes(StandardCharsets.UTF_8);
@@ -354,9 +363,10 @@ public class LoginDialog extends JDialog {
             message = response.toString();
             System.out.println(response.toString());
             
-            if(response.toString().contains("Logged in :")) {
+            if(response.toString().contains("Great news!")) {
             	String[] sentences = response.toString().split(": ");  
             	userId = sentences[1];
+            	
             	return true;
             }
         } 
@@ -403,12 +413,12 @@ public class LoginDialog extends JDialog {
             in.close();
             
             regmessage = response.toString();
-            System.out.println(response.toString());
+            System.out.println(regmessage);
             
-            if(response.toString().contains("Registered to DB")) {
+            if(response.toString().contains("Success!")) {
             	return true;
             }
-            if(response.toString().contains("User already exists")) {
+            if(response.toString().contains("Sorry")) {
             	return false;
             }
         }

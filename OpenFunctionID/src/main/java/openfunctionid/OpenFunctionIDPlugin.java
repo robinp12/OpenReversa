@@ -64,6 +64,14 @@ import javax.swing.JFileChooser;
 import javax.swing.JComponent;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.FileInputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
 /**
  * TODO: Provide class-level documentation that describes what this plugin does.
  */
@@ -88,9 +96,12 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     
 
     private FidFileManager fidFileManager;
+    private File file;
 
     private List<File> openFiDbFiles;
     private List<String> openFiDbFilesNames;
+    
+    private static final String POST_URL = "http://127.0.0.1:5000/";
 
     private DockingAction loginAction;
     private DockingAction pullAction;
@@ -116,11 +127,11 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         tool.getComponentProvider("Decompiler").addLocalAction(uploadCAction);
         updateOpenFiDbFiles();
         createActions();
-        loginAction.setEnabled(true);
+        /*loginAction.setEnabled(true);
         pullAction.setEnabled(false);
         pushAction.setEnabled(false);
         deleteAction.setEnabled(false);
-        discardAction.setEnabled(false);
+        discardAction.setEnabled(false);*/
     }
 
     @Override
@@ -354,10 +365,47 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         updateOpenFiDbFiles();
     }
     
-    /*private static boolean pushRequest(List<FidFile> fidFile, File openFiDbFile) {
-    	
-    	return false;
-    }*/
+    private static void sendPOST(File file) throws IOException {
+        String fileName = file.getName();
+        URL obj = new URL(POST_URL + "file");
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/octet-stream");
+        con.setRequestProperty("Content-Length", String.valueOf(file.length()));
+        con.setRequestProperty("X-File-Name", fileName); // add this line to include the file name
+        con.setDoOutput(true);
+
+        int chunkSize = 4096;
+        byte[] buffer = new byte[chunkSize];
+        try (FileInputStream fis = new FileInputStream(file);
+             OutputStream os = con.getOutputStream()) {
+
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) > 0) {
+                os.write(buffer, 0, bytesRead);
+                os.flush();
+            }
+        }
+
+        int responseCode = con.getResponseCode();
+        System.out.println("POST Response Code :: " + responseCode);
+
+        if (responseCode == HttpURLConnection.HTTP_OK) { //success
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            // print result
+            System.out.println(response.toString());
+        } else {
+            System.out.println("POST request did not work.");
+        }
+    }
     
     private void pushOpenFiDbFiles() {
     	JFileChooser chooser = new JFileChooser();
@@ -368,7 +416,15 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         if(returnVal == JFileChooser.APPROVE_OPTION) {
            System.out.println("You chose to open this file: " +
                 chooser.getSelectedFile().getName());
+           file = chooser.getSelectedFile();
+           try {
+			 sendPOST(file);
+           } catch (IOException e) {
+			// TODO Auto-generated catch block
+			 e.printStackTrace();
+           }
         }
+
     }
 
     private void updateOpenFiDbFiles(){

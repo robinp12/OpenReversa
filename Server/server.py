@@ -1,6 +1,9 @@
 from bson import ObjectId
 from flask import Flask, request, jsonify
 from pymongo import MongoClient
+from bson.binary import Binary
+import io
+import os
 
 app = Flask(__name__)
 client = MongoClient('mongodb://localhost:27017/')
@@ -45,6 +48,41 @@ def login():
             return "Logged in : " + user["_id"]
         return 'Incorrect login'
     return 'Not registered'
+
+@app.route("/file", methods=['POST'])
+def file_push():
+    file_data = b""
+    while True:
+        chunk = request.stream.read(4096)
+        if not chunk:
+            break
+        file_data += chunk
+    file_name = request.headers.get('X-File-Name')
+    if file_name:
+        if not file_name.endswith(".fidb"):
+            file_name += ".fidb"
+        collection.insert_one({"file_name": file_name, "file_data": Binary(file_data)})
+        return f"File '{file_name}' uploaded successfully."
+    else:
+        collection.insert_one({"file_data": Binary(file_data)})
+        return "File uploaded successfully."
+
+@app.route('/get/<file_name>', methods=['GET'])
+def get_file(file_name):
+    file_doc = collection.find_one({"file_name": "test.fidb"})
+    if file_doc is None:
+        return "File not found in database"
+    else:
+        # Get the file name and binary data from the database
+        file_name = file_doc['file_name']
+        file_data = file_doc['file_data']
+
+        # Read the binary data into a BytesIO object
+        file_data = io.BytesIO(file_data)
+
+        # Save the file to disk
+        with open(os.path.join(os.getcwd(), file_name), 'wb') as f:
+            f.write(file_data.getbuffer())
 
 # Read operation
 @app.route('/get/<name>', methods=['GET'])

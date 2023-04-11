@@ -127,11 +127,11 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         tool.getComponentProvider("Decompiler").addLocalAction(uploadCAction);
         updateOpenFiDbFiles();
         createActions();
-        /*loginAction.setEnabled(true);
+        loginAction.setEnabled(true);
         pullAction.setEnabled(false);
         pushAction.setEnabled(false);
         deleteAction.setEnabled(false);
-        discardAction.setEnabled(false);*/
+        discardAction.setEnabled(false);
     }
 
     @Override

@@ -1,5 +1,5 @@
 from bson import ObjectId
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from pymongo import MongoClient
 from bson.binary import Binary
 import io
@@ -29,9 +29,9 @@ def register():
     user = users.find_one({'name': name})
     if user == None:
         users.insert_one({"name": name,"pwdHash": hash})
-        return "Registered to DB"
+        return Response("Success! You can now log in with your new username and password.")
     else:
-        return "User already exists"
+        return Response("Sorry, this username is already taken. Please choose another one.")
 
 # Login
 @app.route("/login", methods=['POST'])
@@ -45,9 +45,9 @@ def login():
         user["_id"] = str(user['_id'])
         hashServer = user['pwdHash']
         if hash == hashServer:
-            return "Logged in : " + user["_id"]
-        return 'Incorrect login'
-    return 'Not registered'
+            return Response("Great news! You have successfully accessed your account.\n Your id : " + user['_id'])
+        return Response("Invalid username or password. Please try again.")
+    return Response("Username not found. Please try again.")
 
 @app.route("/file", methods=['POST'])
 def file_push():

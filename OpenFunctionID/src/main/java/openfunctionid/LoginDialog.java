@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -334,10 +335,11 @@ public class LoginDialog extends JDialog {
 	        }
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
+	        message = "Sorry, the server is currently unavailable. Please try again later.";
 			e.printStackTrace();
 		}
         
-        String payload2;
+       /* String payload2;
 		try {
 			payload2 = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username, hashString(password));
 			con.setDoOutput(true);
@@ -348,7 +350,7 @@ public class LoginDialog extends JDialog {
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 
         
         int responseCode = con.getResponseCode();
@@ -400,6 +402,7 @@ public class LoginDialog extends JDialog {
 	        }
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
+	        regmessage = "Sorry, the server is currently unavailable. Please try again later.";
 			e.printStackTrace();
 		}
         

@@ -2,15 +2,12 @@ from bson import ObjectId
 from flask import Flask, request, jsonify, Response, abort
 from pymongo import MongoClient
 from bson.binary import Binary
-import io
-import os
 
 app = Flask(__name__)
 client = MongoClient('mongodb://localhost:27017/')
 db = client['FunctionID']
 collection = db['fidb']
 users = db['users']
-
 
 # Create operation
 @app.route('/create', methods=['POST'])
@@ -49,6 +46,7 @@ def login():
         return Response("Invalid username or password. Please try again.")
     return Response("Username not found. Please try again.")
 
+# Add files to DB (push)
 @app.route("/file", methods=['POST'])
 def file_push():
     file_data = b""
@@ -57,11 +55,12 @@ def file_push():
         if not chunk:
             break
         file_data += chunk
-        
+
     file_name = request.headers.get('X-File-Name')
     user_name = request.headers.get('Username')
     user = users.find_one({'_id':  ObjectId(user_name)})  
-
+    print(user)
+    print(request.headers)
     # If others try to send wrong file or not connected user
     if len(file_data) <= 0 or user == None: 
         abort(404)
@@ -75,26 +74,32 @@ def file_push():
         collection.insert_one({"file_data": Binary(file_data)})
         return "File uploaded successfully."
 
-@app.route('/get/<file_name>', methods=['GET'])
-def get_file(file_name):
-    file_doc = collection.find_one({"file_name": "test.fidb"})
-    if file_doc is None:
-        return "File not found in database"
+@app.route('/get', methods=['GET'])
+def get_file():
+    # file_doc = collection.find_one({"file_name": "test.fidb"})
+    all = collection.find()
+    output = [{'User' : fidb['user'], 'Name' : fidb['file_name']} for fidb in all]
+    # output_data = [{'Data' : fidb['file_data'], 'Name' : fidb['file_name']} for fidb in all]
+    print(len(output))
+    if len(output) <= 0:
+        return Response("File not found in database")
     else:
+        return jsonify(output)
         # Get the file name and binary data from the database
-        file_name = file_doc['file_name']
-        file_data = file_doc['file_data']
+        # file_name = file_doc['file_name']
+        # file_data = file_doc['file_data']
 
         # Read the binary data into a BytesIO object
-        file_data = io.BytesIO(file_data)
+        # file_data = io.BytesIO(file_data)
 
         # Save the file to disk
-        with open(os.path.join(os.getcwd(), file_name), 'wb') as f:
-            f.write(file_data.getbuffer())
+        # with open(os.path.join(os.getcwd(), file_name), 'wb') as f:
+            # f.write(file_data.getbuffer())
 
 # Read operation
 @app.route('/get/<name>', methods=['GET'])
 def get(name):
+    client.save_file()
     data = collection.find_one({'value': name})
     data['_id'] = str(data['_id'])
     print(data)

@@ -92,6 +92,10 @@ public class LoginDialog extends JDialog {
         return succeeded;
     }
     
+    public static String getUserId() {
+    	return userId;
+    }
+    
     public static String hashString(String msg) throws Exception {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(msg.getBytes("UTF-8"));

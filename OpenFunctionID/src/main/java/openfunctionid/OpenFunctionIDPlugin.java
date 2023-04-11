@@ -373,6 +373,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         con.setRequestProperty("Content-Type", "application/octet-stream");
         con.setRequestProperty("Content-Length", String.valueOf(file.length()));
         con.setRequestProperty("X-File-Name", fileName); // add this line to include the file name
+        con.setRequestProperty("Username", LoginDialog.getUserId()); // add this line to include the file name
         con.setDoOutput(true);
 
         int chunkSize = 4096;

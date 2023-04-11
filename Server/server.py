@@ -1,5 +1,5 @@
 from bson import ObjectId
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, abort
 from pymongo import MongoClient
 from bson.binary import Binary
 import io
@@ -57,11 +57,19 @@ def file_push():
         if not chunk:
             break
         file_data += chunk
+        
     file_name = request.headers.get('X-File-Name')
+    user_name = request.headers.get('Username')
+    user = users.find_one({'_id':  ObjectId(user_name)})  
+
+    # If others try to send wrong file or not connected user
+    if len(file_data) <= 0 or user == None: 
+        abort(404)
     if file_name:
         if not file_name.endswith(".fidb"):
             file_name += ".fidb"
-        collection.insert_one({"file_name": file_name, "file_data": Binary(file_data)})
+
+        collection.insert_one({"file_name": file_name, "file_data": Binary(file_data),"user":user_name})
         return f"File '{file_name}' uploaded successfully."
     else:
         collection.insert_one({"file_data": Binary(file_data)})

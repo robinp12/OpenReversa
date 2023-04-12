@@ -445,7 +445,11 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
 
             // print result
             System.out.println(response.toString());
-        } else {
+        } else if (responseCode == HttpURLConnection.HTTP_CONFLICT) { // file already exists in the database
+        	String message = "This file has already been inserted into the database by ";
+            message += con.getHeaderField("user_name") + ".";
+            JOptionPane.showMessageDialog(null, message, "File Already Exists", JOptionPane.WARNING_MESSAGE);
+        }  else {
             System.out.println("POST request did not work.");
         }
     }

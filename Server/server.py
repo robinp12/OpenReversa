@@ -1,7 +1,7 @@
 import zipfile
 
 from bson import ObjectId
-from flask import Flask, request, jsonify, Response, abort
+from flask import Flask, request, jsonify, Response, abort, make_response
 from pymongo import MongoClient
 from bson.binary import Binary
 import io
@@ -70,6 +70,12 @@ def file_push():
     if file_name:
         if not file_name.endswith(".fidb"):
             file_name += ".fidb"
+
+        existing_file = collection.find_one({"file_name": file_name})
+        if existing_file:
+            response = make_response(f"File '{file_name}' already exists in the database.", 409)
+            response.headers['user_name'] = existing_file['user']
+            return response
 
         collection.insert_one({"file_name": file_name, "file_data": Binary(file_data),"user":user_name})
         return f"File '{file_name}' uploaded successfully."

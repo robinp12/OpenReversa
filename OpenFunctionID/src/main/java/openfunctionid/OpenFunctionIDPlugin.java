@@ -113,6 +113,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private DockingAction pushAction;
     private DockingAction deleteAction;
     private DockingAction discardAction;
+    private DockingAction logoutAction;
 
     /**
      * Plugin constructor.
@@ -133,6 +134,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         updateOpenFiDbFiles();
         createActions();
         loginAction.setEnabled(true);
+        logoutAction.setEnabled(false);
         pullAction.setEnabled(false);
         pushAction.setEnabled(false);
         deleteAction.setEnabled(false);
@@ -147,11 +149,11 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private void createActions() {
         DockingAction action;
 
-      // Login 
+        //Login 
         action = new DockingAction("Login", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
-            	LoginDialog login = new LoginDialog(loginAction,pullAction,pushAction,deleteAction,discardAction);
+            	LoginDialog login = new LoginDialog(loginAction,pullAction,pushAction,deleteAction,discardAction,logoutAction);
             }
         };
         action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "login"));
@@ -161,6 +163,21 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
         loginAction = action;
+        
+        //Logout
+        action = new DockingAction("Logout", getName()) {
+            @Override
+            public void actionPerformed(ActionContext context) {
+            	disableActions();
+            }
+        };
+        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "logout"));
+        action.setMenuBarData(new MenuData(
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
+                        "Logout"},
+                null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
+        this.tool.addAction(action);
+        logoutAction = action;
         
         //Pull the repo
         action = new DockingAction("Pull the repo",getName()) {
@@ -551,9 +568,19 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         openFiDbFilesNames = new ArrayList<>();
         openFiDbFiles.forEach(dbFile -> openFiDbFilesNames.add(dbFile.getName()));
     }
+    
+    private void disableActions() {
+    	loginAction.setEnabled(true);
+    	logoutAction.setEnabled(false);
+        pullAction.setEnabled(false);
+        pushAction.setEnabled(false);
+        deleteAction.setEnabled(false);
+        discardAction.setEnabled(false);
+    }
 
     private void enableActions() {
     	loginAction.setEnabled(false);
+    	logoutAction.setEnabled(true);
         pullAction.setEnabled(true);
         pushAction.setEnabled(true);
         deleteAction.setEnabled(true);

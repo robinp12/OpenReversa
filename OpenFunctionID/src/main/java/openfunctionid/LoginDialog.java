@@ -50,6 +50,7 @@ public class LoginDialog extends JDialog {
 	private DockingAction deleteAction;
 	private DockingAction discardAction;
 	private DockingAction pushAction;
+	private DockingAction logoutAction;
 
 	private static final String POST_URL = "http://127.0.0.1:5000/";
 	
@@ -59,13 +60,14 @@ public class LoginDialog extends JDialog {
 
 
 	public LoginDialog(DockingAction loginAction, DockingAction pullAction, DockingAction pushAction, DockingAction deleteAction,
-			DockingAction discardAction) {
+			DockingAction discardAction, DockingAction logoutAction) {
 		
 		this.loginAction = loginAction;
 		this.pullAction = pullAction;
 		this.deleteAction = deleteAction;
 		this.discardAction = discardAction;
 		this.pushAction = pushAction;
+		this.logoutAction = logoutAction;
 		loginDialog();    	
     }
 
@@ -175,6 +177,7 @@ public class LoginDialog extends JDialog {
 	    			deleteAction.setEnabled(true);
 	    			discardAction.setEnabled(true);
 	    			pushAction.setEnabled(true);
+	    			logoutAction.setEnabled(true);
 
 	    			frame.dispose();
 	    			dispose();

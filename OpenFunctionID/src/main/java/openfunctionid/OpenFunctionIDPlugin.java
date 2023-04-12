@@ -73,6 +73,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.io.BufferedOutputStream;
 
 /**
  * TODO: Provide class-level documentation that describes what this plugin does.
@@ -496,9 +499,48 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
                 outputStream.close();
             }
             inputStream.close();
+       
+            String destDirectory = Application.getMyModuleRootDirectory().getAbsolutePath() + "/data/OpenFiDb";
+
+            File destDir = new File(destDirectory);
+            if (!destDir.exists()) {
+                destDir.mkdirs();
+            }
+            
+            try (ZipInputStream zipStream = new ZipInputStream(new FileInputStream(dir.getPath() + "/" + fileNames.get(0)))) {
+                ZipEntry entry = zipStream.getNextEntry();
+
+                // Iterate over the entries and extract each file
+                while (entry != null) {
+                    String filePath = destDirectory + File.separator + entry.getName();
+                    if (!entry.isDirectory()) {
+                        extractFile(zipStream, filePath);
+                    } else {
+                        // Create the directory if it does not exist
+                        File directory = new File(filePath);
+                        directory.mkdirs();
+                    }
+
+                    zipStream.closeEntry();
+                    entry = zipStream.getNextEntry();
+                }
+            }
+            File file = new File(Application.getMyModuleRootDirectory().getAbsolutePath()+"/data/all_files.zip");
+            file.delete();
             System.out.println("Files downloaded successfully.");
         } else {
             System.out.println("Server returned response code " + responseCode);
+        }
+    }
+  
+    private void extractFile(ZipInputStream zipStream, String filePath) throws IOException {
+    	
+        try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(filePath))) {
+            byte[] buffer = new byte[4096];
+            int bytesRead = -1;
+            while ((bytesRead = zipStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead);
+            }
         }
     }
 

@@ -47,6 +47,7 @@ import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -69,6 +70,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -158,7 +160,27 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         loginAction = action;
         
         //Pull the repo
-        action = new DockingAction("Pull the repo", getName()) {
+        action = new DockingAction("Pull the repo",getName()) {
+            @Override
+            public void actionPerformed(ActionContext context) { 
+            	try {
+					Pull();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            }
+        };
+        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "pulltherepo"));
+        action.setMenuBarData(new MenuData(
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
+                        "Pull the repo"},
+                null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
+        this.tool.addAction(action);
+        pullAction = action;
+        
+        //Pull the repo
+        /*action = new DockingAction("Pull the repo", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
 
@@ -191,7 +213,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
                         "Pull the repo"},
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
-        pullAction = action;
+        pullAction = action;*/
         
         //Push FiDb files
         action = new DockingAction("Push FiDb files",getName()) {
@@ -408,34 +430,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         }
     }
     
-    private static void receiveFilesName() throws IOException {
-        URL obj = new URL(POST_URL + "get");
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("GET");
-        con.setRequestProperty("Content-Type", "application/octet-stream");
-        con.setDoOutput(true);
-
-        int responseCode = con.getResponseCode();
-        System.out.println("POST Response Code :: " + responseCode);
-
-        if (responseCode == HttpURLConnection.HTTP_OK) { //success
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-
-            // print result
-            System.out.println(response.toString());
-        } else {
-            System.out.println("POST request did not work.");
-        }
-        
-    }
-    
     private void pushOpenFiDbFiles() {
     	JFileChooser chooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
@@ -454,6 +448,58 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
            }
         }
 
+    }
+    
+    public void Pull() throws Exception {
+        URL url = new URL(POST_URL + "download_files");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        int responseCode = connection.getResponseCode();
+
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+            String contentType = connection.getContentType();
+            String disposition = connection.getHeaderField("Content-Disposition");
+            int contentLength = connection.getContentLength();
+
+            List<String> fileNames = new ArrayList<>();
+
+            if (disposition != null) {
+                // extract the file names from the Content-Disposition header
+                String[] parts = disposition.split("filename=");
+                if (parts.length > 1) {
+                    String fileName = parts[1].replaceAll("\"", "");
+                    fileNames.add(fileName);
+                }
+            } else {
+                // extract the file names from the URL
+                String fileName = url.getFile();
+                fileNames.add(fileName.substring(fileName.lastIndexOf("/") + 1));
+            }
+
+            // create the directory to store the files
+            File dir = new File(Application.getMyModuleRootDirectory().getAbsolutePath()+"/data");
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            // download the files and save them to the directory
+            InputStream inputStream = connection.getInputStream();
+            byte[] buffer = new byte[4096];
+            int bytesRead = -1;
+            for (String fileName : fileNames) {
+                String filePath = Application.getMyModuleRootDirectory().getAbsolutePath()+"/data" + "/" + fileName;
+                OutputStream outputStream = new FileOutputStream(filePath);
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    outputStream.write(buffer, 0, bytesRead);
+                }
+                outputStream.close();
+            }
+            inputStream.close();
+            System.out.println("Files downloaded successfully.");
+        } else {
+            System.out.println("Server returned response code " + responseCode);
+        }
     }
 
     private void updateOpenFiDbFiles(){

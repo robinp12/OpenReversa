@@ -1,7 +1,10 @@
+import zipfile
+
 from bson import ObjectId
 from flask import Flask, request, jsonify, Response, abort
 from pymongo import MongoClient
 from bson.binary import Binary
+import io
 
 app = Flask(__name__)
 client = MongoClient('mongodb://localhost:27017/')
@@ -74,27 +77,36 @@ def file_push():
         collection.insert_one({"file_data": Binary(file_data)})
         return "File uploaded successfully."
 
-@app.route('/get', methods=['GET'])
-def get_file():
-    # file_doc = collection.find_one({"file_name": "test.fidb"})
-    all = collection.find()
-    output = [{'User' : fidb['user'], 'Name' : fidb['file_name']} for fidb in all]
-    # output_data = [{'Data' : fidb['file_data'], 'Name' : fidb['file_name']} for fidb in all]
-    print(len(output))
-    if len(output) <= 0:
-        return Response("File not found in database")
-    else:
-        return jsonify(output)
-        # Get the file name and binary data from the database
-        # file_name = file_doc['file_name']
-        # file_data = file_doc['file_data']
+@app.route('/download_files', methods=['GET'])
+def download_files():
+    files = collection.find()
 
-        # Read the binary data into a BytesIO object
-        # file_data = io.BytesIO(file_data)
+    # Create an in-memory byte stream to store the zipped files
+    memory_stream = io.BytesIO()
 
-        # Save the file to disk
-        # with open(os.path.join(os.getcwd(), file_name), 'wb') as f:
-            # f.write(file_data.getbuffer())
+    # Create a zip file object with the in-memory byte stream
+    with zipfile.ZipFile(memory_stream, mode='w') as zip_file:
+        # Add each file to the zip file
+        for file in files:
+            file_name = file['file_name']
+            file_data = file['file_data']
+
+            # Write the file data to the zip file
+            zip_file.writestr(file_name, file_data)
+
+    # Move the stream position back to the beginning
+    memory_stream.seek(0)
+
+    # Create a Flask response with the zip file data
+    response = app.response_class(memory_stream.read(), mimetype='application/zip')
+    response.headers.set('Content-Disposition', 'attachment', filename='all_files.zip')
+
+    # Close the memory stream and zip file
+    memory_stream.close()
+    zip_file.close()
+
+    # Send the zip file as a response
+    return response
 
 # Read operation
 @app.route('/get/<name>', methods=['GET'])

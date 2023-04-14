@@ -298,30 +298,7 @@ public class LoginDialog extends JDialog {
 		});    	
     }
     
-    /*private static boolean get_salt(String username) throws IOException {
-    	URL obj = new URL(GET_URL);
-		HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-		con.setRequestMethod("GET");
-		con.setRequestProperty("Content-Type", "application/json");
-		int responseCode = con.getResponseCode();
-		System.out.println("GET Response Code :: " + responseCode);
-		if (responseCode == HttpURLConnection.HTTP_OK) { // success
-			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-			String inputLine;
-			StringBuffer response = new StringBuffer();
 
-			while ((inputLine = in.readLine()) != null) {
-				response.append(inputLine);
-			}
-			in.close();
-
-			// print result
-			System.out.println(response.toString());
-		} else {
-			System.out.println("GET request did not work.");
-		}
-    }*/
-    
     private static boolean login_request(String username, String password) throws IOException {
     	
     	URL obj = new URL(POST_URL + "login");
@@ -341,20 +318,6 @@ public class LoginDialog extends JDialog {
 	        message = "Sorry, the server is currently unavailable. Please try again later.";
 			e.printStackTrace();
 		}
-        
-       /* String payload2;
-		try {
-			payload2 = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username, hashString(password));
-			con.setDoOutput(true);
-	        try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
-	            byte[] postData = payload2.getBytes(StandardCharsets.UTF_8);
-	            wr.write(postData);
-	        }
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
-
         
         int responseCode = con.getResponseCode();
         System.out.println("POST Response Code :: " + responseCode);

@@ -1,3 +1,4 @@
+import os
 import zipfile
 
 from bson import ObjectId
@@ -5,6 +6,17 @@ from flask import Flask, request, jsonify, Response, abort, make_response
 from pymongo import MongoClient
 from bson.binary import Binary
 import io
+import uuid
+import datetime
+import smtplib
+from email.mime.text import MIMEText
+from dotenv import load_dotenv
+
+env_path = 'credentials.env'
+load_dotenv(env_path)
+
+FROM_EMAIL = os.getenv('FROM_EMAIL')
+PASSWORD = os.getenv('PASSWORD')
 
 app = Flask(__name__)
 client = MongoClient('mongodb://localhost:27017/')
@@ -19,33 +31,78 @@ def create():
     result = collection.insert_one(data)
     return jsonify(str(result.inserted_id))
 
-# Register
 @app.route("/register", methods=['POST'])
 def register():
     payload = request.get_json()
-    name = payload['username']
+    email = payload['username']
     hash = payload['pwdHash']
 
-    user = users.find_one({'name': name})
-    if user == None:
-        users.insert_one({"name": name,"pwdHash": hash})
-        return Response("Success! You can now log in with your new username and password.")
-    else:
+    print(email)
+    user = users.find_one({'email': email})
+    if user != None:
         return Response("Sorry, this username is already taken. Please choose another one.")
 
+    verification_token = str(uuid.uuid4())
+    expiration_time = datetime.datetime.utcnow() + datetime.timedelta(days=1)
+    users.insert_one({
+        "pwdHash": hash,
+        "email": email,
+        "verification_token": verification_token,
+        "verification_expiration": expiration_time
+    })
+
+    recipient_email = email
+    message = MIMEText(f'Hi {email}, please click the following link to verify your email address: http://127.0.0.1:5000/verify_email?token={verification_token}')
+    message['Subject'] = 'Verify Your Email Address'
+    message['From'] = FROM_EMAIL
+    message['To'] = recipient_email
+
+    try:
+        with smtplib.SMTP('send.one.com', 587) as smtp_server:
+            smtp_server.starttls()
+            smtp_server.login(FROM_EMAIL, PASSWORD)
+            smtp_server.send_message(message)
+    except Exception as e:
+        return Response("Sorry, we were unable to send the verification email. Please try again later.")
+
+    return Response("Success! A verification email has been sent to your email address.")
+
+
+@app.route("/verify_email", methods=['GET'])
+def verify_email():
+    token = request.args.get('token')
+    print("hello")
+    user = users.find_one({'verification_token': token})
+    if user == None:
+        return Response("Sorry, the verification link is invalid.")
+
+    now = datetime.datetime.utcnow()
+    if user['verification_expiration'] < now:
+        return Response("Sorry, the verification link has expired.")
+
+    users.update_one(
+        {"_id": user["_id"]},
+        {"$unset": {"verification_token": "", "verification_expiration": ""}}
+    )
+
+    return Response("Success! Your email address has been verified.")
 # Login
 @app.route("/login", methods=['POST'])
 def login():
     payload = request.get_json()
-    name = payload['username']
+    email = payload['username']
     hash = payload['pwdHash']
 
-    user = users.find_one({'name': name})  
+    user = users.find_one({'email': email})
+
     if user != None:
         user["_id"] = str(user['_id'])
         hashServer = user['pwdHash']
         if hash == hashServer:
-            return Response("Great news! You have successfully accessed your account.\n Your id : " + user['_id'])
+            if not "verification_token" in user:
+                return Response("Great news! You have successfully accessed your account.\n Your id : " + user['_id'])
+            else:
+                return Response("You didnt verify your email address")
         return Response("Invalid username or password. Please try again.")
     return Response("Username not found. Please try again.")
 

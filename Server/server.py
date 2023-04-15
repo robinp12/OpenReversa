@@ -36,6 +36,7 @@ def register():
     payload = request.get_json()
     email = payload['username']
     hash = payload['pwdHash']
+    salt = payload['salt']
 
     print(email)
     user = users.find_one({'email': email})
@@ -46,6 +47,7 @@ def register():
     expiration_time = datetime.datetime.utcnow() + datetime.timedelta(days=1)
     users.insert_one({
         "pwdHash": hash,
+        "salt" : salt,
         "email": email,
         "verification_token": verification_token,
         "verification_expiration": expiration_time
@@ -71,7 +73,6 @@ def register():
 @app.route("/verify_email", methods=['GET'])
 def verify_email():
     token = request.args.get('token')
-    print("hello")
     user = users.find_one({'verification_token': token})
     if user == None:
         return Response("Sorry, the verification link is invalid.")
@@ -87,7 +88,18 @@ def verify_email():
 
     return Response("Success! Your email address has been verified.")
 # Login
-@app.route("/login", methods=['POST'])
+
+@app.route("/get_salt", methods=['POST'])
+def get_salt():
+    payload = request.get_json()
+    email = payload['username']
+
+    user = users.find_one({'email': email})
+
+    salt_and_pwd_hash = f"{user['salt']},{user['pwdHash']}"
+    return Response(salt_and_pwd_hash)
+
+"""@app.route("/login", methods=['POST'])
 def login():
     payload = request.get_json()
     email = payload['username']
@@ -105,7 +117,7 @@ def login():
                 return Response("You didnt verify your email address")
         return Response("Invalid username or password. Please try again.")
     return Response("Username not found. Please try again.")
-
+"""
 # Add files to DB (push)
 @app.route("/file", methods=['POST'])
 def file_push():

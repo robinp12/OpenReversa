@@ -15,7 +15,9 @@ import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.util.Arrays;
 import java.util.Base64;
+
 
 
 public class LoginDialog extends JDialog {
@@ -298,10 +300,53 @@ public class LoginDialog extends JDialog {
 		});    	
     }
     
+    private static String[] get_salt(String username) throws IOException {
+        URL obj = new URL(POST_URL + "get_salt");
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/json");
+        String payload;
+        try {
+            payload = String.format("{\"username\":\"%s\"}", username);
+            con.setDoOutput(true);
+            try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
+                byte[] postData = payload.getBytes(StandardCharsets.UTF_8);
+                wr.write(postData);
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            message = "Sorry, the server is currently unavailable. Please try again later.";
+            e.printStackTrace();
+        }
+        int responseCode = con.getResponseCode();
+        System.out.println("POST Response Code :: " + responseCode);
+        if (responseCode == HttpURLConnection.HTTP_OK) { // success
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
+
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+            }
+            in.close();
+
+            String[] saltAndPwdHash = response.toString().split(",");
+            return saltAndPwdHash;
+        } else {
+            System.out.println("GET request did not work.");
+            return null;
+        }
+    }
 
     private static boolean login_request(String username, String password) throws IOException {
+    	String[] respons = get_salt(username);	
+    	Encryption encrypt = new Encryption();
+    	boolean decrypt = encrypt.verifyUserPassword(password, respons[1], respons[0]);
+    	if (decrypt) {
+    		return true;
+    	}return false;
     	
-    	URL obj = new URL(POST_URL + "login");
+    	/*URL obj = new URL(POST_URL + "login");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
@@ -346,21 +391,21 @@ public class LoginDialog extends JDialog {
         	System.out.println("POST request did not work.");
         	return false;
         }
-		return false;
+		return false; */
     }
     private static boolean register_request(String username, String password, String confirm) throws IOException {
     	
-    	//Encryption encrypt = new Encryption();
-    	//String saltvalue = encrypt.getSaltvalue(30);
-    	//String encryptedpassword = encrypt.generateSecurePassword(password, saltvalue);
+    	Encryption encrypt = new Encryption();
+    	String saltvalue = encrypt.getSaltvalue(30);
+    	String encryptedpassword = encrypt.generateSecurePassword(password, saltvalue);
     	URL obj = new URL(POST_URL + "register");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
         String payload;
 		try {
-			//payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\",\"salt\":\"%s\"}", username, encryptedpassword, saltvalue);
-			payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username, hashString(password));
+			payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\",\"salt\":\"%s\"}", username, encryptedpassword, saltvalue);
+			//payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username, hashString(password));
 			con.setDoOutput(true);
 	        try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
 	            byte[] postData = payload.getBytes(StandardCharsets.UTF_8);

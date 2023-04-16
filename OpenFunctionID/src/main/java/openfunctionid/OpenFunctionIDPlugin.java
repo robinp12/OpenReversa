@@ -52,6 +52,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -60,7 +61,10 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
+import javax.swing.ListSelectionModel;
 import javax.swing.JFileChooser;
 import javax.swing.JComponent;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -75,8 +79,9 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipFile;
 import java.io.BufferedOutputStream;
-
+import javax.swing.JList;
 /**
  * TODO: Provide class-level documentation that describes what this plugin does.
  */
@@ -99,7 +104,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private static final String REPO_URL = "https://github.com/Cyjanss/OpenFiDb.git";
     private static final String REPO_NAME = "OpenFiDb";
     
-
+    
     private FidFileManager fidFileManager;
     private File file;
 
@@ -175,16 +180,34 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         action.setMenuBarData(new MenuData(
                 new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
                         "Logout"},
-                null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
+                null, MENU_GROUP_2, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
         logoutAction = action;
+        
+        //Push FiDb files
+        action = new DockingAction("Push FiDb files",getName()) {
+            @Override
+            public void actionPerformed(ActionContext context) { 
+            	pushOpenFiDbFiles();
+            }
+        };
+        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "push"));
+        action.setMenuBarData(new MenuData(
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
+                        "Push FiDb files"},
+                null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
+        this.tool.addAction(action);
+        pushAction = action;
         
         //Pull the repo
         action = new DockingAction("Pull the repo",getName()) {
             @Override
             public void actionPerformed(ActionContext context) { 
             	try {
-					Pull();
+					Pullrequest();
+					updateOpenFiDbFiles();
+			        attachAll();
+			        chooseActive();
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -235,20 +258,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         this.tool.addAction(action);
         pullAction = action;*/
         
-        //Push FiDb files
-        action = new DockingAction("Push FiDb files",getName()) {
-            @Override
-            public void actionPerformed(ActionContext context) { 
-            	pushOpenFiDbFiles();
-            }
-        };
-        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "push"));
-        action.setMenuBarData(new MenuData(
-                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
-                        "Push FiDb files"},
-                null, MENU_GROUP_2, MenuData.NO_MNEMONIC, "1"));
-        this.tool.addAction(action);
-        pushAction = action;
 
         //Delete all openFiDb files
         action = new DockingAction("Delete all openFiDb files",getName()) {
@@ -474,7 +483,8 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
 
     }
     
-    public void Pull() throws Exception {
+    public void Pullrequest() throws Exception {
+    	
         URL url = new URL(POST_URL + "download_files");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
@@ -512,7 +522,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             byte[] buffer = new byte[4096];
             int bytesRead = -1;
             for (String fileName : fileNames) {
-                String filePath = Application.getMyModuleRootDirectory().getAbsolutePath()+"/data" + "/" + fileName;
+                String filePath = dir.getPath() + "/" + fileName;
                 OutputStream outputStream = new FileOutputStream(filePath);
                 while ((bytesRead = inputStream.read(buffer)) != -1) {
                     outputStream.write(buffer, 0, bytesRead);
@@ -520,40 +530,82 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
                 outputStream.close();
             }
             inputStream.close();
-       
+
             String destDirectory = Application.getMyModuleRootDirectory().getAbsolutePath() + "/data/OpenFiDb";
 
             File destDir = new File(destDirectory);
             if (!destDir.exists()) {
                 destDir.mkdirs();
-            }
-            
-            try (ZipInputStream zipStream = new ZipInputStream(new FileInputStream(dir.getPath() + "/" + fileNames.get(0)))) {
-                ZipEntry entry = zipStream.getNextEntry();
-
-                // Iterate over the entries and extract each file
-                while (entry != null) {
-                    String filePath = destDirectory + File.separator + entry.getName();
-                    if (!entry.isDirectory()) {
-                        extractFile(zipStream, filePath);
-                    } else {
-                        // Create the directory if it does not exist
-                        File directory = new File(filePath);
-                        directory.mkdirs();
-                    }
-
-                    zipStream.closeEntry();
-                    entry = zipStream.getNextEntry();
+            } else {
+                File[] files = destDir.listFiles();
+                for (File file : files) {
+                    file.delete();
                 }
             }
-            File file = new File(Application.getMyModuleRootDirectory().getAbsolutePath()+"/data/all_files.zip");
-            file.delete();
-            System.out.println("Files downloaded successfully.");
+            selectAndExtractFilesFromZip(dir, fileNames, destDirectory);
         } else {
             System.out.println("Server returned response code " + responseCode);
         }
     }
   
+    public void selectAndExtractFilesFromZip(File dir, List<String> fileNames, String destDirectory) throws IOException {
+        List<String> fileNamesList = new ArrayList<>();
+        try (ZipFile zipFile = new ZipFile(dir.getPath() + "/" + fileNames.get(0))) {
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                fileNamesList.add(entry.getName());
+            }
+        }
+
+        String[] options = fileNamesList.toArray(new String[fileNamesList.size()]);
+
+        // Create a custom cell renderer to display checkboxes next to the list items
+        ListCellRenderer<? super String> renderer = new JCheckBoxListCellRenderer();
+
+        JList<String> list = new JList<>(options);
+        list.setCellRenderer(renderer);
+        list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+
+        JScrollPane scrollPane = new JScrollPane(list);
+
+        int option = JOptionPane.showConfirmDialog(null, scrollPane, "Select Files", JOptionPane.OK_CANCEL_OPTION);
+        if (option == JOptionPane.OK_OPTION) {
+            List<String> selectedFileNames = list.getSelectedValuesList();
+            if (selectedFileNames.isEmpty()) {
+                // User did not select any files
+                return;
+            }
+
+            for (String selectedFileName : selectedFileNames) {
+                try (ZipInputStream zipStream = new ZipInputStream(new FileInputStream(dir.getPath() + "/" + fileNames.get(0)))) {
+                    ZipEntry entry = zipStream.getNextEntry();
+
+                    // Iterate over the entries and extract the selected files
+                    while (entry != null) {
+                        if (entry.getName().equals(selectedFileName)) {
+                            String filePath = destDirectory + File.separator + entry.getName();
+                            if (!entry.isDirectory()) {
+                                extractFile(zipStream, filePath);
+                            } else {
+                                // Create the directory if it does not exist
+                                File directory = new File(filePath);
+                                directory.mkdirs();
+                            }
+                        }
+
+                        zipStream.closeEntry();
+                        entry = zipStream.getNextEntry();
+                    }
+                }
+            }
+        }
+
+        File file = new File(Application.getMyModuleRootDirectory().getAbsolutePath()+"/data/all_files.zip");
+        file.delete();
+        System.out.println("Files downloaded successfully.");
+    }
+    
     private void extractFile(ZipInputStream zipStream, String filePath) throws IOException {
     	
         try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(filePath))) {
@@ -609,3 +661,4 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         OpenFunctionIDPackage.println(tool,"[OpenFunctionID] "+s);
     }
 }
+

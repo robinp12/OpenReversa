@@ -107,122 +107,123 @@ public class LoginDialog extends JDialog {
         return Base64.getEncoder().encodeToString(hash);
     }
     private void loginDialog() {
-    	
-    	JFrame frame = new JFrame();
-    	JPanel topPanel = new JPanel();
-    	JPanel subPanel = new JPanel();
-    	
-	   	frame.setLocationRelativeTo(null);
-	   	frame.setSize(500, 150);
-	   	frame.setLayout(new GridLayout(2,1,5,5));
-	   	frame.setVisible(true);	
-	   	frame.setResizable(false);
-	   	
-   		frame.setTitle("Login");
+        JDialog dialog = new JDialog();
+        dialog.setModal(true);
 
-		nameLogLabel = new JLabel("Username: ");
-		nameLogField = new JTextField(20);
-		passLogLabel = new JLabel("Password: ");
-		passLogField = new JPasswordField(20);
+        JPanel topPanel = new JPanel();
+        JPanel subPanel = new JPanel();
 
-		topPanel.add(nameLogLabel);
-		topPanel.add(nameLogField);
-		topPanel.add(passLogLabel);
-		topPanel.add(passLogField);
-		
-		btnLogin = new JButton("Login");
-		btnRegister = new JButton("Register");
-		subPanel.add(new JLabel());
-		subPanel.add(btnRegister);
-		subPanel.add(new JLabel());
-	
-		btnCancel = new JButton("Cancel");		
-	
-		topPanel.add(btnLogin);
-		topPanel.add(btnCancel);
-		topPanel.setLayout(new GridLayout(3,2,5,2));
-		
-		subPanel.setLayout(new GridLayout(1,3,5,2));
-						
-		frame.add(topPanel);
-		frame.add(subPanel);
-		
-		JRootPane rootPane = SwingUtilities.getRootPane(btnLogin); 
-		rootPane.setDefaultButton(btnLogin);
+        dialog.setLocationRelativeTo(null);
+        dialog.setSize(500, 150);
+        dialog.setLayout(new GridLayout(2, 1, 5, 5));
+        dialog.setResizable(false);
 
-		btnLogin.addActionListener(new ActionListener() {
-		    public void actionPerformed(ActionEvent e) {
-		    	if(nameLogField.getText().isEmpty()
-		    			|| passLogField.getPassword().length == 0) {
-		    		JOptionPane.showMessageDialog(LoginDialog.this,
-		    				"Please fill out all required fields to continue.",
-	    					"Error",
-	    					JOptionPane.ERROR_MESSAGE);
-		    		return;
-		    	}
-		    	boolean isLogged = false;
-				try {
-					isLogged = login_request(getUsername(), getPassword());
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-				
-	    		if (isLogged) {
-	    			JOptionPane.showMessageDialog(LoginDialog.this,
-	    					message,
-	    					"Logged in",
-	    					JOptionPane.INFORMATION_MESSAGE);
-	    			succeeded = true;
-	    			
-	    			loginAction.setEnabled(false);
-	    			pullAction.setEnabled(true);
-	    			deleteAction.setEnabled(true);
-	    			discardAction.setEnabled(true);
-	    			pushAction.setEnabled(true);
-	    			logoutAction.setEnabled(true);
+        dialog.setTitle("Login");
 
-	    			frame.dispose();
-	    			dispose();
-	    		} 
-	    		else {
-	    			JOptionPane.showMessageDialog(LoginDialog.this, 
-	    					message, 
-	    					"Login error",
-	    					JOptionPane.ERROR_MESSAGE);
-	    			// reset password
-	    			passLogField.setText("");
-	    			succeeded = false;
-	    		}		    	
-		    }
-		});
-		
-		btnCancel.addActionListener(new ActionListener() {
-		    public void actionPerformed(ActionEvent e) {
-	    		frame.dispose();
-		    	dispose();
-		    }
-		});
-		
-		btnRegister.addActionListener(new ActionListener() {
-		    public void actionPerformed(ActionEvent e) {
-	    		registerDialog();
-		    }
-		});
-    	
+        nameLogLabel = new JLabel("Username: ");
+        nameLogField = new JTextField(20);
+        passLogLabel = new JLabel("Password: ");
+        passLogField = new JPasswordField(20);
+
+        topPanel.add(nameLogLabel);
+        topPanel.add(nameLogField);
+        topPanel.add(passLogLabel);
+        topPanel.add(passLogField);
+
+        btnLogin = new JButton("Login");
+        btnRegister = new JButton("Register");
+        subPanel.add(new JLabel());
+        subPanel.add(btnRegister);
+        subPanel.add(new JLabel());
+
+        btnCancel = new JButton("Cancel");
+
+        topPanel.add(btnLogin);
+        topPanel.add(btnCancel);
+        topPanel.setLayout(new GridLayout(3, 2, 5, 2));
+
+        subPanel.setLayout(new GridLayout(1, 3, 5, 2));
+
+        dialog.add(topPanel);
+        dialog.add(subPanel);
+
+        JRootPane rootPane = SwingUtilities.getRootPane(btnLogin);
+        rootPane.setDefaultButton(btnLogin);
+
+        btnLogin.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (nameLogField.getText().isEmpty()
+                        || passLogField.getPassword().length == 0) {
+                    JOptionPane.showMessageDialog(LoginDialog.this,
+                            "Please fill out all required fields to continue.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                boolean isLogged = false;
+                try {
+                    isLogged = login_request(getUsername(), getPassword());
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+
+                if (isLogged) {
+                    JOptionPane.showMessageDialog(LoginDialog.this,
+                            message,
+                            "Logged in",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    succeeded = true;
+
+                    loginAction.setEnabled(false);
+                    pullAction.setEnabled(true);
+                    deleteAction.setEnabled(true);
+                    discardAction.setEnabled(true);
+                    pushAction.setEnabled(true);
+                    logoutAction.setEnabled(true);
+
+                    dialog.dispose();
+                    dispose();
+                } else {
+                    JOptionPane.showMessageDialog(LoginDialog.this,
+                            message,
+                            "Login error",
+                            JOptionPane.ERROR_MESSAGE);
+                    // reset password
+                    passLogField.setText("");
+                    succeeded = false;
+                }
+            }
+        });
+
+        btnCancel.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                dialog.dispose();
+                dispose();
+            }
+        });
+
+        btnRegister.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                registerDialog();
+            }
+        });
+
+        dialog.setVisible(true);
     }
     
     private void registerDialog() {
     	
-    	JFrame frame = new JFrame();
+    	JDialog dialog = new JDialog();
+        dialog.setModal(true);
+        
     	JPanel topPanel = new JPanel();
     	JPanel subPanel = new JPanel();
     	
-	   	frame.setLocationRelativeTo(null);
-	   	frame.setSize(500, 150);
-	   	frame.setLayout(new GridLayout(2,1,5,5));
-	   	frame.setVisible(true);	
-	   	frame.setResizable(false);
-   		frame.setTitle("Register");
+	   	dialog.setLocationRelativeTo(null);
+	   	dialog.setSize(500, 150);
+	   	dialog.setLayout(new GridLayout(2,1,5,5));
+	   	dialog.setResizable(false);
+   		dialog.setTitle("Register");
    				
 		nameRegLabel = new JLabel("Username: ");
 		nameRegField = new JTextField(20);
@@ -247,8 +248,8 @@ public class LoginDialog extends JDialog {
 		
 		subPanel.setLayout(new GridLayout(1,3,5,2));
 						
-		frame.add(topPanel);
-		frame.add(subPanel);
+		dialog.add(topPanel);
+		dialog.add(subPanel);
 		
 		JRootPane rootPane = SwingUtilities.getRootPane(confirmRegButt); 
 		rootPane.setDefaultButton(confirmRegButt);
@@ -287,7 +288,7 @@ public class LoginDialog extends JDialog {
 	    					regmessage,
 	    					"Registred",
 	    					JOptionPane.INFORMATION_MESSAGE);
-	    			frame.dispose();
+	    			dialog.dispose();
 
 	    		}
 	    		if(!isRegistered) {
@@ -297,7 +298,8 @@ public class LoginDialog extends JDialog {
 	    					JOptionPane.ERROR_MESSAGE);
 	    		}
 		    }
-		});    	
+		});  
+		dialog.setVisible(true);
     }
     
     private static String[] get_salt(String username) throws IOException {

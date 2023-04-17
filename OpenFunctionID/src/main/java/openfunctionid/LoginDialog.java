@@ -347,6 +347,7 @@ public class LoginDialog extends JDialog {
     	Encryption encrypt = new Encryption();
     	boolean decrypt = encrypt.verifyUserPassword(password, respons[1], respons[0]);
     	if (decrypt) {
+    		userId = respons[2];
     		return true;
     	}return false;
     	

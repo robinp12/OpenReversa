@@ -424,6 +424,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         con.setRequestProperty("Content-Type", "application/octet-stream");
         con.setRequestProperty("Content-Length", String.valueOf(file.length()));
         con.setRequestProperty("X-File-Name", fileName); // add this line to include the file name
+        System.out.println(LoginDialog.getUserId());
         con.setRequestProperty("Username", LoginDialog.getUserId()); // add this line to include the file name
         con.setDoOutput(true);
 
@@ -572,8 +573,15 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         selectAllButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Select all items in the list
-                list.setSelectionInterval(0, options.length - 1);
+                if (selectAllButton.getText().equals("Select All")) {
+                    // Select all items in the list
+                    list.setSelectionInterval(0, options.length - 1);
+                    selectAllButton.setText("Deselect All");
+                } else {
+                    // Deselect all items in the list
+                    list.clearSelection();
+                    selectAllButton.setText("Select All");
+                }
             }
         });
 
@@ -581,6 +589,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         panel.add(selectAllButton);
 
         JScrollPane scrollPane = new JScrollPane(list);
+        scrollPane.setPreferredSize(new Dimension(200, 300));
         scrollPane.setColumnHeaderView(panel);
 
         int option = JOptionPane.showConfirmDialog(null, scrollPane, "Select Files", JOptionPane.OK_CANCEL_OPTION);

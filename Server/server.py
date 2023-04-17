@@ -96,7 +96,7 @@ def get_salt():
 
     user = users.find_one({'email': email})
 
-    salt_and_pwd_hash = f"{user['salt']},{user['pwdHash']}"
+    salt_and_pwd_hash = f"{user['salt']},{user['pwdHash']},{user['_id']}"
     return Response(salt_and_pwd_hash)
 
 """@app.route("/login", methods=['POST'])

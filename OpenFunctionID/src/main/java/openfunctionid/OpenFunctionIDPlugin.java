@@ -567,7 +567,21 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         list.setCellRenderer(renderer);
         list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
+        // Create a "Select All" button and add it to a panel above the list
+        JButton selectAllButton = new JButton("Select All");
+        selectAllButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Select all items in the list
+                list.setSelectionInterval(0, options.length - 1);
+            }
+        });
+
+        JPanel panel = new JPanel();
+        panel.add(selectAllButton);
+
         JScrollPane scrollPane = new JScrollPane(list);
+        scrollPane.setColumnHeaderView(panel);
 
         int option = JOptionPane.showConfirmDialog(null, scrollPane, "Select Files", JOptionPane.OK_CANCEL_OPTION);
         if (option == JOptionPane.OK_OPTION) {

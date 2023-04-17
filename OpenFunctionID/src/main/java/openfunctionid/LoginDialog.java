@@ -17,6 +17,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 
@@ -395,7 +397,19 @@ public class LoginDialog extends JDialog {
         }
 		return false; */
     }
+    private static boolean isValidEmailAddress(String email) {
+        String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(email);
+        return matcher.matches();
+    }
+
     private static boolean register_request(String username, String password, String confirm) throws IOException {
+        if (!isValidEmailAddress(username)) {
+            // Show an error message to the user
+            regmessage = "Invalid email address.";
+            return false;
+        }
     	
     	Encryption encrypt = new Encryption();
     	String saltvalue = encrypt.getSaltvalue(30);

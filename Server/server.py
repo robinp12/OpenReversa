@@ -45,13 +45,6 @@ def register():
 
     verification_token = str(uuid.uuid4())
     expiration_time = datetime.datetime.utcnow() + datetime.timedelta(days=1)
-    users.insert_one({
-        "pwdHash": hash,
-        "salt" : salt,
-        "email": email,
-        "verification_token": verification_token,
-        "verification_expiration": expiration_time
-    })
 
     recipient_email = email
     message = MIMEText(f'Hi {email}, please click the following link to verify your email address: http://127.0.0.1:5000/verify_email?token={verification_token}')
@@ -67,6 +60,13 @@ def register():
     except Exception as e:
         return Response("Sorry, we were unable to send the verification email. Please try again later.")
 
+    users.insert_one({
+        "pwdHash": hash,
+        "salt": salt,
+        "email": email,
+        "verification_token": verification_token,
+        "verification_expiration": expiration_time
+    })
     return Response("Success! A verification email has been sent to your email address.")
 
 
@@ -95,6 +95,9 @@ def get_salt():
     email = payload['username']
 
     user = users.find_one({'email': email})
+
+    if "verification_token" in user:
+        return Response("You didnt verify your email address")
 
     salt_and_pwd_hash = f"{user['salt']},{user['pwdHash']},{user['_id']}"
     return Response(salt_and_pwd_hash)

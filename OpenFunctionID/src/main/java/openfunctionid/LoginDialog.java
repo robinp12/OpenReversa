@@ -5,6 +5,7 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import docking.action.DockingAction;
+import ghidra.util.Msg;
 
 import java.net.URL;
 import java.io.BufferedReader;
@@ -304,7 +305,7 @@ public class LoginDialog extends JDialog {
 		dialog.setVisible(true);
     }
     
-    private static String[] get_salt(String username) throws IOException {
+    private boolean login_request(String username, String password) throws IOException {
         URL obj = new URL(POST_URL + "get_salt");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
@@ -333,23 +334,25 @@ public class LoginDialog extends JDialog {
                 response.append(inputLine);
             }
             in.close();
-
-            String[] saltAndPwdHash = response.toString().split(",");
-            return saltAndPwdHash;
+            
+            if(response.toString().contains("didnt verify")) {
+            	return false;
+            }
+            
+	        String[] saltAndPwdHash = response.toString().split(",");
+	        Encryption encrypt = new Encryption();
+	    	boolean decrypt = encrypt.verifyUserPassword(password, saltAndPwdHash[1], saltAndPwdHash[0]);
+	    	if (decrypt) {
+	    		userId = saltAndPwdHash[2];
+	    		return true;
+	    	}return false;
+        	
         } else {
             System.out.println("GET request did not work.");
-            return null;
+            return false;
         }
-    }
-
-    private static boolean login_request(String username, String password) throws IOException {
-    	String[] respons = get_salt(username);	
-    	Encryption encrypt = new Encryption();
-    	boolean decrypt = encrypt.verifyUserPassword(password, respons[1], respons[0]);
-    	if (decrypt) {
-    		userId = respons[2];
-    		return true;
-    	}return false;
+    }	
+    	
     	
     	/*URL obj = new URL(POST_URL + "login");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -397,7 +400,7 @@ public class LoginDialog extends JDialog {
         	return false;
         }
 		return false; */
-    }
+   
     private static boolean isValidEmailAddress(String email) {
         String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$";
         Pattern pattern = Pattern.compile(regex);

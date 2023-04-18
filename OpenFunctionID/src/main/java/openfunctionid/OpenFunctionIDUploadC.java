@@ -10,7 +10,7 @@ import ghidra.app.decompiler.PrettyPrinter;
 import ghidra.app.plugin.core.decompile.DecompilerActionContext;
 import ghidra.app.plugin.core.decompile.actions.ExportToCAction;
 import ghidra.app.script.SelectLanguageDialog;
-import ghidra.program.model.lang.LanguageCompilerSpecPair;
+import ghidra.program.model.lang.LanguageCompilerSpecPair;import ghidra.sleigh.grammar.SleighParser_SemanticParser.booland_op_return;
 import ghidra.util.HelpLocation;
 import ghidra.util.Msg;
 import ghidra.util.exception.CancelledException;
@@ -35,7 +35,11 @@ public class OpenFunctionIDUploadC extends ExportToCAction {
     /**
      * Server is not up, the community dataset and users contributions are not available
      */
-    boolean serverIsUp = false;
+    private static boolean connected = false;
+    
+    public static void setConnected(boolean co) {
+    	connected = co;
+    }
 
     OpenFunctionIDUploadC() {
         super();
@@ -46,8 +50,8 @@ public class OpenFunctionIDUploadC extends ExportToCAction {
 
     @Override
     protected void decompilerActionPerformed(DecompilerActionContext context) {
-        if (!serverIsUp){
-            Msg.showInfo(getClass(),null,"Server is down","Since OpenFunctionID Server is down, users contributions have been depreciated.");
+        if (!connected){
+            Msg.showInfo(getClass(),null,"Not connected yet","Since OpenFunctionID need to authenticate, users need to be connected.");
             return;
         }else if (!getCCode(context)) {
             return;
@@ -216,7 +220,7 @@ class SendToOpenFiDb extends Task {
     @Override
     public void run(TaskMonitor monitor) throws CancelledException {
         try {
-            URL url = new URL("http://localhost:8080/");
+            URL url = new URL("http://127.0.0.1:5000/send_file");
 
 
             HashMap<String, String> arguments = new HashMap<>();
@@ -234,9 +238,14 @@ class SendToOpenFiDb extends Task {
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
             connection.setRequestProperty("Content-Length", String.valueOf(out.length));
-            connection.setRequestProperty("unique_id", user_id +"_"+ UUID.randomUUID().toString().replace("-", ""));
+            connection.setRequestProperty("unique_id", LoginDialog.getUserId());
+            connection.setRequestProperty("libraryFamilyName", libraryFamilyName);
+            connection.setRequestProperty("libraryVersion", libraryVersion);
+            connection.setRequestProperty("libraryVariant", libraryVariant);
+            connection.setRequestProperty("languageId", languageId);
+            connection.setRequestProperty("codeC", Base64.getEncoder().encodeToString(codeC.getBytes(StandardCharsets.UTF_8)));
             connection.setDoOutput(true);
-            connection.getOutputStream().write(out);
+            //connection.getOutputStream().write(out);
 
             Reader result = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
 

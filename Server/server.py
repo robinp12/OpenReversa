@@ -11,6 +11,8 @@ import datetime
 import smtplib
 from email.mime.text import MIMEText
 from dotenv import load_dotenv
+import base64
+
 
 env_path = 'credentials.env'
 load_dotenv(env_path)
@@ -50,6 +52,7 @@ def register():
     message = MIMEText(f'Hi {email}, please click the following link to verify your email address: http://127.0.0.1:5000/verify_email?token={verification_token}')
     message['Subject'] = 'Verify Your Email Address'
     message['From'] = FROM_EMAIL
+    print(FROM_EMAIL)
     message['To'] = recipient_email
 
     try:
@@ -154,6 +157,80 @@ def file_push():
     else:
         collection.insert_one({"file_data": Binary(file_data)})
         return "File uploaded successfully."
+
+@app.route("/send_file", methods=['POST'])
+def file_send():
+
+    user_name = request.headers.get('Unique-Id')
+    library_name = request.headers.get('Libraryfamilyname')
+    library_version = request.headers.get('Libraryversion')
+    library_variant = request.headers.get('Libraryvariant')
+    language_id = request.headers.get('Languageid')
+    function_hash = request.headers.get('Codec')
+    function_decoded = base64.b64decode(function_hash).decode('utf-8')
+    print(request.headers)
+    user = users.find_one({'_id':  ObjectId(user_name)})  
+    print(user)
+    # If others try to send wrong file or not connected user
+    if len(function_hash) <= 0 or user == None: 
+        abort(404)
+    if function_hash:
+        existing_file = collection.find_one({"function_hash": function_hash})
+        if existing_file:
+            print("Existe deja")
+            response = make_response(f"Function already exists in the database.", 409)
+            response.headers['user_name'] = existing_file['user']
+            return response
+
+        collection.insert_one({"user":user_name, 
+                               "library_name": library_name,
+                               "library_version": library_version,
+                               "library_variant": library_variant,
+                               "language_id": language_id,
+                               "function_hash": function_hash,
+                               })
+        return f"Function uploaded successfully."
+    else:
+        collection.insert_one({"function_hash": function_hash})
+        return "File uploaded successfully."
+
+@app.route("/receive_file", methods=['GET'])
+def receive_send():
+    #TODO LOT OF USELESS THINGS
+    user_name = request.headers.get('Unique-Id')
+    library_name = request.headers.get('Libraryfamilyname')
+    library_version = request.headers.get('Libraryversion')
+    library_variant = request.headers.get('Libraryvariant')
+    language_id = request.headers.get('Languageid')
+    function_hash = request.headers.get('Codec')
+    function_decoded = base64.b64decode(function_hash).decode('utf-8')
+    print(request.headers)
+    user = collection.find_one({"user":  user_name})  
+    print(user)
+    # If others try to send wrong file or not connected user
+    if len(function_hash) <= 0 or user == None: 
+        abort(404)
+    if function_hash:
+        existing_file = collection.find_one({"user": user_name})
+        if existing_file:
+            print("Existe deja")
+            response = make_response(f"Function already exists in the database.", 409)
+            response.headers['user_name'] = existing_file['user']
+            return response
+
+        collection.insert_one({"user":user_name, 
+                               "library_name": library_name,
+                               "library_version": library_version,
+                               "library_variant": library_variant,
+                               "language_id": language_id,
+                               "function_hash": function_hash,
+                               })
+        return f"Function uploaded successfully."
+    else:
+        collection.insert_one({"function_hash": function_hash})
+        return "File uploaded successfully."
+
+
 
 @app.route('/download_files', methods=['GET'])
 def download_files():

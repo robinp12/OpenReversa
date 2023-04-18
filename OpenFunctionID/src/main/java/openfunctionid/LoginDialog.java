@@ -183,6 +183,7 @@ public class LoginDialog extends JDialog {
                     discardAction.setEnabled(true);
                     pushAction.setEnabled(true);
                     logoutAction.setEnabled(true);
+                    OpenFunctionIDUploadC.setConnected(true); 
 
                     dialog.dispose();
                     dispose();

@@ -163,16 +163,16 @@ public class LoginDialog extends JDialog {
                             JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                boolean isLogged = false;
+                int isLogged = 0;
                 try {
                     isLogged = login_request(getUsername(), getPassword());
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
 
-                if (isLogged) {
+                if (isLogged == 1) {
                     JOptionPane.showMessageDialog(LoginDialog.this,
-                            message,
+                            "Welcome !",
                             "Logged in",
                             JOptionPane.INFORMATION_MESSAGE);
                     succeeded = true;
@@ -186,7 +186,7 @@ public class LoginDialog extends JDialog {
 
                     dialog.dispose();
                     dispose();
-                } else {
+                } else if (isLogged == 3) {
                     JOptionPane.showMessageDialog(LoginDialog.this,
                             message,
                             "Login error",
@@ -194,7 +194,17 @@ public class LoginDialog extends JDialog {
                     // reset password
                     passLogField.setText("");
                     succeeded = false;
+                } else {
+                	JOptionPane.showMessageDialog(LoginDialog.this,
+                            "Verify Your Email Address",
+                            "Login error",
+                            JOptionPane.ERROR_MESSAGE);
+                    // reset password
+                    passLogField.setText("");
+                    succeeded = false;
                 }
+                
+                
             }
         });
 
@@ -305,7 +315,7 @@ public class LoginDialog extends JDialog {
 		dialog.setVisible(true);
     }
     
-    private boolean login_request(String username, String password) throws IOException {
+    private int login_request(String username, String password) throws IOException {
         URL obj = new URL(POST_URL + "get_salt");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
@@ -336,7 +346,7 @@ public class LoginDialog extends JDialog {
             in.close();
             
             if(response.toString().contains("didnt verify")) {
-            	return false;
+            	return 2;
             }
             
 	        String[] saltAndPwdHash = response.toString().split(",");
@@ -344,12 +354,12 @@ public class LoginDialog extends JDialog {
 	    	boolean decrypt = encrypt.verifyUserPassword(password, saltAndPwdHash[1], saltAndPwdHash[0]);
 	    	if (decrypt) {
 	    		userId = saltAndPwdHash[2];
-	    		return true;
-	    	}return false;
+	    		return 1;
+	    	}return 3;
         	
         } else {
             System.out.println("GET request did not work.");
-            return false;
+            return 3;
         }
     }	
     	

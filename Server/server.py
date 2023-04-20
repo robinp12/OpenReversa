@@ -1,7 +1,8 @@
+import json
 import os
 import zipfile
 
-from bson import ObjectId
+from bson import ObjectId, json_util
 from flask import Flask, request, jsonify, Response, abort, make_response
 from pymongo import MongoClient
 from bson.binary import Binary
@@ -234,34 +235,26 @@ def receive_send():
 
 @app.route('/download_files', methods=['GET'])
 def download_files():
-    files = collection.find()
+    data = list(collection.find())
 
-    # Create an in-memory byte stream to store the zipped files
-    memory_stream = io.BytesIO()
+    # Create an empty string to store the CSV data
+    csv_data = ""
 
-    # Create a zip file object with the in-memory byte stream
-    with zipfile.ZipFile(memory_stream, mode='w') as zip_file:
-        # Add each file to the zip file
-        for file in files:
-            file_name = file['file_name']
-            file_data = file['file_data']
+    # Iterate through the data and retrieve each desired field from each item
+    for item in data:
+        item_data = [
+            item["library_name"],
+            item["library_version"],
+            item["library_variant"],
+            item["language_id"],
+            item["function_hash"]
+        ]
+        # Join the fields with commas and add a newline character
+        csv_data += ",".join(item_data) + ";"
 
-            # Write the file data to the zip file
-            zip_file.writestr(file_name, file_data)
-
-    # Move the stream position back to the beginning
-    memory_stream.seek(0)
-
-    # Create a Flask response with the zip file data
-    response = app.response_class(memory_stream.read(), mimetype='application/zip')
-    response.headers.set('Content-Disposition', 'attachment', filename='all_files.zip')
-
-    # Close the memory stream and zip file
-    memory_stream.close()
-    zip_file.close()
-
-    # Send the zip file as a response
-    return response
+    print(csv_data)
+    # Return the CSV data as a plain text response
+    return Response(csv_data, mimetype='text/plain')
 
 # Read operation
 @app.route('/get/<name>', methods=['GET'])

@@ -37,6 +37,10 @@ import ghidra.util.task.TaskLauncher;
 import ghidra.util.task.TaskMonitor;
 import org.apache.commons.io.FileUtils;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -52,10 +56,16 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -82,6 +92,10 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipFile;
 import java.io.BufferedOutputStream;
 import javax.swing.JList;
+import java.io.ObjectInputStream;
+
+import java.util.Base64;
+
 /**
  * TODO: Provide class-level documentation that describes what this plugin does.
  */
@@ -119,6 +133,9 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private DockingAction deleteAction;
     private DockingAction discardAction;
     private DockingAction logoutAction;
+    private String responseString;
+    
+    private List<JCheckBox> checkboxes = new ArrayList<>();
 
     /**
      * Plugin constructor.
@@ -204,10 +221,10 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             @Override
             public void actionPerformed(ActionContext context) { 
             	try {
-					Pullrequest();
-					updateOpenFiDbFiles();
+					pullRequest();
+					/*updateOpenFiDbFiles();
 			        attachAll();
-			        chooseActive();
+			        chooseActive();*/
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -484,162 +501,53 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
 
     }
     
-    public void Pullrequest() throws Exception {
-    	
-        URL url = new URL(POST_URL + "download_files");
+    public boolean pullRequest() throws Exception {
+    	URL url = new URL(POST_URL + "download_files");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
 
         int responseCode = connection.getResponseCode();
+        System.out.println("Response code: " + responseCode);
 
-        if (responseCode == HttpURLConnection.HTTP_OK) {
-            String contentType = connection.getContentType();
-            String disposition = connection.getHeaderField("Content-Disposition");
-            int contentLength = connection.getContentLength();
+        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
 
-            List<String> fileNames = new ArrayList<>();
-
-            if (disposition != null) {
-                // extract the file names from the Content-Disposition header
-                String[] parts = disposition.split("filename=");
-                if (parts.length > 1) {
-                    String fileName = parts[1].replaceAll("\"", "");
-                    fileNames.add(fileName);
-                }
-            } else {
-                // extract the file names from the URL
-                String fileName = url.getFile();
-                fileNames.add(fileName.substring(fileName.lastIndexOf("/") + 1));
-            }
-
-            // create the directory to store the files
-            File dir = new File(Application.getMyModuleRootDirectory().getAbsolutePath()+"/data");
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-
-            // download the files and save them to the directory
-            InputStream inputStream = connection.getInputStream();
-            byte[] buffer = new byte[4096];
-            int bytesRead = -1;
-            for (String fileName : fileNames) {
-                String filePath = dir.getPath() + "/" + fileName;
-                OutputStream outputStream = new FileOutputStream(filePath);
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    outputStream.write(buffer, 0, bytesRead);
-                }
-                outputStream.close();
-            }
-            inputStream.close();
-
-            String destDirectory = Application.getMyModuleRootDirectory().getAbsolutePath() + "/data/OpenFiDb";
-
-            File destDir = new File(destDirectory);
-            if (!destDir.exists()) {
-                destDir.mkdirs();
-            } else {
-                File[] files = destDir.listFiles();
-                for (File file : files) {
-                    file.delete();
-                }
-            }
-            selectAndExtractFilesFromZip(dir, fileNames, destDirectory);
-        } else {
-            System.out.println("Server returned response code " + responseCode);
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
         }
-    }
-  
-    public void selectAndExtractFilesFromZip(File dir, List<String> fileNames, String destDirectory) throws IOException {
-        List<String> fileNamesList = new ArrayList<>();
-        try (ZipFile zipFile = new ZipFile(dir.getPath() + "/" + fileNames.get(0))) {
-            Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            while (entries.hasMoreElements()) {
-                ZipEntry entry = entries.nextElement();
-                fileNamesList.add(entry.getName());
-            }
+        in.close();
+
+        // Remove extra newline character, if any
+        String[] lines = response.toString().split(";");
+        ArrayList<String[]> output = new ArrayList<String[]>();
+        System.out.println(lines.length);
+        // Iterate through the lines and split them into fields
+        for (String line : lines) {
+        	String[] fields = line.split(",");
+            String libraryName = fields[0];
+            String libraryVersion = fields[1];
+            String libraryVariant = fields[2];
+            String languageId = fields[3];
+            String functionHash = fields[4];
+            byte[] decoded = Base64.getDecoder().decode(functionHash);
+            String decodedString = new String(decoded);
+            String[] pair = new String[2];
+            pair[0] = functionHash;
+            pair[1] = decodedString;
+            output.add(pair);
+            // Do something with the fields
+            System.out.println("Library name: " + libraryName);
+            System.out.println("Library version: " + libraryVersion);
+            System.out.println("Library variant: " + libraryVariant);
+            System.out.println("Language ID: " + languageId);
+            System.out.println("Function hash: " + functionHash);
         }
-
-        String[] options = fileNamesList.toArray(new String[fileNamesList.size()]);
-
-        // Create a custom cell renderer to display checkboxes next to the list items
-        ListCellRenderer<? super String> renderer = new JCheckBoxListCellRenderer();
-
-        JList<String> list = new JList<>(options);
-        list.setCellRenderer(renderer);
-        list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-
-        // Create a "Select All" button and add it to a panel above the list
-        JButton selectAllButton = new JButton("Select All");
-        selectAllButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (selectAllButton.getText().equals("Select All")) {
-                    // Select all items in the list
-                    list.setSelectionInterval(0, options.length - 1);
-                    selectAllButton.setText("Deselect All");
-                } else {
-                    // Deselect all items in the list
-                    list.clearSelection();
-                    selectAllButton.setText("Select All");
-                }
-            }
-        });
-
-        JPanel panel = new JPanel();
-        panel.add(selectAllButton);
-
-        JScrollPane scrollPane = new JScrollPane(list);
-        scrollPane.setPreferredSize(new Dimension(200, 300));
-        scrollPane.setColumnHeaderView(panel);
-
-        int option = JOptionPane.showConfirmDialog(null, scrollPane, "Select Files", JOptionPane.OK_CANCEL_OPTION);
-        if (option == JOptionPane.OK_OPTION) {
-            List<String> selectedFileNames = list.getSelectedValuesList();
-            if (selectedFileNames.isEmpty()) {
-                // User did not select any files
-                return;
-            }
-
-            for (String selectedFileName : selectedFileNames) {
-                try (ZipInputStream zipStream = new ZipInputStream(new FileInputStream(dir.getPath() + "/" + fileNames.get(0)))) {
-                    ZipEntry entry = zipStream.getNextEntry();
-
-                    // Iterate over the entries and extract the selected files
-                    while (entry != null) {
-                        if (entry.getName().equals(selectedFileName)) {
-                            String filePath = destDirectory + File.separator + entry.getName();
-                            if (!entry.isDirectory()) {
-                                extractFile(zipStream, filePath);
-                            } else {
-                                // Create the directory if it does not exist
-                                File directory = new File(filePath);
-                                directory.mkdirs();
-                            }
-                        }
-
-                        zipStream.closeEntry();
-                        entry = zipStream.getNextEntry();
-                    }
-                }
-            }
-        }
-
-        File file = new File(Application.getMyModuleRootDirectory().getAbsolutePath()+"/data/all_files.zip");
-        file.delete();
-        System.out.println("Files downloaded successfully.");
+        Selection dialog = new Selection(output);
+        tool.showDialog(dialog);
+        return true;
     }
     
-    private void extractFile(ZipInputStream zipStream, String filePath) throws IOException {
-    	
-        try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(filePath))) {
-            byte[] buffer = new byte[4096];
-            int bytesRead = -1;
-            while ((bytesRead = zipStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, bytesRead);
-            }
-        }
-    }
-
     private void updateOpenFiDbFiles(){
         List<ResourceFile> resourceFiles = Application.findFilesByExtensionInMyModule(".fidb");
         openFiDbFiles = new ArrayList<>();

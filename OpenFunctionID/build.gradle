@@ -17,6 +17,7 @@
 //
 // An absolute path to the Ghidra installation directory must be supplied either by setting the 
 // GHIDRA_INSTALL_DIR environment variable or Gradle project property:
+
 //
 //     > export GHIDRA_INSTALL_DIR=<Absolute path to Ghidra> 
 //     > gradle
@@ -55,6 +56,7 @@ repositories {
 }
 
 dependencies {
+
 	// Any external dependencies added here will automatically be copied to the lib/ directory when
 	// this extension is built.	
 }

@@ -3,12 +3,23 @@ package openfunctionid;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import javax.swing.JTextArea;
+import java.io.BufferedReader;
+import java.awt.Font;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -29,6 +40,8 @@ public class Selection extends DialogComponentProvider{
 	
 	private ArrayList<String[]> output;
 	private List<JCheckBox> checkboxes = new ArrayList<>();
+	private static final String POST_URL = "http://127.0.0.1:5000/";
+	private static String regmessage = "";
 
 	public Selection(ArrayList<String[]> output) {
 		super("Select Files", false);
@@ -87,7 +100,29 @@ public class Selection extends DialogComponentProvider{
 	        checkbox.addMouseListener(new MouseAdapter() {
 	            public void mouseClicked(MouseEvent e) {
 	                if (e.getClickCount() == 2) {
-	                    JOptionPane.showMessageDialog(null, "You double-clicked on " + names[1]);
+	                    JTextArea textArea = new JTextArea(names[1]);
+	                    textArea.setLineWrap(true);
+	                    textArea.setWrapStyleWord(true);
+	                    textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+	                    JScrollPane scrollPane = new JScrollPane(textArea);
+	                    scrollPane.setPreferredSize(new Dimension(500, 300));
+	                    JPanel messagePanel = new JPanel(new BorderLayout());
+	                    messagePanel.add(scrollPane, BorderLayout.CENTER);
+	                    JButton signalButton = new JButton("Signaler");
+	                    signalButton.addActionListener(new ActionListener() {
+	                        @Override
+	                        public void actionPerformed(ActionEvent e) {
+	                            try {
+									report(names[2]);
+								} catch (IOException e1) {
+									// TODO Auto-generated catch block
+									e1.printStackTrace();
+								}
+	                            System.out.println("Message signalé");
+	                        }
+	                    });
+	                    messagePanel.add(signalButton, BorderLayout.SOUTH);
+	                    JOptionPane.showMessageDialog(null, messagePanel, "Message", JOptionPane.PLAIN_MESSAGE);
 	                }
 	            }
 	        });
@@ -96,5 +131,45 @@ public class Selection extends DialogComponentProvider{
 	    }
 	    return panel;
 	}
-
+	
+	private static boolean report(String user) throws IOException {
+		URL obj = new URL(POST_URL + "report");
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/json");
+        con.setDoOutput(true);
+        
+        String payload = String.format("{\"user\":\"%s\"}", user);
+        
+        OutputStream os = con.getOutputStream();
+        os.write(payload.getBytes());
+        os.flush();
+        os.close();
+        
+        int responseCode = con.getResponseCode();
+		if (responseCode == HttpURLConnection.HTTP_OK) {
+		    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		    String inputLine;
+		    StringBuilder response = new StringBuilder();
+		    while ((inputLine = in.readLine()) != null) {
+		        response.append(inputLine);
+		    }
+		    in.close();
+		    regmessage = response.toString();
+		    
+		    if(response.toString().contains("Success!")) {
+            	return true;
+            }
+		    else {
+		    	return false;
+		    }  
+		    
+		}
+		else {
+			System.out.println("POST request did not work.");
+        	return false;
+		}
+        
+        
+	}
 }

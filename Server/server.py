@@ -91,8 +91,33 @@ def verify_email():
     )
 
     return Response("Success! Your email address has been verified.")
-# Login
 
+@app.route("/report", methods=['POST'])
+def report():
+    payload = request.get_json()
+    user = payload['user']
+
+    user = users.find_one({'_id': ObjectId(user)})
+    if user == None:
+        return Response("the user doesn't exist")
+
+    recipient_email = user["email"]
+    message = MIMEText(f'Hi {recipient_email}, this user just reported you...')
+    message['Subject'] = 'report'
+    message['From'] = FROM_EMAIL
+    message['To'] = recipient_email
+
+    try:
+        with smtplib.SMTP('send.one.com', 587) as smtp_server:
+            smtp_server.starttls()
+            smtp_server.login(FROM_EMAIL, PASSWORD)
+            smtp_server.send_message(message)
+    except Exception as e:
+        return Response("Sorry, we were unable to send the email. Please try again later.")
+
+    return Response("Success! A verification email has been sent to your email address.")
+
+# Login
 @app.route("/get_salt", methods=['POST'])
 def get_salt():
     payload = request.get_json()
@@ -106,25 +131,6 @@ def get_salt():
     salt_and_pwd_hash = f"{user['salt']},{user['pwdHash']},{user['_id']}"
     return Response(salt_and_pwd_hash)
 
-"""@app.route("/login", methods=['POST'])
-def login():
-    payload = request.get_json()
-    email = payload['username']
-    hash = payload['pwdHash']
-
-    user = users.find_one({'email': email})
-
-    if user != None:
-        user["_id"] = str(user['_id'])
-        hashServer = user['pwdHash']
-        if hash == hashServer:
-            if not "verification_token" in user:
-                return Response("Great news! You have successfully accessed your account.\n Your id : " + user['_id'])
-            else:
-                return Response("You didnt verify your email address")
-        return Response("Invalid username or password. Please try again.")
-    return Response("Username not found. Please try again.")
-"""
 # Add files to DB (push)
 @app.route("/file", methods=['POST'])
 def file_push():
@@ -243,6 +249,7 @@ def download_files():
     # Iterate through the data and retrieve each desired field from each item
     for item in data:
         item_data = [
+            item["user"],
             item["library_name"],
             item["library_version"],
             item["library_variant"],

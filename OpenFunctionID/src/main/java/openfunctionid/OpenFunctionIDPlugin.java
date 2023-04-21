@@ -518,30 +518,24 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         }
         in.close();
 
-        // Remove extra newline character, if any
         String[] lines = response.toString().split(";");
         ArrayList<String[]> output = new ArrayList<String[]>();
-        System.out.println(lines.length);
-        // Iterate through the lines and split them into fields
+
         for (String line : lines) {
         	String[] fields = line.split(",");
-            String libraryName = fields[0];
-            String libraryVersion = fields[1];
-            String libraryVariant = fields[2];
-            String languageId = fields[3];
-            String functionHash = fields[4];
+        	String user = fields[0];
+            String libraryName = fields[1];
+            String libraryVersion = fields[2];
+            String libraryVariant = fields[3];
+            String languageId = fields[4];
+            String functionHash = fields[5];
             byte[] decoded = Base64.getDecoder().decode(functionHash);
             String decodedString = new String(decoded);
-            String[] pair = new String[2];
+            String[] pair = new String[3];
             pair[0] = functionHash;
             pair[1] = decodedString;
+            pair[2] = user;
             output.add(pair);
-            // Do something with the fields
-            System.out.println("Library name: " + libraryName);
-            System.out.println("Library version: " + libraryVersion);
-            System.out.println("Library variant: " + libraryVariant);
-            System.out.println("Language ID: " + languageId);
-            System.out.println("Function hash: " + functionHash);
         }
         Selection dialog = new Selection(output);
         tool.showDialog(dialog);

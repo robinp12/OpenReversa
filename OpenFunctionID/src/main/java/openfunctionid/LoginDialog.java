@@ -363,54 +363,7 @@ public class LoginDialog extends JDialog {
             return 3;
         }
     }	
-    	
-    	
-    	/*URL obj = new URL(POST_URL + "login");
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/json");
-        String payload;
-        try {
-			payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username, hashString(password));
-			con.setDoOutput(true);
-	        try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
-	            byte[] postData = payload.getBytes(StandardCharsets.UTF_8);
-	            wr.write(postData);
-	        }
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-	        message = "Sorry, the server is currently unavailable. Please try again later.";
-			e.printStackTrace();
-		}
-        
-        int responseCode = con.getResponseCode();
-        System.out.println("POST Response Code :: " + responseCode);
-
-        if (responseCode == HttpURLConnection.HTTP_OK) { //success
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            
-            message = response.toString();
-            System.out.println(response.toString());
-            
-            if(response.toString().contains("Great news!")) {
-            	String[] sentences = response.toString().split(": ");  
-            	userId = sentences[1];
-            	
-            	return true;
-            }
-        } 
-        else {
-        	System.out.println("POST request did not work.");
-        	return false;
-        }
-		return false; */
+ 
    
     private static boolean isValidEmailAddress(String email) {
         String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$";

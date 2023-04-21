@@ -114,6 +114,38 @@ def discuss():
 
     return Response("Success! An email has been sent to his email address.")
 
+@app.route("/report", methods=['POST'])
+def report():
+    payload = request.get_json()
+    userto = payload['userto']
+    userfrom = payload['userfrom']
+
+    userto = users.find_one({'_id': ObjectId(userto)})
+    userfrom = users.find_one({'_id': ObjectId(userfrom)})
+
+    if userto == None:
+        return Response("the user doesn't exist")
+
+    recipient_email = userto["email"]
+    email_from = userfrom["email"]
+    print(email_from)
+    print(recipient_email)
+    message = MIMEText(f'Hi, {email_from} want to report : {recipient_email}')
+    print(message)
+    message['Subject'] = 'report request'
+    message['From'] = FROM_EMAIL
+    message['To'] = FROM_EMAIL
+
+    try:
+        with smtplib.SMTP('send.one.com', 587) as smtp_server:
+            smtp_server.starttls()
+            smtp_server.login(FROM_EMAIL, PASSWORD)
+            smtp_server.send_message(message)
+    except Exception as e:
+        return Response("Sorry, we were unable to send the email. Please try again later.")
+
+    return Response("Success! An email has been sent to his email address.")
+
 # Login
 @app.route("/get_salt", methods=['POST'])
 def get_salt():

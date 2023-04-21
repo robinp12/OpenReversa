@@ -108,20 +108,40 @@ public class Selection extends DialogComponentProvider{
 	                    scrollPane.setPreferredSize(new Dimension(500, 300));
 	                    JPanel messagePanel = new JPanel(new BorderLayout());
 	                    messagePanel.add(scrollPane, BorderLayout.CENTER);
+	                    
+	                    JPanel buttonPanel = new JPanel(new FlowLayout());
 	                    JButton signalButton = new JButton("Send a discussion request");
 	                    signalButton.addActionListener(new ActionListener() {
 	                        @Override
 	                        public void actionPerformed(ActionEvent e) {
 	                            try {
-									discuss(names[2]);
-								} catch (IOException e1) {
-									// TODO Auto-generated catch block
-									e1.printStackTrace();
-								}
+	                                discuss(names[2]);
+	                            } catch (IOException e1) {
+	                                e1.printStackTrace();
+	                            }
+	                            JOptionPane.showMessageDialog(null, "Discussion request sent successfully");
 	                            System.out.println("Message envoyé");
 	                        }
 	                    });
-	                    messagePanel.add(signalButton, BorderLayout.SOUTH);
+	                    buttonPanel.add(signalButton);
+	                    
+	                    JButton reportButton = new JButton("report");
+	                    reportButton.addActionListener(new ActionListener() {
+	                        @Override
+	                        public void actionPerformed(ActionEvent e) {
+	                            try {
+	                                report(names[2]);
+	                            } catch (IOException e1) {
+	                                e1.printStackTrace();
+	                            }
+	                            JOptionPane.showMessageDialog(null, "report request sent successfully");
+	                            System.out.println("Message signalé");
+	                        }
+	                    });
+	                    buttonPanel.add(reportButton);
+	                    
+	                    messagePanel.add(buttonPanel, BorderLayout.SOUTH);
+	                    
 	                    JOptionPane.showMessageDialog(null, messagePanel, "Function Overview", JOptionPane.PLAIN_MESSAGE);
 	                }
 	            }
@@ -169,7 +189,45 @@ public class Selection extends DialogComponentProvider{
 			System.out.println("POST request did not work.");
         	return false;
 		}
-        
-        
 	}
+		
+	private static boolean report(String userto) throws IOException {
+		URL obj = new URL(POST_URL + "report");
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/json");
+        con.setDoOutput(true);
+        String userfrom = LoginDialog.getUserId();
+        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\"}", userto, userfrom);
+        
+        OutputStream os = con.getOutputStream();
+        os.write(payload.getBytes());
+        os.flush();
+        os.close();
+        
+        int responseCode = con.getResponseCode();
+		if (responseCode == HttpURLConnection.HTTP_OK) {
+		    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		    String inputLine;
+		    StringBuilder response = new StringBuilder();
+		    while ((inputLine = in.readLine()) != null) {
+		        response.append(inputLine);
+		    }
+		    in.close();
+		    regmessage = response.toString();
+		    
+		    if(response.toString().contains("Success!")) {
+            	return true;
+            }
+		    else {
+		    	return false;
+		    }  
+		    
+		}
+		else {
+			System.out.println("POST request did not work.");
+        	return false;
+		}
+	}
+ 
 }

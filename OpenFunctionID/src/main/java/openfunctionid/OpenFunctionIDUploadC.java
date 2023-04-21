@@ -10,7 +10,7 @@ import ghidra.app.decompiler.PrettyPrinter;
 import ghidra.app.plugin.core.decompile.DecompilerActionContext;
 import ghidra.app.plugin.core.decompile.actions.ExportToCAction;
 import ghidra.app.script.SelectLanguageDialog;
-import ghidra.program.model.lang.LanguageCompilerSpecPair;import ghidra.sleigh.grammar.SleighParser_SemanticParser.booland_op_return;
+import ghidra.program.model.lang.LanguageCompilerSpecPair;
 import ghidra.util.HelpLocation;
 import ghidra.util.Msg;
 import ghidra.util.exception.CancelledException;
@@ -26,8 +26,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.UUID;
 
 public class OpenFunctionIDUploadC extends ExportToCAction {
 
@@ -237,19 +235,6 @@ class SendToOpenFiDb extends Task {
         } catch (IOException e) {
             Msg.showError(getClass(), null, "Error when sending data", "Error when sending data to OpenFiDb", e);
             throw new CancelledException("Error when sending data to OpenFiDb");
-        }
-    }
-
-    private String encodeSerializable(Serializable s) throws CancelledException {
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(s);
-            oos.close();
-            return Base64.getEncoder().encodeToString(baos.toByteArray());
-        } catch (IOException e) {
-            Msg.showError(getClass(), null, "Error when sending data", "Error when encoding the data before sending it to the OpenFiDb server", e);
-            throw new CancelledException("Error when encoding the data before sending it to the OpenFiDb server");
         }
     }
 }

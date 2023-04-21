@@ -27,13 +27,6 @@ db = client['FunctionID']
 collection = db['fidb']
 users = db['users']
 
-# Create operation
-@app.route('/create', methods=['POST'])
-def create():
-    data = request.json
-    result = collection.insert_one(data)
-    return jsonify(str(result.inserted_id))
-
 @app.route("/register", methods=['POST'])
 def register():
     payload = request.get_json()
@@ -209,44 +202,6 @@ def file_send():
         collection.insert_one({"function_hash": hash_code_only})
         return "File uploaded successfully."
 
-@app.route("/receive_file", methods=['GET'])
-def receive_send():
-    #TODO LOT OF USELESS THINGS
-    user_name = request.headers.get('Unique-Id')
-    library_name = request.headers.get('Libraryfamilyname')
-    library_version = request.headers.get('Libraryversion')
-    library_variant = request.headers.get('Libraryvariant')
-    language_id = request.headers.get('Languageid')
-    function_hash = request.headers.get('Codec')
-    function_decoded = base64.b64decode(function_hash).decode('utf-8')
-    print(request.headers)
-    user = collection.find_one({"user":  user_name})  
-    print(user)
-    # If others try to send wrong file or not connected user
-    if len(function_hash) <= 0 or user == None: 
-        abort(404)
-    if function_hash:
-        existing_file = collection.find_one({"user": user_name})
-        if existing_file:
-            print("Existe deja")
-            response = make_response(f"Function already exists in the database.", 409)
-            response.headers['user_name'] = existing_file['user']
-            return response
-
-        collection.insert_one({"user":user_name, 
-                               "library_name": library_name,
-                               "library_version": library_version,
-                               "library_variant": library_variant,
-                               "language_id": language_id,
-                               "function_hash": function_hash,
-                               })
-        return f"Function uploaded successfully."
-    else:
-        collection.insert_one({"function_hash": function_hash})
-        return "File uploaded successfully."
-
-
-
 @app.route('/download_files', methods=['GET'])
 def download_files():
     data = list(collection.find())
@@ -270,28 +225,6 @@ def download_files():
     print(csv_data)
     # Return the CSV data as a plain text response
     return Response(csv_data, mimetype='text/plain')
-
-# Read operation
-@app.route('/get/<name>', methods=['GET'])
-def get(name):
-    client.save_file()
-    data = collection.find_one({'value': name})
-    data['_id'] = str(data['_id'])
-    print(data)
-    return data
-
-# Update operation
-@app.route('/update/<id>', methods=['PUT'])
-def update(id):
-    data = request.json
-    result = collection.update_one({'_id': ObjectId(id)}, {'$set': data})
-    return jsonify({'modified_count': result.modified_count})
-
-# Delete operation
-@app.route('/delete/<id>', methods=['DELETE'])
-def delete(id):
-    result = collection.delete_one({'_id': ObjectId(id)})
-    return jsonify({'deleted_count': result.deleted_count})
 
 if __name__ == '__main__':
     app.run(debug=True)

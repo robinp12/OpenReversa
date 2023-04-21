@@ -108,21 +108,21 @@ public class Selection extends DialogComponentProvider{
 	                    scrollPane.setPreferredSize(new Dimension(500, 300));
 	                    JPanel messagePanel = new JPanel(new BorderLayout());
 	                    messagePanel.add(scrollPane, BorderLayout.CENTER);
-	                    JButton signalButton = new JButton("Signaler");
+	                    JButton signalButton = new JButton("Send a discussion request");
 	                    signalButton.addActionListener(new ActionListener() {
 	                        @Override
 	                        public void actionPerformed(ActionEvent e) {
 	                            try {
-									report(names[2]);
+									discuss(names[2]);
 								} catch (IOException e1) {
 									// TODO Auto-generated catch block
 									e1.printStackTrace();
 								}
-	                            System.out.println("Message signalé");
+	                            System.out.println("Message envoyé");
 	                        }
 	                    });
 	                    messagePanel.add(signalButton, BorderLayout.SOUTH);
-	                    JOptionPane.showMessageDialog(null, messagePanel, "Message", JOptionPane.PLAIN_MESSAGE);
+	                    JOptionPane.showMessageDialog(null, messagePanel, "Function Overview", JOptionPane.PLAIN_MESSAGE);
 	                }
 	            }
 	        });
@@ -132,14 +132,14 @@ public class Selection extends DialogComponentProvider{
 	    return panel;
 	}
 	
-	private static boolean report(String user) throws IOException {
-		URL obj = new URL(POST_URL + "report");
+	private static boolean discuss(String userto) throws IOException {
+		URL obj = new URL(POST_URL + "discuss");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
         con.setDoOutput(true);
-        
-        String payload = String.format("{\"user\":\"%s\"}", user);
+        String userfrom = LoginDialog.getUserId();
+        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\"}", userto, userfrom);
         
         OutputStream os = con.getOutputStream();
         os.write(payload.getBytes());

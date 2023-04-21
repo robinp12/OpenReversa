@@ -528,11 +528,12 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             String libraryVersion = fields[2];
             String libraryVariant = fields[3];
             String languageId = fields[4];
-            String functionHash = fields[5];
+            String functionName = fields[5];
+            String functionHash = fields[6];
             byte[] decoded = Base64.getDecoder().decode(functionHash);
             String decodedString = new String(decoded);
             String[] pair = new String[3];
-            pair[0] = functionHash;
+            pair[0] = functionName;
             pair[1] = decodedString;
             pair[2] = user;
             output.add(pair);

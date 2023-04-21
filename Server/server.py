@@ -85,18 +85,22 @@ def verify_email():
 
     return Response("Success! Your email address has been verified.")
 
-@app.route("/report", methods=['POST'])
-def report():
+@app.route("/discuss", methods=['POST'])
+def discuss():
     payload = request.get_json()
-    user = payload['user']
+    userto = payload['userto']
+    userfrom = payload['userfrom']
 
-    user = users.find_one({'_id': ObjectId(user)})
-    if user == None:
+    userto = users.find_one({'_id': ObjectId(userto)})
+    userfrom = users.find_one({'_id': ObjectId(userfrom)})
+
+    if userto == None:
         return Response("the user doesn't exist")
 
-    recipient_email = user["email"]
-    message = MIMEText(f'Hi {recipient_email}, this user just reported you...')
-    message['Subject'] = 'report'
+    recipient_email = userto["email"]
+    email_from = userfrom["email"]
+    message = MIMEText(f'Hi {recipient_email}, {email_from} want to discuss with you about your function.')
+    message['Subject'] = 'discussion request'
     message['From'] = FROM_EMAIL
     message['To'] = recipient_email
 
@@ -108,7 +112,7 @@ def report():
     except Exception as e:
         return Response("Sorry, we were unable to send the email. Please try again later.")
 
-    return Response("Success! A verification email has been sent to your email address.")
+    return Response("Success! An email has been sent to his email address.")
 
 # Login
 @app.route("/get_salt", methods=['POST'])
@@ -136,11 +140,11 @@ def file_push():
 
     file_name = request.headers.get('X-File-Name')
     user_name = request.headers.get('Username')
-    user = users.find_one({'_id':  ObjectId(user_name)})  
+    user = users.find_one({'_id':  ObjectId(user_name)})
     print(user)
     print(request.headers)
     # If others try to send wrong file or not connected user
-    if len(file_data) <= 0 or user == None: 
+    if len(file_data) <= 0 or user == None:
         abort(404)
     if file_name:
         if not file_name.endswith(".fidb"):
@@ -177,9 +181,9 @@ def file_send():
     hash_code_only = base64.b64encode(code_without_name.encode('utf-8')).decode('utf-8')
     print(hash_code_only)
 
-    user = users.find_one({'_id':  ObjectId(user_name)})  
+    user = users.find_one({'_id':  ObjectId(user_name)})
     # If others try to send wrong file or not connected user
-    if len(function_hash) <= 0 or user == None: 
+    if len(function_hash) <= 0 or user == None:
         abort(404)
     if hash_code_only:
         existing_file = collection.find_one({"function_hash": hash_code_only})
@@ -189,7 +193,7 @@ def file_send():
             response.headers['function_hash'] = existing_file['function_hash']
             return response
 
-        collection.insert_one({"user":user_name, 
+        collection.insert_one({"user":user_name,
                                "library_name": library_name,
                                "library_version": library_version,
                                "library_variant": library_variant,
@@ -217,6 +221,7 @@ def download_files():
             item["library_version"],
             item["library_variant"],
             item["language_id"],
+            item["function_name"],
             item["function_hash"]
         ]
         # Join the fields with commas and add a newline character

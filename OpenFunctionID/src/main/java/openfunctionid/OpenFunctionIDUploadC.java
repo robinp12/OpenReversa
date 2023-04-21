@@ -32,6 +32,7 @@ import java.util.UUID;
 public class OpenFunctionIDUploadC extends ExportToCAction {
 
     String codeC;
+
     /**
      * Server is not up, the community dataset and users contributions are not available
      */
@@ -83,7 +84,6 @@ public class OpenFunctionIDUploadC extends ExportToCAction {
 
 class SendToOpenFiDbDialog extends DialogComponentProvider {
 
-    JTextField user_id;
     DecompilerActionContext context;
     String codeC;
     private JTextField libraryFamilyNameTextField;
@@ -107,11 +107,6 @@ class SendToOpenFiDbDialog extends DialogComponentProvider {
     private JComponent buildMainPanel() {
         JPanel panel = new JPanel(new PairLayout());
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        panel.add(new GLabel("Your ID or Library: ", SwingConstants.RIGHT));
-        user_id = new JTextField();
-        user_id.getDocument().addUndoableEditListener(e -> updateOkEnablement());
-        panel.add(user_id);
 
         panel.add(new GLabel("Library Family Name: ", SwingConstants.RIGHT));
         libraryFamilyNameTextField = new JTextField(20);
@@ -164,14 +159,13 @@ class SendToOpenFiDbDialog extends DialogComponentProvider {
 
     @Override
     protected void okCallback() {
-        String userID = user_id.getText().trim();
         String libraryFamilyName = libraryFamilyNameTextField.getText().trim();
         String libraryVersion = versionTextField.getText().trim();
         String libraryVariant = variantTextField.getText().trim();
         String languageFilter = languageIdField.getText().trim();
         close();
-        Msg.showInfo(getClass(), context.getDecompilerPanel(), "Code to upload from " + userID, codeC);
-        Task task = new SendToOpenFiDb("SendToOpenFiDb", userID, libraryFamilyName,
+        Msg.showInfo(getClass(), context.getDecompilerPanel(), "Code to upload from " + LoginDialog.getUserId(), codeC);
+        Task task = new SendToOpenFiDb("SendToOpenFiDb", libraryFamilyName,
                 libraryVersion, libraryVariant, languageFilter, codeC);
         context.getTool().execute(task);
     }
@@ -181,9 +175,6 @@ class SendToOpenFiDbDialog extends DialogComponentProvider {
     }
 
     private boolean isUserInputComplete() {
-        if (user_id.getText().trim().isEmpty()) {
-            return false;
-        }
         if (libraryFamilyNameTextField.getText().trim().isEmpty()) {
             return false;
         }
@@ -199,17 +190,17 @@ class SendToOpenFiDbDialog extends DialogComponentProvider {
 
 class SendToOpenFiDb extends Task {
 
-    private final String user_id;
-    private final String libraryFamilyName;
+    private static final String POST_URL = "http://127.0.0.1:5000/";
+
+	private final String libraryFamilyName;
     private final String libraryVersion;
     private final String libraryVariant;
     private final String languageId;
     private final String codeC;
 
-    protected SendToOpenFiDb(String title, String user_id, String libraryFamilyName, String libraryVersion,
+    protected SendToOpenFiDb(String title, String libraryFamilyName, String libraryVersion,
                              String libraryVariant, String languageId, String codeC) {
         super(title);
-        this.user_id = user_id;
         this.libraryFamilyName = libraryFamilyName;
         this.libraryVersion = libraryVersion;
         this.libraryVariant = libraryVariant;
@@ -220,24 +211,13 @@ class SendToOpenFiDb extends Task {
     @Override
     public void run(TaskMonitor monitor) throws CancelledException {
         try {
-            URL url = new URL("http://127.0.0.1:5000/send_file");
+        	
+            URL url = new URL(POST_URL + "send_file");
 
-
-            HashMap<String, String> arguments = new HashMap<>();
-            arguments.put("user_id", user_id);
-            arguments.put("libraryFamilyName", libraryFamilyName);
-            arguments.put("libraryVersion", libraryVersion);
-            arguments.put("libraryVariant", libraryVariant);
-            arguments.put("languageId", languageId);
-            arguments.put("codeC", codeC);
-
-
-            byte[] out = encodeSerializable(arguments).getBytes(StandardCharsets.UTF_8);
 
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            connection.setRequestProperty("Content-Length", String.valueOf(out.length));
             connection.setRequestProperty("unique_id", LoginDialog.getUserId());
             connection.setRequestProperty("libraryFamilyName", libraryFamilyName);
             connection.setRequestProperty("libraryVersion", libraryVersion);
@@ -245,7 +225,6 @@ class SendToOpenFiDb extends Task {
             connection.setRequestProperty("languageId", languageId);
             connection.setRequestProperty("codeC", Base64.getEncoder().encodeToString(codeC.getBytes(StandardCharsets.UTF_8)));
             connection.setDoOutput(true);
-            //connection.getOutputStream().write(out);
 
             Reader result = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
 
@@ -254,7 +233,7 @@ class SendToOpenFiDb extends Task {
                 sb.append((char) c);
             }
             String response = sb.toString();
-            Msg.showInfo(getClass(), null, "Result request", response);
+            Msg.showInfo(getClass(), null, "Function uploaded", response);
         } catch (IOException e) {
             Msg.showError(getClass(), null, "Error when sending data", "Error when sending data to OpenFiDb", e);
             throw new CancelledException("Error when sending data to OpenFiDb");

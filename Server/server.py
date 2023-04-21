@@ -175,18 +175,25 @@ def file_send():
     language_id = request.headers.get('Languageid')
     function_hash = request.headers.get('Codec')
     function_decoded = base64.b64decode(function_hash).decode('utf-8')
-    print(request.headers)
+
+    par_position = function_decoded.find(")") + 1
+    function_name = function_decoded[:par_position].lstrip()
+
+    brack_position = function_decoded.find("{")
+    code_without_name = function_decoded[brack_position:].rstrip()
+    hash_code_only = base64.b64encode(code_without_name.encode('utf-8')).decode('utf-8')
+    print(hash_code_only)
+
     user = users.find_one({'_id':  ObjectId(user_name)})  
-    print(user)
     # If others try to send wrong file or not connected user
     if len(function_hash) <= 0 or user == None: 
         abort(404)
-    if function_hash:
-        existing_file = collection.find_one({"function_hash": function_hash})
+    if hash_code_only:
+        existing_file = collection.find_one({"function_hash": hash_code_only})
         if existing_file:
             print("Existe deja")
             response = make_response(f"Function already exists in the database.", 409)
-            response.headers['user_name'] = existing_file['user']
+            response.headers['function_hash'] = existing_file['function_hash']
             return response
 
         collection.insert_one({"user":user_name, 
@@ -194,11 +201,12 @@ def file_send():
                                "library_version": library_version,
                                "library_variant": library_variant,
                                "language_id": language_id,
-                               "function_hash": function_hash,
+                               "function_name": function_name,
+                               "function_hash": hash_code_only,
                                })
-        return f"Function uploaded successfully."
+        return Response("Function uploaded successfully.")
     else:
-        collection.insert_one({"function_hash": function_hash})
+        collection.insert_one({"function_hash": hash_code_only})
         return "File uploaded successfully."
 
 @app.route("/receive_file", methods=['GET'])

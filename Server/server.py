@@ -263,5 +263,22 @@ def download_files():
     # Return the CSV data as a plain text response
     return Response(csv_data, mimetype='text/plain')
 
+@app.route('/get_remove/<id>', methods=['GET'])
+def get_remove(id):
+    cursor = collection.find({"user": id})
+
+    list = []
+    for document in cursor:
+        list.append(document["function_name"])
+
+    return str(list)
+
+@app.route("/delete_selected", methods=['POST'])
+def delete_selected():
+    payload = request.get_json()
+    function = payload['item']
+
+    collection.delete_one({'function_name': function})
+    return Response("Success! this function has been deleted")
 if __name__ == '__main__':
     app.run(debug=True)

@@ -75,6 +75,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.JFileChooser;
 import javax.swing.JComponent;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -93,6 +95,7 @@ import java.util.zip.ZipFile;
 import java.io.BufferedOutputStream;
 import javax.swing.JList;
 import java.io.ObjectInputStream;
+import javax.swing.DefaultListModel;
 
 import java.util.Base64;
 
@@ -133,6 +136,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private DockingAction deleteAction;
     private DockingAction discardAction;
     private DockingAction logoutAction;
+    private DockingAction removeAction;
     private String responseString;
     
     private List<JCheckBox> checkboxes = new ArrayList<>();
@@ -161,6 +165,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         pushAction.setEnabled(false);
         deleteAction.setEnabled(false);
         discardAction.setEnabled(false);
+        removeAction.setEnabled(false);
     }
 
     @Override
@@ -175,7 +180,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         action = new DockingAction("Login", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
-            	LoginDialog login = new LoginDialog(loginAction,pullAction,pushAction,deleteAction,discardAction,logoutAction);
+            	LoginDialog login = new LoginDialog(loginAction,pullAction,pushAction,deleteAction,discardAction,logoutAction,removeAction);
             }
         };
         action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "login"));
@@ -185,6 +190,25 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
         loginAction = action;
+        
+        action = new DockingAction("remove", getName()) {
+            @Override
+            public void actionPerformed(ActionContext context) {
+            	try {
+					removeRequest(LoginDialog.getUserId());
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            }
+        };
+        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "remove"));
+        action.setMenuBarData(new MenuData(
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
+                        "remove"},
+                null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
+        this.tool.addAction(action);
+        removeAction = action;
         
         //Logout
         action = new DockingAction("Logout", getName()) {
@@ -238,43 +262,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
         pullAction = action;
-        
-        //Pull the repo
-        /*action = new DockingAction("Pull the repo", getName()) {
-            @Override
-            public void actionPerformed(ActionContext context) {
-
-                Msg.showInfo(getClass(), null, "Pull the repo",
-                        "The OpenFiDb repository containing all FiDbs is about to be downloaded and all Fidbs files attached...");
-
-                Task cloningTask = new Task("Cloning the OpenFiDb repository") {
-                    @Override
-                    public void run(TaskMonitor monitor) throws CancelledException {
-                        if(Application.getMyModuleRootDirectory() != null){
-                            if (Files.exists(Path.of(Application.getMyModuleRootDirectory().getAbsolutePath() + "/data/OpenFiDb"))){
-                                println("Pulling the repo...");
-                                pullRepo();
-                            } else {
-                                println("Cloning the repo...");
-                                cloneRepo();
-                            }
-                        }
-                        updateOpenFiDbFiles();
-                        attachAll();
-                        chooseActive();
-                    }
-                };
-                TaskLauncher.launch(cloningTask);
-            }
-        };
-        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "pulltherepo"));
-        action.setMenuBarData(new MenuData(
-                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
-                        "Pull the repo"},
-                null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
-        this.tool.addAction(action);
-        pullAction = action;*/
-        
 
         //Delete all openFiDb files
         action = new DockingAction("Delete all openFiDb files",getName()) {
@@ -501,6 +488,90 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
 
     }
     
+    public boolean removeRequest(String user) throws Exception {
+        URL url = new URL(POST_URL + "get_remove/" + user);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+
+        int responseCode = connection.getResponseCode();
+        System.out.println("Response code: " + responseCode);
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+
+        System.out.println(response.toString());
+
+        Gson gson = new Gson();
+        Object[] items = gson.fromJson(response.toString(), Object[].class);
+
+        DefaultListModel<Object> listModel = new DefaultListModel<>();
+        listModel.addAll(Arrays.asList(items));
+        JList<Object> jList = new JList<>(listModel);
+
+        jList.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) {
+                    Object selectedItem = jList.getSelectedValue();
+                }
+            }
+        });
+
+        int result = JOptionPane.showConfirmDialog(null, jList, "Select item to remove", JOptionPane.OK_CANCEL_OPTION);
+        if (result == JOptionPane.OK_OPTION) {
+            Object selectedItem = jList.getSelectedValue();
+            deleteSelectedItem(selectedItem.toString());
+        }
+
+        return true;
+    }
+    
+    public boolean deleteSelectedItem(String item) throws Exception {
+    	URL obj = new URL(POST_URL + "delete_selected");
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/json");
+        con.setDoOutput(true);
+        String userfrom = LoginDialog.getUserId();
+        String payload = String.format("{\"item\":\"%s\"}", item);
+        
+        OutputStream os = con.getOutputStream();
+        os.write(payload.getBytes());
+        os.flush();
+        os.close();
+        
+        int responseCode = con.getResponseCode();
+		if (responseCode == HttpURLConnection.HTTP_OK) {
+		    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		    String inputLine;
+		    StringBuilder response = new StringBuilder();
+		    while ((inputLine = in.readLine()) != null) {
+		        response.append(inputLine);
+		    }
+		    in.close();
+		    String regmessage = response.toString();
+		    
+		    if(response.toString().contains("Success!")) {
+		    	JOptionPane.showMessageDialog(null, regmessage);
+            	return true;
+            }
+		    else {
+		    	return false;
+		    }  
+		    
+		}
+		else {
+			System.out.println("POST request did not work.");
+        	return false;
+		}
+    }
+    
     public boolean pullRequest() throws Exception {
     	URL url = new URL(POST_URL + "download_files");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -558,6 +629,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         pushAction.setEnabled(false);
         deleteAction.setEnabled(false);
         discardAction.setEnabled(false);
+        removeAction.setEnabled(false);
     }
 
     private void enableActions() {
@@ -567,6 +639,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         pushAction.setEnabled(true);
         deleteAction.setEnabled(true);
         discardAction.setEnabled(true);
+        removeAction.setEnabled(true);
     }
 
     private void startProcess(String name, ProcessBuilder processBuilder) throws IOException {

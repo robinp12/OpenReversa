@@ -33,6 +33,7 @@ import docking.DialogComponentProvider;
 import docking.widgets.checkbox.GCheckBox;
 import ghidra.feature.fid.db.FidFile;
 import ghidra.feature.fid.plugin.FidPlugin;
+import ghidra.framework.plugintool.PluginTool;
 import ghidra.util.HelpLocation;
 import ghidra.util.layout.VerticalLayout;
 
@@ -110,35 +111,52 @@ public class Selection extends DialogComponentProvider{
 	                    messagePanel.add(scrollPane, BorderLayout.CENTER);
 	                    
 	                    JPanel buttonPanel = new JPanel(new FlowLayout());
-	                    JButton signalButton = new JButton("Send a discussion request");
-	                    signalButton.addActionListener(new ActionListener() {
-	                        @Override
-	                        public void actionPerformed(ActionEvent e) {
-	                            try {
-	                                discuss(names[2]);
-	                            } catch (IOException e1) {
-	                                e1.printStackTrace();
-	                            }
-	                            JOptionPane.showMessageDialog(null, "Discussion request sent successfully");
-	                            System.out.println("Message envoyé");
-	                        }
-	                    });
-	                    buttonPanel.add(signalButton);
-	                    
-	                    JButton reportButton = new JButton("report");
-	                    reportButton.addActionListener(new ActionListener() {
-	                        @Override
-	                        public void actionPerformed(ActionEvent e) {
-	                            try {
-	                                report(names[2]);
-	                            } catch (IOException e1) {
-	                                e1.printStackTrace();
-	                            }
-	                            JOptionPane.showMessageDialog(null, "report request sent successfully");
-	                            System.out.println("Message signalé");
-	                        }
-	                    });
-	                    buttonPanel.add(reportButton);
+	                    if (names[2].equals(LoginDialog.getUserId())) {
+	                    	JButton deleteButton = new JButton("delete function");
+		                    deleteButton.addActionListener(new ActionListener() {
+		                        @Override
+		                        public void actionPerformed(ActionEvent e) {
+		                            try {
+										deleteSelectedItem(names[0]);
+									} catch (Exception e1) {
+										// TODO Auto-generated catch block
+										e1.printStackTrace();
+									}
+		                            System.out.println("fonction supprimée");
+		                        }
+		                    });
+		                    buttonPanel.add(deleteButton);
+	                    }else {
+		                    JButton discussionButton = new JButton("Send a discussion request");
+		                    discussionButton.addActionListener(new ActionListener() {
+		                        @Override
+		                        public void actionPerformed(ActionEvent e) {
+		                            try {
+		                                discuss(names[2]);
+		                            } catch (IOException e1) {
+		                                e1.printStackTrace();
+		                            }
+		                            JOptionPane.showMessageDialog(null, "Discussion request sent successfully");
+		                            System.out.println("Message envoyé");
+		                        }
+		                    });
+		                    buttonPanel.add(discussionButton);
+		                    
+		                    JButton reportButton = new JButton("report");
+		                    reportButton.addActionListener(new ActionListener() {
+		                        @Override
+		                        public void actionPerformed(ActionEvent e) {
+		                            try {
+		                                report(names[2]);
+		                            } catch (IOException e1) {
+		                                e1.printStackTrace();
+		                            }
+		                            JOptionPane.showMessageDialog(null, "report request sent successfully");
+		                            System.out.println("Message signalé");
+		                        }
+		                    });
+		                    buttonPanel.add(reportButton);
+	                    }
 	                    
 	                    messagePanel.add(buttonPanel, BorderLayout.SOUTH);
 	                    
@@ -190,6 +208,46 @@ public class Selection extends DialogComponentProvider{
         	return false;
 		}
 	}
+	
+	public boolean deleteSelectedItem(String item) throws Exception {
+    	URL obj = new URL(POST_URL + "delete_selected");
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/json");
+        con.setDoOutput(true);
+        String userfrom = LoginDialog.getUserId();
+        String payload = String.format("{\"item\":\"%s\"}", item);
+        
+        OutputStream os = con.getOutputStream();
+        os.write(payload.getBytes());
+        os.flush();
+        os.close();
+        
+        int responseCode = con.getResponseCode();
+		if (responseCode == HttpURLConnection.HTTP_OK) {
+		    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+		    String inputLine;
+		    StringBuilder response = new StringBuilder();
+		    while ((inputLine = in.readLine()) != null) {
+		        response.append(inputLine);
+		    }
+		    in.close();
+		    String regmessage = response.toString();
+		    
+		    if(response.toString().contains("Success!")) {
+		    	JOptionPane.showMessageDialog(null, regmessage);
+            	return true;
+            }
+		    else {
+		    	return false;
+		    }  
+		    
+		}
+		else {
+			System.out.println("POST request did not work.");
+        	return false;
+		}
+    }
 		
 	private static boolean report(String userto) throws IOException {
 		URL obj = new URL(POST_URL + "report");

@@ -191,6 +191,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         this.tool.addAction(action);
         loginAction = action;
         
+        //remove
         action = new DockingAction("remove", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
@@ -589,11 +590,13 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         }
         in.close();
 
-        String[] lines = response.toString().split(";");
+        String[] lines = response.toString().split("\\.");
+        System.out.println(Arrays.toString(lines));
         ArrayList<String[]> output = new ArrayList<String[]>();
 
         for (String line : lines) {
-        	String[] fields = line.split(",");
+        	String[] fields = line.split(";");
+        	System.out.println(Arrays.toString(fields));
         	String user = fields[0];
             String libraryName = fields[1];
             String libraryVersion = fields[2];
@@ -609,6 +612,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             pair[2] = user;
             output.add(pair);
         }
+        System.out.println("heeey");
         Selection dialog = new Selection(output);
         tool.showDialog(dialog);
         return true;

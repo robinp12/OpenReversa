@@ -257,7 +257,7 @@ def download_files():
             item["function_hash"]
         ]
         # Join the fields with commas and add a newline character
-        csv_data += ",".join(item_data) + ";"
+        csv_data += ";".join(item_data) + "."
 
     print(csv_data)
     # Return the CSV data as a plain text response

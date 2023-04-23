@@ -173,11 +173,11 @@ public class LoginDialog extends JDialog {
                 }
 
                 if (isLogged == 1) {
-                    JOptionPane.showMessageDialog(LoginDialog.this,
-                            "Welcome !",
-                            "Logged in",
-                            JOptionPane.INFORMATION_MESSAGE);
-                    succeeded = true;
+                	JOptionPane.showMessageDialog(rootPane,
+                		    "Welcome !",
+                		    "Logged in",
+                		    JOptionPane.INFORMATION_MESSAGE);
+                		succeeded = true;
 
                     loginAction.setEnabled(false);
                     pullAction.setEnabled(true);
@@ -236,7 +236,7 @@ public class LoginDialog extends JDialog {
     	JPanel topPanel = new JPanel();
     	JPanel subPanel = new JPanel();
     	
-	   	dialog.setLocationRelativeTo(null);
+	   	dialog.setLocationRelativeTo(LoginDialog.this);
 	   	dialog.setSize(500, 150);
 	   	dialog.setLayout(new GridLayout(2,1,5,5));
 	   	dialog.setResizable(false);

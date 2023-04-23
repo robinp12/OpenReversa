@@ -18,8 +18,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+
 import java.io.BufferedReader;
 import java.awt.Font;
+import java.awt.Window;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -28,6 +31,7 @@ import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JDialog;
 
 import docking.DialogComponentProvider;
 import docking.widgets.checkbox.GCheckBox;
@@ -118,6 +122,17 @@ public class Selection extends DialogComponentProvider{
 		                        public void actionPerformed(ActionEvent e) {
 		                            try {
 										deleteSelectedItem(names[0]);
+										output.remove(names);
+			
+							            panel.remove(checkbox);
+							            panel.revalidate();
+							            panel.repaint();
+							            
+							            Window window = SwingUtilities.getWindowAncestor(buttonPanel);
+							            if (window instanceof JDialog) {
+							                JDialog dialog = (JDialog) window;
+							                dialog.dispose();
+							            }
 									} catch (Exception e1) {
 										// TODO Auto-generated catch block
 										e1.printStackTrace();

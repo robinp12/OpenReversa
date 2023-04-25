@@ -211,14 +211,13 @@ def file_send():
     brack_position = function_decoded.find("{")
     code_without_name = function_decoded[brack_position:].rstrip()
     hash_code_only = base64.b64encode(code_without_name.encode('utf-8')).decode('utf-8')
-    print(hash_code_only)
 
     user = users.find_one({'_id':  ObjectId(user_name)})
     # If others try to send wrong file or not connected user
     if len(function_hash) <= 0 or user == None:
         abort(404)
-    if hash_code_only:
-        existing_file = collection.find_one({"function_hash": hash_code_only})
+    if function_hash:
+        existing_file = collection.find_one({"function_hash": function_hash})
         if existing_file:
             print("Existe deja")
             response = make_response(f"Function already exists in the database.", 409)
@@ -231,11 +230,11 @@ def file_send():
                                "library_variant": library_variant,
                                "language_id": language_id,
                                "function_name": function_name,
-                               "function_hash": hash_code_only,
+                               "function_hash": function_hash,
                                })
         return Response("Function uploaded successfully.")
     else:
-        collection.insert_one({"function_hash": hash_code_only})
+        collection.insert_one({"function_hash": function_hash})
         return "File uploaded successfully."
 
 @app.route('/download_files', methods=['GET'])
@@ -259,7 +258,6 @@ def download_files():
         # Join the fields with commas and add a newline character
         csv_data += ";".join(item_data) + "."
 
-    print(csv_data)
     # Return the CSV data as a plain text response
     return Response(csv_data, mimetype='text/plain')
 

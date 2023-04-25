@@ -208,6 +208,7 @@ class SendToOpenFiDb extends Task {
 
     @Override
     public void run(TaskMonitor monitor) throws CancelledException {
+    	String response = "";
         try {
         	
             URL url = new URL(POST_URL + "send_file");
@@ -223,16 +224,35 @@ class SendToOpenFiDb extends Task {
             connection.setRequestProperty("languageId", languageId);
             connection.setRequestProperty("codeC", Base64.getEncoder().encodeToString(codeC.getBytes(StandardCharsets.UTF_8)));
             connection.setDoOutput(true);
+			System.out.println(connection.getResponseCode());
 
-            Reader result = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
+			if(connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+				InputStream con = connection.getInputStream();
+	            Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
 
-            StringBuilder sb = new StringBuilder();
-            for (int c; (c = result.read()) >= 0; ) {
-                sb.append((char) c);
-            }
-            String response = sb.toString();
-            Msg.showInfo(getClass(), null, "Function uploaded", response);
+	            StringBuilder sb = new StringBuilder();
+	            for (int c; (c = result.read()) >= 0; ) {
+	                sb.append((char) c);
+	            }
+	            response = sb.toString();
+	            Msg.showInfo(getClass(), null, "Function uploaded", response);
+
+			}
+			if(connection.getResponseCode() == HttpURLConnection.HTTP_CONFLICT) {
+	            InputStream con = connection.getErrorStream();
+	            Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
+
+	            StringBuilder sb = new StringBuilder();
+	            for (int c; (c = result.read()) >= 0; ) {
+	                sb.append((char) c);
+	            }
+	            response = sb.toString();
+	            Msg.showError(getClass(), null, "Conflict when sending data", response);
+
+			}
+            
         } catch (IOException e) {
+        	
             Msg.showError(getClass(), null, "Error when sending data", "Error when sending data to OpenFiDb", e);
             throw new CancelledException("Error when sending data to OpenFiDb");
         }

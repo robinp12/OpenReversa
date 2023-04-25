@@ -32,6 +32,7 @@ import ghidra.framework.plugintool.util.PluginStatus;
 import ghidra.util.HelpLocation;
 import ghidra.util.Msg;
 import ghidra.util.exception.CancelledException;
+import ghidra.util.exception.VersionException;
 import ghidra.util.task.Task;
 import ghidra.util.task.TaskLauncher;
 import ghidra.util.task.TaskMonitor;
@@ -136,6 +137,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private DockingAction deleteAction;
     private DockingAction discardAction;
     private DockingAction logoutAction;
+    private DockingAction testAction;
     private DockingAction removeAction;
     private String responseString;
     
@@ -226,6 +228,32 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         this.tool.addAction(action);
         logoutAction = action;
         
+      //Logout
+        action = new DockingAction("Test", getName()) {
+            @Override
+            public void actionPerformed(ActionContext context) {
+            	CreateNewFidDatabase create = new CreateNewFidDatabase();
+            	FunctionTest2 f = new FunctionTest2();
+            	try {
+					f.test();
+				} catch (CancelledException | VersionException | IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            }
+            
+        };
+        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "test"));
+        action.setMenuBarData(new MenuData(
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
+                        "Test"},
+                null, MENU_GROUP_2, MenuData.NO_MNEMONIC, "1"));
+        this.tool.addAction(action);
+        testAction = action;
+        
         //Push FiDb files
         action = new DockingAction("Push FiDb files",getName()) {
             @Override
@@ -296,7 +324,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
 
     }
 
-    private void pullRepo(){
+	private void pullRepo(){
         ProcessBuilder processBuilder = new ProcessBuilder()
                 .command("git", "-C", REPO_NAME,"pull","--recurse-submodules")
                 .directory(new File(Application.getMyModuleRootDirectory().getAbsolutePath()+"/data"));

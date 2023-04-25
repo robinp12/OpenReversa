@@ -234,16 +234,25 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             @Override
             public void actionPerformed(ActionContext context) {
             	CreateNewFidDatabase create = new CreateNewFidDatabase();
-            	FunctionTest2 f = new FunctionTest2();
             	try {
-					f.test();
-				} catch (CancelledException | VersionException | IOException e) {
+					create.run();
+				} catch (Exception e2) {
 					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					e2.printStackTrace();
 				}
+            	
+            	RepackFid_Headless re = new RepackFid_Headless();
+            	try {
+					re.run();
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+            	
+            	CustomPopulate f = new CustomPopulate();
+            		//f.populate();
+				
+
             }
             
         };
@@ -677,8 +686,12 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     }
     private void updateOpenFiDbFiles(){
         List<ResourceFile> resourceFiles = Application.findFilesByExtensionInMyModule(".fidb");
+
         openFiDbFiles = new ArrayList<>();
-        resourceFiles.forEach(resourceFile -> openFiDbFiles.add(resourceFile.getFile(false)));
+        resourceFiles.forEach((resourceFile) -> {
+        	openFiDbFiles.add(resourceFile.getFile(false));
+        });
+        
         openFiDbFilesNames = new ArrayList<>();
         openFiDbFiles.forEach(dbFile -> openFiDbFilesNames.add(dbFile.getName()));
     }

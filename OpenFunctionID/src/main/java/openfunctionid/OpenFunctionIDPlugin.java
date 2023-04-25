@@ -88,6 +88,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.zip.ZipEntry;
@@ -163,7 +164,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         createActions();
         loginAction.setEnabled(true);
         logoutAction.setEnabled(false);
-        pullAction.setEnabled(false);
+       // pullAction.setEnabled(false);
         pushAction.setEnabled(false);
         deleteAction.setEnabled(false);
         discardAction.setEnabled(false);
@@ -620,32 +621,60 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
 
         String[] lines = response.toString().split("\\.");
         System.out.println(Arrays.toString(lines));
-        ArrayList<String[]> output = new ArrayList<String[]>();
+    	String fileName = "MainDatabase.c";
 
-        for (String line : lines) {
-        	String[] fields = line.split(";");
-        	System.out.println(Arrays.toString(fields));
-        	String user = fields[0];
-            String libraryName = fields[1];
-            String libraryVersion = fields[2];
-            String libraryVariant = fields[3];
-            String languageId = fields[4];
-            String functionName = fields[5];
-            String functionHash = fields[6];
-            byte[] decoded = Base64.getDecoder().decode(functionHash);
-            String decodedString = new String(decoded);
-            String[] pair = new String[3];
-            pair[0] = functionName;
-            pair[1] = decodedString;
-            pair[2] = user;
-            output.add(pair);
-        }
+        ArrayList<String[]> output = writeCfile(fileName, lines);
         System.out.println("heeey");
         Selection dialog = new Selection(output);
         tool.showDialog(dialog);
         return true;
     }
-    
+   
+    private ArrayList<String[]> writeCfile(String fileName, String[] fileContent) {
+        ArrayList<String[]> output = new ArrayList<String[]>();
+
+    	try {
+            FileWriter fileWriter = new FileWriter(fileName);
+            
+            for (String line : fileContent) {
+            	String[] fields = line.split(";");
+            	System.out.println(Arrays.toString(fields));
+            	String user = fields[0];
+                String libraryName = fields[1];
+                String libraryVersion = fields[2];
+                String libraryVariant = fields[3];
+                String languageId = fields[4];
+                String functionName = fields[5];
+                String functionHash = fields[6];
+                byte[] decoded = Base64.getDecoder().decode(functionHash);
+                String decodedString = new String(decoded);
+                String[] pair = new String[3];
+                
+                fileWriter.write("// user : "+ user +"\n");
+                fileWriter.write("// libraryName : "+ libraryName +"\n");
+                fileWriter.write("// libraryVersion : "+ libraryVersion +"\n");
+                fileWriter.write("// libraryVariant : "+ libraryVariant +"\n");
+                fileWriter.write("// languageId : "+ languageId +"\n");
+                fileWriter.write(decodedString);
+                fileWriter.write("\n");
+                fileWriter.write("\n");
+
+                
+                pair[0] = functionName;
+                pair[1] = decodedString;
+                pair[2] = user;
+                output.add(pair);
+            }
+            
+            
+            fileWriter.close();
+            System.out.println("File written successfully.");
+        } catch (IOException e) {
+            System.out.println("An error occurred.");
+            e.printStackTrace();
+        }
+        return output;
+    }
     private void updateOpenFiDbFiles(){
         List<ResourceFile> resourceFiles = Application.findFilesByExtensionInMyModule(".fidb");
         openFiDbFiles = new ArrayList<>();

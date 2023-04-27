@@ -69,11 +69,17 @@ public class CustomPopulate extends HeadlessScript {
 		}
     	
 		FidDB fidDB = fidFile.getFidDB(false);
-		List<LibraryRecord> allLibraries = fidDB.getAllLibraries();
-		LibraryRecord libraryRecord = allLibraries.get(allLibraries.size()-1);//TODO
-		System.out.println(libraryRecord);
+		List<LibraryRecord> allLibraries = fidDB.getAllLibraries();		
 
-		allLibraries.add(libraryRecord);
+		if(!allLibraries.isEmpty()) {
+			LibraryRecord libraryRecord = allLibraries.get(allLibraries.size()-1);//TODO
+			System.out.println(libraryRecord);
+
+			allLibraries.add(libraryRecord);
+			System.out.println("libraryRecord");
+			System.out.println(libraryRecord);
+		}
+
 		
 		String libraryFamilyName = askString("libraryFamilyName : ", "OK");
 		String libraryVersion = askString("version : ", "OK");
@@ -91,10 +97,8 @@ public class CustomPopulate extends HeadlessScript {
 		FidService fidService = new FidService();
 		//TODO NEED TO UNDERSTAND fidService (where is program function)
 
-		System.out.println("fidFile");
 		System.out.println(fidFile);
-		System.out.println("libraryRecord");
-		System.out.println(libraryRecord);
+
 		System.out.println("root");
 		System.out.println(root);
 		System.out.println("libraryFamilyName");
@@ -109,10 +113,9 @@ public class CustomPopulate extends HeadlessScript {
 		System.out.println(commonSymbolsFile);
 		System.out.println("fidService");
 		
-		System.out.println(fidService.hashCode());
 
 
-		Task task = new IngestTask("Populate Library Task", fidFile, libraryRecord, root,
+		Task task = new IngestTask("Populate Library Task", fidFile, null , root,
 			libraryFamilyName, libraryVersion, libraryVariant, "x86:LE:64:default", commonSymbolsFile,
 			fidService, new MyFidPopulateResultReporter());
 		

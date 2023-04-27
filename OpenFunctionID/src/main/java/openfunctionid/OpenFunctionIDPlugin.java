@@ -233,26 +233,15 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         action = new DockingAction("Test", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
-            	CreateNewFidDatabase create = new CreateNewFidDatabase();
-            	try {
-					create.run();
-				} catch (Exception e2) {
-					// TODO Auto-generated catch block
-					e2.printStackTrace();
-				}
-            	
-            	RepackFid_Headless re = new RepackFid_Headless();
-            	try {
-					re.run();
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-            	
-            	CustomPopulate f = new CustomPopulate();
-            		//f.populate();
-				
 
+            //Test t = new Test();
+            CreateMultipleLibraries t = new CreateMultipleLibraries();
+            try {
+            	t.recupAll();
+            } catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
             }
             
         };

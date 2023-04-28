@@ -235,9 +235,9 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             public void actionPerformed(ActionContext context) {
 
             //Test t = new Test();
-            CreateMultipleLibraries t = new CreateMultipleLibraries();
+            RetrieveRenamedFunction t = new RetrieveRenamedFunction();
             try {
-            	t.recupAll();
+            	t.run();
             } catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

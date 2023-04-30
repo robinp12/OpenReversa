@@ -53,7 +53,6 @@ public class LoginDialog extends JDialog {
 	private DockingAction loginAction;
 	private DockingAction pullAction;
 	private DockingAction deleteAction;
-	private DockingAction discardAction;
 	private DockingAction pushAction;
 	private DockingAction logoutAction;
 	private DockingAction removeAction;
@@ -66,12 +65,11 @@ public class LoginDialog extends JDialog {
 
 
 	public LoginDialog(DockingAction loginAction, DockingAction pullAction, DockingAction pushAction, DockingAction deleteAction,
-			DockingAction discardAction, DockingAction logoutAction, DockingAction removeAction) {
+		 DockingAction logoutAction, DockingAction removeAction) {
 		
 		this.loginAction = loginAction;
 		this.pullAction = pullAction;
 		this.deleteAction = deleteAction;
-		this.discardAction = discardAction;
 		this.pushAction = pushAction;
 		this.logoutAction = logoutAction;
 		this.removeAction = removeAction;
@@ -182,7 +180,6 @@ public class LoginDialog extends JDialog {
                     loginAction.setEnabled(false);
                     pullAction.setEnabled(true);
                     deleteAction.setEnabled(true);
-                    discardAction.setEnabled(true);
                     pushAction.setEnabled(true);
                     logoutAction.setEnabled(true);
                     removeAction.setEnabled(true);
@@ -274,10 +271,10 @@ public class LoginDialog extends JDialog {
 		confirmRegButt.addActionListener(new ActionListener() {
 		    public void actionPerformed(ActionEvent e) {
 		    	if(nameRegField.getText().isEmpty()
-		    			|| passRegField.getPassword().length == 0
-		    			||  confirmRegField.getPassword().length == 0) {
+		    			|| passRegField.getPassword().length <= 4
+		    			||  confirmRegField.getPassword().length <= 4) {
 		    		JOptionPane.showMessageDialog(LoginDialog.this,
-		    				"Please fill out all required fields to continue.",
+		    				"Please fill out all required fields to continue and make sure password is greater than 4.",
 	    					"Error",
 	    					JOptionPane.ERROR_MESSAGE);
 		    		return;
@@ -354,8 +351,7 @@ public class LoginDialog extends JDialog {
             }
             
 	        String[] saltAndPwdHash = response.toString().split(",");
-	        Encryption encrypt = new Encryption();
-	    	boolean decrypt = encrypt.verifyUserPassword(password, saltAndPwdHash[1], saltAndPwdHash[0]);
+	    	boolean decrypt = Encryption.verifyUserPassword(password, saltAndPwdHash[1], saltAndPwdHash[0]);
 	    	if (decrypt) {
 	    		userId = saltAndPwdHash[2];
 	    		return 1;
@@ -382,9 +378,8 @@ public class LoginDialog extends JDialog {
             return false;
         }
     	
-    	Encryption encrypt = new Encryption();
-    	String saltvalue = encrypt.getSaltvalue(30);
-    	String encryptedpassword = encrypt.generateSecurePassword(password, saltvalue);
+    	String saltvalue = Encryption.getSaltvalue(30);
+    	String encryptedpassword = Encryption.generateSecurePassword(password, saltvalue);
     	URL obj = new URL(POST_URL + "register");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");

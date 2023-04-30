@@ -1,5 +1,9 @@
 package openfunctionid;
 
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 //TODO write a description for this script
 //@author Zina Rasoamanana 
 //@category test
@@ -8,135 +12,140 @@ package openfunctionid;
 //@toolbar test.png
 
 
-import java.io.File;
-import java.io.IOException;
 //Headless
 import java.util.*;
 import java.util.Map.Entry;
 
-import ghidra.app.plugin.core.analysis.AutoAnalysisManager;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JRootPane;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+
+import docking.widgets.label.GLabel;
 import ghidra.app.script.GhidraScript;
-import ghidra.app.services.DataTypeManagerService;
-import ghidra.app.util.headless.HeadlessScript;
 import ghidra.feature.fid.db.*;
-import ghidra.feature.fid.hash.FidHashQuad;
-import ghidra.feature.fid.hash.FunctionBodyFunctionExtentGenerator;
 import ghidra.feature.fid.plugin.IngestTask;
-import ghidra.feature.fid.service.DefaultFidPopulateResultReporter;
 import ghidra.feature.fid.service.FidPopulateResult;
 import ghidra.feature.fid.service.FidPopulateResultReporter;
 import ghidra.feature.fid.service.FidService;
 import ghidra.feature.fid.service.Location;
 import ghidra.feature.fid.service.FidPopulateResult.Disposition;
-import ghidra.framework.main.AppInfo;
-import ghidra.framework.model.*;
-import ghidra.framework.plugintool.PluginTool;
-import ghidra.framework.project.tool.GhidraTool;
-import ghidra.program.database.function.FunctionManagerDB;
-import ghidra.program.model.listing.Function;
-import ghidra.program.model.listing.FunctionManager;
-import ghidra.program.model.mem.MemoryAccessException;
 import ghidra.util.task.Task;
-import ghidra.util.task.TaskMonitor;
 import ghidra.util.task.TaskMonitorAdapter;
 import ghidra.util.exception.CancelledException;
-import ghidra.util.exception.VersionException;
-import ghidra.util.task.CancelledListener;
-import ghidra.util.task.TaskMonitor;
+import ghidra.util.layout.PairLayout;
 
-public class CustomPopulate extends HeadlessScript {
-  	
-    	public void populate() throws CancelledException, VersionException, IOException, MemoryAccessException{
+public class CustomPopulate extends GhidraScript {
+		private JTextField libraryFamilyNameTextField;
+		private JTextField versionTextField;
+		private JTextField variantTextField;
+		private JTextField langTextField;
+		
+		private FidService fidService;
+		private JButton okBtn;
+		
+		public CustomPopulate() {
+			libraryInput();
+		}
+		
+		public void libraryInput() {			
+		    	
+	    	JDialog dialog = new JDialog();
+	        dialog.setModal(true);
+	        
+	    	JPanel panel1 = new JPanel(new PairLayout());
+	    	JPanel panel2 = new JPanel(new BorderLayout());
 
-    	FidFileManager fidFileManager = FidFileManager.getInstance();
+		   	dialog.setSize(300, 150);
+		   	dialog.setResizable(false);
+	   		dialog.setTitle("Populate on database");
+			panel1.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		List<FidFile> allKnownFidFiles = fidFileManager.getFidFiles();
-		ArrayList<String> dbfiles = new ArrayList<>();
-		HashMap<String, FidFile> fidMap = new HashMap<>();
-		for (FidFile fidFile : allKnownFidFiles) {
-			if (!fidFile.isInstalled()) {
-				fidMap.put(fidFile.getName(), fidFile);
-				dbfiles.add(fidFile.getName());
+	   				
+	   		panel1.add(new GLabel("Library Family Name: ", SwingConstants.RIGHT));
+			libraryFamilyNameTextField = new JTextField(20);
+			panel1.add(libraryFamilyNameTextField);
+
+			panel1.add(new GLabel("Library Version: ", SwingConstants.RIGHT));
+			versionTextField = new JTextField(20);
+			panel1.add(versionTextField);
+
+			panel1.add(new GLabel("Library Variant: ", SwingConstants.RIGHT));
+			variantTextField = new JTextField(20);
+			panel1.add(variantTextField);
+			
+			panel1.add(new GLabel("Language ID: ", SwingConstants.RIGHT));
+			langTextField = new JTextField(20);
+			langTextField.setText("x86:LE:64:default");
+			panel1.add(langTextField);
+
+			okBtn = new JButton("Confirm");
+			
+			panel2.add(okBtn);
+			panel1.add(panel2, BorderLayout.CENTER);
+			
+			dialog.add(panel1);
+			dialog.pack();
+			
+			JRootPane rootPane = SwingUtilities.getRootPane(okBtn); 
+			rootPane.setDefaultButton(okBtn);
+			
+			okBtn.addActionListener(new ActionListener() {
+			    public void actionPerformed(ActionEvent e) {
+			    	if(isUserInputComplete()) {
+			    		new RetrieveRenamedFunction(
+			    	libraryFamilyNameTextField.getText().trim(),
+			    	versionTextField.getText().trim(),
+			    	variantTextField.getText().trim());
+	                    dialog.dispose();
+			    	}
+			    		
+			    }
+			});  
+			dialog.setVisible(true);
+    	}
+	
+		protected void okCallback() {
+			String libraryFamilyName = libraryFamilyNameTextField.getText().trim();
+			String libraryVersion = versionTextField.getText().trim();
+			String libraryVariant = variantTextField.getText().trim();
+	
+			Task task = new IngestTask("Populate Library Task", null, null , null,
+					libraryFamilyName, libraryVersion, libraryVariant, "x86:LE:64:default", null,
+					null, new MyFidPopulateResultReporter());
+				
+			
+				TaskMonitorAdapter monitor = new TaskMonitorAdapter();
+
+				try {
+					task.run(monitor);
+				} catch (CancelledException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		}
+			
+		
+		private boolean isUserInputComplete() {
+			if (libraryFamilyNameTextField.getText().trim().isEmpty()) {
+				return false;
 			}
-		}
-		String[] nameArray = new String[dbfiles.size()];
-		dbfiles.toArray(nameArray);
-		String askChoice = askString("AddFunction", "Choose FID database: ", nameArray[0]);
-
-		FidFile fidFile = fidMap.get(askChoice);
-		if (fidFile == null) {
-			fidFile = fidFileManager.addUserFidFile(new File(askChoice));
-		}
-    	
-		FidDB fidDB = fidFile.getFidDB(false);
-		List<LibraryRecord> allLibraries = fidDB.getAllLibraries();		
-
-		if(!allLibraries.isEmpty()) {
-			LibraryRecord libraryRecord = allLibraries.get(allLibraries.size()-1);//TODO
-			System.out.println(libraryRecord);
-
-			allLibraries.add(libraryRecord);
-			System.out.println("libraryRecord");
-			System.out.println(libraryRecord);
+			if (versionTextField.getText().trim().isEmpty()) {
+				return false;
+			}
+			if (variantTextField.getText().trim().isEmpty()) {
+				return false;
+			}
+			return true;
 		}
 
-		
-		String libraryFamilyName = askString("libraryFamilyName : ", "OK");
-		String libraryVersion = askString("version : ", "OK");
-		String libraryVariant = askString("variant : ", "OK");
-		
-		//get folder of project
-		//Project project = state.getProject();
-		//ProjectData pd = project.getProjectData();
-		//DomainFolder folder = pd.getFolder("/");//change to the right folder
-		DomainFolder root = getProjectRootFolder();
-		
-		String languageFilter = askString("languageFilter(x86:LE:64:default) : ", "OK");
-		File commonSymbolsFile = null; //TODO
-		
-		FidService fidService = new FidService();
-		//TODO NEED TO UNDERSTAND fidService (where is program function)
-
-		System.out.println(fidFile);
-
-		System.out.println("root");
-		System.out.println(root);
-		System.out.println("libraryFamilyName");
-		System.out.println(libraryFamilyName);
-		System.out.println("libraryVersion");
-		System.out.println(libraryVersion);
-		System.out.println("libraryVariant");
-		System.out.println(libraryVariant);
-		System.out.println("languageFilter");
-		System.out.println(languageFilter);
-		System.out.println("commonSymbolsFile");
-		System.out.println(commonSymbolsFile);
-		System.out.println("fidService");
-		
-
-
-		Task task = new IngestTask("Populate Library Task", fidFile, null , root,
-			libraryFamilyName, libraryVersion, libraryVariant, "x86:LE:64:default", commonSymbolsFile,
-			fidService, new MyFidPopulateResultReporter());
-		
-		
-		//GhidraTool test = new GhidraTool(project,"functionid");
-		//PluginTool temp = launchTool("functionID");
-		//System.out.println(temp);
-		//AutoAnalysisManager aam = AutoAnalysisManager.getAnalysisManager(currentProgram);
-		//aam.getAnalysisTool().execute(task);
-		//state.getTool().execute(task);
-		TaskMonitorAdapter monitor = new TaskMonitorAdapter();
-
-		task.run(monitor);
-		
-    }
-
-		@Override
 		protected void run() throws Exception {
-			populate();
+			libraryInput();
 		}
-   
 }
 
 class MyFidPopulateResultReporter implements FidPopulateResultReporter {

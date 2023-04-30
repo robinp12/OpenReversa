@@ -24,79 +24,37 @@ import ghidra.app.plugin.PluginCategoryNames;
 import ghidra.app.plugin.ProgramPlugin;
 import ghidra.feature.fid.db.FidFile;
 import ghidra.feature.fid.db.FidFileManager;
-import ghidra.feature.fid.plugin.ActiveFidConfigureDialog;
 import ghidra.framework.Application;
 import ghidra.framework.plugintool.PluginInfo;
 import ghidra.framework.plugintool.PluginTool;
 import ghidra.framework.plugintool.util.PluginStatus;
 import ghidra.util.HelpLocation;
 import ghidra.util.Msg;
-import ghidra.util.exception.CancelledException;
-import ghidra.util.exception.VersionException;
-import ghidra.util.task.Task;
-import ghidra.util.task.TaskLauncher;
-import ghidra.util.task.TaskMonitor;
 import org.apache.commons.io.FileUtils;
 
-import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Frame;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.ListCellRenderer;
-import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.JFileChooser;
-import javax.swing.JComponent;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipFile;
-import java.io.BufferedOutputStream;
 import javax.swing.JList;
-import java.io.ObjectInputStream;
 import javax.swing.DefaultListModel;
 
 import java.util.Base64;
@@ -120,7 +78,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
 	private static final String FUNCTION_ID_NAME = "Function ID";
     private static final String MENU_GROUP_1 = "group1";
     private static final String MENU_GROUP_2 = "group2";
-    private static final String REPO_URL = "https://github.com/Cyjanss/OpenFiDb.git";
+    //private static final String REPO_URL = "https://github.com/Cyjanss/OpenFiDb.git";
     private static final String REPO_NAME = "OpenFiDb";
     
     
@@ -136,7 +94,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private DockingAction pullAction;
     private DockingAction pushAction;
     private DockingAction deleteAction;
-    private DockingAction discardAction;
     private DockingAction logoutAction;
     private DockingAction testAction;
     private DockingAction removeAction;
@@ -167,7 +124,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
        // pullAction.setEnabled(false);
         pushAction.setEnabled(false);
         deleteAction.setEnabled(false);
-        discardAction.setEnabled(false);
         removeAction.setEnabled(false);
     }
 
@@ -183,7 +139,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         action = new DockingAction("Login", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
-            	LoginDialog login = new LoginDialog(loginAction,pullAction,pushAction,deleteAction,discardAction,logoutAction,removeAction);
+            	LoginDialog login = new LoginDialog(loginAction,pullAction,pushAction,deleteAction,logoutAction,removeAction);
             }
         };
         action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "login"));
@@ -234,10 +190,10 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             @Override
             public void actionPerformed(ActionContext context) {
 
-            //Test t = new Test();
-            RetrieveRenamedFunction t = new RetrieveRenamedFunction();
+            CustomPopulate c = new CustomPopulate();
+            
             try {
-            	t.run();
+            	c.libraryInput();
             } catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -307,6 +263,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         deleteAction = action;
 
         //Discard local changes
+        /*
         action = new DockingAction("Discard local changes",getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
@@ -320,9 +277,10 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "2"));
         this.tool.addAction(action);
         discardAction = action;
+        */
 
     }
-
+    /*
 	private void pullRepo(){
         ProcessBuilder processBuilder = new ProcessBuilder()
                 .command("git", "-C", REPO_NAME,"pull","--recurse-submodules")
@@ -426,7 +384,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         ActiveFidConfigureDialog dialog =
                 new ActiveFidConfigureDialog(fidFileManager.getFidFiles());
         tool.showDialog(dialog);
-    }
+    }*/
 
     private void removeAndDeleteAll(){
         List<FidFile> fidFiles = fidFileManager.getFidFiles();
@@ -622,11 +580,11 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     	String fileName = "MainDatabase.c";
 
         ArrayList<String[]> output = writeCfile(fileName, lines);
-        System.out.println("heeey");
         Selection dialog = new Selection(output);
         tool.showDialog(dialog);
         return true;
     }
+    
    
     private ArrayList<String[]> writeCfile(String fileName, String[] fileContent) {
         ArrayList<String[]> output = new ArrayList<String[]>();
@@ -691,7 +649,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         pullAction.setEnabled(false);
         pushAction.setEnabled(false);
         deleteAction.setEnabled(false);
-        discardAction.setEnabled(false);
         removeAction.setEnabled(false);
     }
 
@@ -701,10 +658,10 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         pullAction.setEnabled(true);
         pushAction.setEnabled(true);
         deleteAction.setEnabled(true);
-        discardAction.setEnabled(true);
         removeAction.setEnabled(true);
     }
 
+    /*
     private void startProcess(String name, ProcessBuilder processBuilder) throws IOException {
         Process p = processBuilder.start();
         BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -718,7 +675,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         while ((s = stdError.readLine()) != null) {
             println(name+" |"+s);
         }
-    }
+    }*/
     private void println(String s){
         OpenFunctionIDPackage.println(tool,"[OpenFunctionID] "+s);
     }

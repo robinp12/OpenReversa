@@ -1,5 +1,6 @@
 package openfunctionid;
 
+import java.io.BufferedReader;
 /* ###
  * IP: GHIDRA
  *
@@ -23,10 +24,17 @@ package openfunctionid;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
+
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -39,7 +47,6 @@ import ghidra.app.script.GhidraScript;
 import ghidra.feature.fid.db.FidDB;
 import ghidra.feature.fid.db.FidFile;
 import ghidra.feature.fid.db.FidFileManager;
-import ghidra.feature.fid.db.FunctionRecord;
 import ghidra.feature.fid.db.LibraryRecord;
 import ghidra.feature.fid.hash.FidHashQuad;
 import ghidra.feature.fid.service.FidPopulateResult;
@@ -53,6 +60,7 @@ import ghidra.framework.model.DomainFile;
 import ghidra.framework.model.DomainFolder;
 import ghidra.framework.model.DomainObject;
 import ghidra.program.database.ProgramContentHandler;
+import ghidra.program.model.lang.CompilerSpecID;
 import ghidra.program.model.lang.LanguageID;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.FunctionIterator;
@@ -66,6 +74,9 @@ import ghidra.util.task.TaskMonitor;
 import ghidra.util.task.TaskMonitorAdapter;
 
 public class RetrieveRenamedFunction extends GhidraScript {
+	
+    private static final String POST_URL = "http://127.0.0.1:5000/";
+
 
 	private FidService service;
 	private MatchNameAnalysis matchAnalysis;
@@ -88,6 +99,25 @@ public class RetrieveRenamedFunction extends GhidraScript {
 
 	private static final int MASTER_DEPTH = 3;
 	private TaskMonitor monitor = new TaskMonitorAdapter();
+	
+	private String libraryFamilyNameTextField;
+	private String versionTextField;
+	private String variantTextField;
+
+	public RetrieveRenamedFunction(String libraryFamilyNameTextField, String versionTextField, String variantTextField) {
+		this.libraryFamilyNameTextField = libraryFamilyNameTextField;
+		this.versionTextField = versionTextField;
+		this.variantTextField = variantTextField;	
+			//selectFidFile();
+			//getAllModifiedFunc();
+			try {
+				pushToDB();
+			} catch (MemoryAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	}
+	
 
 	protected void outputLine(String line) {
 		if (outlog != null) {
@@ -238,6 +268,170 @@ public class RetrieveRenamedFunction extends GhidraScript {
 		}
 	}
 	
+	private void sendPOST(long fullHash, String libraryFamilyName, String libraryVersion,
+									String libraryVariant, String ghidraVersion, 
+									LanguageID languageID, int languageVersion,
+									int languageMinorVersion, CompilerSpecID compilerSpecID,
+									FidHashQuad hashQuad, String funName, 
+									long entryPoint, ClangTokenGroup tokgroup) throws IOException {
+		
+		URL url = new URL(POST_URL + "fid");
+    	String response = "";
+
+     	HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+     	connection.setRequestMethod("POST");
+     	connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+     	
+     	connection.setRequestProperty("fullHash", Long.toString(fullHash));
+
+     	connection.setRequestProperty("unique_id", LoginDialog.getUserId());
+     	connection.setRequestProperty("libraryFamilyName", libraryFamilyName);
+     	connection.setRequestProperty("libraryVersion", libraryVersion);
+     	connection.setRequestProperty("libraryVariant", libraryVariant);
+     	
+     	connection.setRequestProperty("ghidraVersion", ghidraVersion);
+     	connection.setRequestProperty("languageID", languageID.toString());
+     	connection.setRequestProperty("languageVersion", Integer.toString(languageVersion));
+     	connection.setRequestProperty("languageMinorVersion", Integer.toString(languageMinorVersion));
+     	connection.setRequestProperty("compilerSpecID", compilerSpecID.toString());
+     	connection.setRequestProperty("hashQuad", hashQuad.toString());
+     	connection.setRequestProperty("funName", funName);
+     	connection.setRequestProperty("entryPoint", Long.toString(entryPoint));
+     	connection.setRequestProperty("codeC", tokgroup.toString());
+     	connection.setDoOutput(true);
+		System.out.println(connection.getResponseCode());
+
+		if(connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+			InputStream con = connection.getInputStream();
+            Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
+
+            StringBuilder sb = new StringBuilder();
+            for (int c; (c = result.read()) >= 0; ) {
+                sb.append((char) c);
+            }
+            response = sb.toString();
+            Msg.showInfo(getClass(), null, "Function uploaded", response);
+
+		}
+		if(connection.getResponseCode() == HttpURLConnection.HTTP_CONFLICT) {
+            InputStream con = connection.getErrorStream();
+            Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
+
+            StringBuilder sb = new StringBuilder();
+            for (int c; (c = result.read()) >= 0; ) {
+                sb.append((char) c);
+            }
+            response = sb.toString();
+            Msg.showError(getClass(), null, "Error", response);
+
+		}
+		if(connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+            InputStream con = connection.getErrorStream();
+            Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
+
+            StringBuilder sb = new StringBuilder();
+            for (int c; (c = result.read()) >= 0; ) {
+                sb.append((char) c);
+            }
+            response = sb.toString();
+            Msg.showError(getClass(), null, "Not connected", response);
+
+		}
+    }
+	
+	public void pushToDB() throws MemoryAccessException {
+		ArrayList<DomainFile> programs = new ArrayList<DomainFile>();
+		service = new FidService();
+		matchAnalysis = new MatchNameAnalysis();
+
+		try {
+			findPrograms(programs, getProjectRootFolder());
+			for (DomainFile program1 : programs) {
+				DomainObject domainObject = null;
+				domainObject = program1.getDomainObject(this, false, true, TaskMonitor.DUMMY);
+				if (!(domainObject instanceof Program)) {
+					return;
+				}
+					
+				Program program = (Program) domainObject;
+				FunctionManager functionManager = program.getFunctionManager();
+				
+				String app_version = Application.getApplicationVersion();
+				LanguageID lang_id = program.getLanguageID();
+				int lang_ver = program.getLanguage().getVersion();
+				int lang_minor_ver = program.getLanguage().getMinorVersion();
+				CompilerSpecID compiler_spec = program.getCompilerSpec().getCompilerSpecID();
+
+				
+				System.out.println(app_version);
+				
+				System.out.println(compiler_spec);
+				System.out.println(lang_id);
+				System.out.println(lang_ver);
+				System.out.println(lang_minor_ver);
+				
+				
+				FunctionIterator functions = functionManager.getFunctions(true);
+				for (Function function : functions) {
+					if (monitor.isCancelled()) {
+						return;
+					}
+					if(function.getName().startsWith("FUN_") || function.getName().startsWith("Ordinal_")) {
+						continue;
+					}
+					FidHashQuad hashFunction = service.hashFunction(function);
+					if (hashFunction == null) {
+						System.out.println("passe pas : " + function.getName());
+
+						continue; // No body
+					}
+					MessageDigest digest = new FNV1a64MessageDigest();
+					digest.update(function.getName().getBytes(), TaskMonitor.DUMMY);
+					digest.update(hashFunction.getFullHash());
+					
+					//System.out.println(hashFunction.getCodeUnitSize());
+					//System.out.println(hashFunction.getFullHash());
+					//System.out.println(hashFunction.getSpecificHashAdditionalSize());
+					//System.out.println(hashFunction.getSpecificHash());
+					
+					String fun_name = function.getName();
+					long fun_entry = function.getEntryPoint().getOffset();
+
+					//System.out.println(function.getEntryPoint());
+					System.out.println(fun_name);
+					//System.out.println(function.getName().getBytes());
+					//System.out.println(function.getSignature());
+					System.out.println("FID Hash for " + fun_name + " at " + function.getEntryPoint() + ": " +
+							hashFunction.toString());
+					
+					/*LibraryRecord newlib = fidDb.createNewLibrary(libraryFamilyNameTextField, versionTextField, variantTextField, 
+							app_version , lang_id , lang_ver, lang_minor_ver, compiler_spec);
+					
+					FunctionRecord newfunc = fidDb.createNewFunction(newlib, hashFunction, fun_name , fun_entry  , "domainecheminAMODIFIER", false);*/
+					DecompInterface ifc = new DecompInterface();
+					ifc.openProgram(program);
+					DecompileResults res = ifc.decompileFunction(function, 0, monitor);
+					 // Check for error conditions
+					   if (!res.decompileCompleted()) {
+					        System.out.println(res.getErrorMessage());
+					      return;
+					   }
+					   ClangTokenGroup tokgroup = res.getCCodeMarkup();
+					System.out.println(tokgroup);
+					
+					
+					sendPOST(hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction, fun_name, fun_entry, tokgroup);
+					System.out.println();
+
+				}
+			}
+		} catch (CancelledException | IOException | VersionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+	/*
 	public void getAllModifiedFunc() throws CancelledException, MemoryAccessException {
 		ArrayList<DomainFile> programs = new ArrayList<DomainFile>();
 		service = new FidService();
@@ -256,18 +450,22 @@ public class RetrieveRenamedFunction extends GhidraScript {
 				Program program = (Program) domainObject;
 				FunctionManager functionManager = program.getFunctionManager();
 				
+				String app_version = Application.getApplicationVersion();
+				LanguageID lang_id = program.getLanguageID();
+				int lang_ver = program.getLanguage().getVersion();
+				int lang_minor_ver = program.getLanguage().getMinorVersion();
+				CompilerSpecID compiler_spec = program.getCompilerSpec().getCompilerSpecID();
+
+				
 				System.out.println(Application.getApplicationVersion());
 				
 				System.out.println(program.getProgramUserData());
-
 				
 				System.out.println(program.getCompilerSpec().getCompilerSpecID());
 				System.out.println(program.getLanguageID());
 				System.out.println(program.getLanguage().getVersion());
 				System.out.println(program.getLanguage().getMinorVersion());
-				//System.out.println(program.getLanguage().getAddressFactory().getDefaultAddressSpace());
 				
-				//System.out.println(program.getProgramUserData());
 				
 				FunctionIterator functions = functionManager.getFunctions(true);
 				for (Function function : functions) {
@@ -279,6 +477,8 @@ public class RetrieveRenamedFunction extends GhidraScript {
 					}
 					FidHashQuad hashFunction = service.hashFunction(function);
 					if (hashFunction == null) {
+						System.out.println("passe pas : " + function.getName());
+
 						continue; // No body
 					}
 					MessageDigest digest = new FNV1a64MessageDigest();
@@ -289,6 +489,9 @@ public class RetrieveRenamedFunction extends GhidraScript {
 					System.out.println(hashFunction.getFullHash());
 					System.out.println(hashFunction.getSpecificHashAdditionalSize());
 					System.out.println(hashFunction.getSpecificHash());
+					
+					String fun_name = function.getName();
+					long fun_entry = function.getEntryPoint().getOffset();
 
 					System.out.println(function.getEntryPoint());
 					System.out.println(function.getName());
@@ -297,10 +500,12 @@ public class RetrieveRenamedFunction extends GhidraScript {
 					System.out.println("FID Hash for " + function.getName() + " at " + function.getEntryPoint() + ": " +
 							hashFunction.toString());
 					System.out.println();
-					LibraryRecord newlib = fidDb.createNewLibrary("name", "ver", "var", 
-							Application.getApplicationVersion(), program.getLanguageID(), program.getLanguage().getVersion(), 
-							program.getLanguage().getMinorVersion(), program.getCompilerSpec().getCompilerSpecID());
-					FunctionRecord newfunc = fidDb.createNewFunction(newlib, hashFunction, function.getName(), function.getEntryPoint().getOffset() , "domainecheminAMODIFIER", false);
+					
+					
+					LibraryRecord newlib = fidDb.createNewLibrary(libraryFamilyNameTextField, versionTextField, variantTextField, 
+							app_version , lang_id , lang_ver, lang_minor_ver, compiler_spec);
+					
+					FunctionRecord newfunc = fidDb.createNewFunction(newlib, hashFunction, fun_name , fun_entry  , "domainecheminAMODIFIER", false);
 					DecompInterface ifc = new DecompInterface();
 					ifc.openProgram(program);
 					DecompileResults res = ifc.decompileFunction(function, 0, monitor);
@@ -337,7 +542,7 @@ public class RetrieveRenamedFunction extends GhidraScript {
 		}
 
 	}
-	
+	*/
 	private void selectFidFile() throws CancelledException, VersionException, IOException {
 		FidFileManager fidFileManager = FidFileManager.getInstance();
 		List<FidFile> userFid = fidFileManager.getUserAddedFiles();
@@ -349,17 +554,12 @@ public class RetrieveRenamedFunction extends GhidraScript {
 		monitor.initialize(1);
 
 	}
-	private void populateLibrary() throws MemoryAccessException, VersionException, CancelledException, IllegalStateException, IOException {
-		FidPopulateResult result = service.createNewLibraryFromPrograms(fidDb,
-				currentLibraryName, currentLibraryVersion, currentLibraryVariant, null, null,
-				languageID, null, commonSymbols, TaskMonitor.DUMMY);
-		reporter.report(result);
-	}
 
 	@Override
 	protected void run() throws Exception {
-		selectFidFile();
-		getAllModifiedFunc();
+		//selectFidFile();
+		//getAllModifiedFunc();
+		pushToDB();
 	}
 
 }

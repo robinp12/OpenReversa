@@ -194,6 +194,64 @@ def file_push():
         collection.insert_one({"file_data": Binary(file_data)})
         return "File uploaded successfully."
 
+@app.route("/fid", methods=['POST'])
+def receivefid():
+    print(request.headers)
+    fullHash = request.headers.get('FullHash')
+
+    user_name = request.headers.get('Unique-Id')
+    library_name = request.headers.get('Libraryfamilyname')
+    library_version = request.headers.get('Libraryversion')
+    library_variant = request.headers.get('Libraryvariant')
+
+    Ghidraversion = request.headers.get('Ghidraversion')
+    Languageid = request.headers.get('Languageid')
+    Languageversion = request.headers.get('Languageversion')
+    Languageminorversion = request.headers.get('Languageminorversion')
+    Compilerspecid = request.headers.get('Compilerspecid')
+    Hashquad = request.headers.get('Hashquad')
+    funName = request.headers.get('FunName')
+    Entrypoint = request.headers.get('Entrypoint')
+    Codec = request.headers.get('Codec')
+    
+    if not(user_name):
+        response = make_response(f"No connected user", 409)
+        return response
+    user = users.find_one({'_id':  ObjectId(user_name)})
+    # If others try to send wrong file or not connected user
+    if len(funName) <= 0 or user == None:
+        abort(404)
+    print(request.headers)
+
+    if Hashquad:
+        existing_file = collection.find_one({"Hashquad": Hashquad})
+        if existing_file:
+            print("Existe deja")
+            response = make_response(f"Function '" +funName+ "' already exists in the database.", 409)
+            response.headers['Hashquad'] = existing_file['Hashquad']
+            return response
+
+        collection.insert_one({"user":user_name,
+                               "library_name": library_name,
+                               "library_version": library_version,
+                               "library_variant": library_variant,
+
+                               "Ghidraversion": Ghidraversion,
+                               "Languageversion": Languageversion,
+                               "Languageminorversion": Languageminorversion,
+                               "Compilerspecid": Compilerspecid,
+                               "Hashquad": Hashquad,
+                               "Entrypoint": Entrypoint,
+                               "Languageid": Languageid,
+                               "funName": funName,
+                               "Codec": Codec,
+                               })
+        return Response("Function '" +funName+ "' uploaded successfully.")
+    # else:
+        # collection.insert_one({"Hashquad": Hashquad})
+        # return "File uploaded successfully."
+
+
 @app.route("/send_file", methods=['POST'])
 def file_send():
 
@@ -233,9 +291,9 @@ def file_send():
                                "function_hash": function_hash,
                                })
         return Response("Function uploaded successfully.")
-    else:
-        collection.insert_one({"function_hash": function_hash})
-        return "File uploaded successfully."
+    # else:
+        # collection.insert_one({"function_hash": function_hash})
+        # return "File uploaded successfully."
 
 @app.route('/download_files', methods=['GET'])
 def download_files():

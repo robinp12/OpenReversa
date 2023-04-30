@@ -48,14 +48,11 @@ public class CustomPopulate extends GhidraScript {
 		private FidService fidService;
 		private JButton okBtn;
 		
-		public CustomPopulate() {
-			libraryInput();
-		}
-		
 		public void libraryInput() {			
 		    	
 	    	JDialog dialog = new JDialog();
 	        dialog.setModal(true);
+	        dialog.setLocationRelativeTo(null); // center the dialog on the screen
 	        
 	    	JPanel panel1 = new JPanel(new PairLayout());
 	    	JPanel panel2 = new JPanel(new BorderLayout());
@@ -82,17 +79,8 @@ public class CustomPopulate extends GhidraScript {
 			langTextField = new JTextField(20);
 			langTextField.setText("x86:LE:64:default");
 			panel1.add(langTextField);
-
+			
 			okBtn = new JButton("Confirm");
-			
-			panel2.add(okBtn);
-			panel1.add(panel2, BorderLayout.CENTER);
-			
-			dialog.add(panel1);
-			dialog.pack();
-			
-			JRootPane rootPane = SwingUtilities.getRootPane(okBtn); 
-			rootPane.setDefaultButton(okBtn);
 			
 			okBtn.addActionListener(new ActionListener() {
 			    public void actionPerformed(ActionEvent e) {
@@ -106,8 +94,18 @@ public class CustomPopulate extends GhidraScript {
 			    		
 			    }
 			});  
-			dialog.setVisible(true);
-    	}
+			
+			JPanel buttonPanel = new JPanel();
+	        buttonPanel.add(okBtn);
+
+	        dialog.getContentPane().add(panel1, java.awt.BorderLayout.CENTER);
+	        dialog.getContentPane().add(buttonPanel, java.awt.BorderLayout.PAGE_END);
+
+	        dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+	        dialog.pack();
+	        dialog.setLocationRelativeTo(null);
+	        dialog.setVisible(true);    	
+        }
 	
 		protected void okCallback() {
 			String libraryFamilyName = libraryFamilyNameTextField.getText().trim();
@@ -144,7 +142,6 @@ public class CustomPopulate extends GhidraScript {
 		}
 
 		protected void run() throws Exception {
-			libraryInput();
 		}
 }
 

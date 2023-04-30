@@ -95,7 +95,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private DockingAction pushAction;
     private DockingAction deleteAction;
     private DockingAction logoutAction;
-    private DockingAction testAction;
+    private DockingAction populateAction;
     private DockingAction removeAction;
     private String responseString;
     
@@ -121,7 +121,8 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         createActions();
         loginAction.setEnabled(true);
         logoutAction.setEnabled(false);
-       // pullAction.setEnabled(false);
+        populateAction.setEnabled(false);
+        pullAction.setEnabled(false);
         pushAction.setEnabled(false);
         deleteAction.setEnabled(false);
         removeAction.setEnabled(false);
@@ -139,7 +140,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         action = new DockingAction("Login", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
-            	LoginDialog login = new LoginDialog(loginAction,pullAction,pushAction,deleteAction,logoutAction,removeAction);
+            	LoginDialog login = new LoginDialog(loginAction,pullAction,pushAction,deleteAction,logoutAction,removeAction,populateAction);
             }
         };
         action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "login"));
@@ -185,8 +186,8 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         this.tool.addAction(action);
         logoutAction = action;
         
-      //Logout
-        action = new DockingAction("Test", getName()) {
+      //DB Populate
+        action = new DockingAction("Populate DB", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
 
@@ -201,13 +202,13 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             }
             
         };
-        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "test"));
+        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "Populate DB"));
         action.setMenuBarData(new MenuData(
                 new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
-                        "Test"},
-                null, MENU_GROUP_2, MenuData.NO_MNEMONIC, "1"));
+                        "Populate DB"},
+                null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
-        testAction = action;
+        populateAction = action;
         
         //Push FiDb files
         action = new DockingAction("Push FiDb files",getName()) {
@@ -646,6 +647,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private void disableActions() {
     	loginAction.setEnabled(true);
     	logoutAction.setEnabled(false);
+        populateAction.setEnabled(false);
         pullAction.setEnabled(false);
         pushAction.setEnabled(false);
         deleteAction.setEnabled(false);
@@ -655,6 +657,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private void enableActions() {
     	loginAction.setEnabled(false);
     	logoutAction.setEnabled(true);
+        populateAction.setEnabled(true);
         pullAction.setEnabled(true);
         pushAction.setEnabled(true);
         deleteAction.setEnabled(true);

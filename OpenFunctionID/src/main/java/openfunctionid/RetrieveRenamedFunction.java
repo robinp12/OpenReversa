@@ -34,7 +34,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
+import java.awt.Component;
+import java.awt.Panel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.swing.*;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -59,6 +64,8 @@ import ghidra.framework.Application;
 import ghidra.framework.model.DomainFile;
 import ghidra.framework.model.DomainFolder;
 import ghidra.framework.model.DomainObject;
+import ghidra.framework.plugintool.PluginTool;
+import ghidra.framework.plugintool.mgr.DialogManager;
 import ghidra.program.database.ProgramContentHandler;
 import ghidra.program.model.lang.CompilerSpecID;
 import ghidra.program.model.lang.LanguageID;
@@ -72,6 +79,9 @@ import ghidra.util.exception.CancelledException;
 import ghidra.util.exception.VersionException;
 import ghidra.util.task.TaskMonitor;
 import ghidra.util.task.TaskMonitorAdapter;
+import docking.tool.ToolConstants;
+import docking.widgets.OptionDialog;
+
 
 public class RetrieveRenamedFunction extends GhidraScript {
 	
@@ -100,6 +110,8 @@ public class RetrieveRenamedFunction extends GhidraScript {
 	private static final int MASTER_DEPTH = 3;
 	private TaskMonitor monitor = new TaskMonitorAdapter();
 	
+	private PluginTool tool;
+	
 	private String libraryFamilyNameTextField;
 	private String versionTextField;
 	private String variantTextField;
@@ -107,15 +119,15 @@ public class RetrieveRenamedFunction extends GhidraScript {
 	public RetrieveRenamedFunction(String libraryFamilyNameTextField, String versionTextField, String variantTextField) {
 		this.libraryFamilyNameTextField = libraryFamilyNameTextField;
 		this.versionTextField = versionTextField;
-		this.variantTextField = variantTextField;	
+		this.variantTextField = variantTextField;
+		try {
+	        pushToDB();
+	    } catch (MemoryAccessException e) {
+	        e.printStackTrace();
+	    }
 			//selectFidFile();
 			//getAllModifiedFunc();
-			try {
-				pushToDB();
-			} catch (MemoryAccessException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+
 	}
 	
 
@@ -268,77 +280,6 @@ public class RetrieveRenamedFunction extends GhidraScript {
 		}
 	}
 	
-	private void sendPOST(long fullHash, String libraryFamilyName, String libraryVersion,
-									String libraryVariant, String ghidraVersion, 
-									LanguageID languageID, int languageVersion,
-									int languageMinorVersion, CompilerSpecID compilerSpecID,
-									FidHashQuad hashQuad, String funName, 
-									long entryPoint, ClangTokenGroup tokgroup) throws IOException {
-		
-		URL url = new URL(POST_URL + "fid");
-    	String response = "";
-
-     	HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-     	connection.setRequestMethod("POST");
-     	connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-     	
-     	connection.setRequestProperty("fullHash", Long.toString(fullHash));
-
-     	connection.setRequestProperty("unique_id", LoginDialog.getUserId());
-     	connection.setRequestProperty("libraryFamilyName", libraryFamilyName);
-     	connection.setRequestProperty("libraryVersion", libraryVersion);
-     	connection.setRequestProperty("libraryVariant", libraryVariant);
-     	
-     	connection.setRequestProperty("ghidraVersion", ghidraVersion);
-     	connection.setRequestProperty("languageID", languageID.toString());
-     	connection.setRequestProperty("languageVersion", Integer.toString(languageVersion));
-     	connection.setRequestProperty("languageMinorVersion", Integer.toString(languageMinorVersion));
-     	connection.setRequestProperty("compilerSpecID", compilerSpecID.toString());
-     	connection.setRequestProperty("hashQuad", hashQuad.toString());
-     	connection.setRequestProperty("funName", funName);
-     	connection.setRequestProperty("entryPoint", Long.toString(entryPoint));
-     	connection.setRequestProperty("codeC", tokgroup.toString());
-     	connection.setDoOutput(true);
-		System.out.println(connection.getResponseCode());
-
-		if(connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-			InputStream con = connection.getInputStream();
-            Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
-
-            StringBuilder sb = new StringBuilder();
-            for (int c; (c = result.read()) >= 0; ) {
-                sb.append((char) c);
-            }
-            response = sb.toString();
-            Msg.showInfo(getClass(), null, "Function uploaded", response);
-
-		}
-		if(connection.getResponseCode() == HttpURLConnection.HTTP_CONFLICT) {
-            InputStream con = connection.getErrorStream();
-            Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
-
-            StringBuilder sb = new StringBuilder();
-            for (int c; (c = result.read()) >= 0; ) {
-                sb.append((char) c);
-            }
-            response = sb.toString();
-            Msg.showError(getClass(), null, "Error", response);
-
-		}
-		if(connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-            InputStream con = connection.getErrorStream();
-            Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
-
-            StringBuilder sb = new StringBuilder();
-            for (int c; (c = result.read()) >= 0; ) {
-                sb.append((char) c);
-            }
-            response = sb.toString();
-            Msg.showError(getClass(), null, "Not connected", response);
-
-		}
-    }
-	
 	public void pushToDB() throws MemoryAccessException {
 		ArrayList<DomainFile> programs = new ArrayList<DomainFile>();
 		service = new FidService();
@@ -369,8 +310,8 @@ public class RetrieveRenamedFunction extends GhidraScript {
 				System.out.println(lang_id);
 				System.out.println(lang_ver);
 				System.out.println(lang_minor_ver);
-				
-				
+				ArrayList<MyItem> output = new ArrayList<MyItem>();
+				MyItem item;
 				FunctionIterator functions = functionManager.getFunctions(true);
 				for (Function function : functions) {
 					if (monitor.isCancelled()) {
@@ -419,11 +360,20 @@ public class RetrieveRenamedFunction extends GhidraScript {
 					   ClangTokenGroup tokgroup = res.getCCodeMarkup();
 					System.out.println(tokgroup);
 					
-					
-					sendPOST(hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction, fun_name, fun_entry, tokgroup);
-					System.out.println();
+					item = new MyItem(hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction, fun_name, fun_entry, tokgroup);
+					output.add(item);
+					//sendPOST(hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction, fun_name, fun_entry, tokgroup);
 
 				}
+				Selection dialog = new Selection(output, true);
+				JDialog jDialog = new JDialog();
+				jDialog.setTitle("Select Files");
+				jDialog.getContentPane().add(dialog.getComponent());
+				jDialog.pack();
+				jDialog.setLocationRelativeTo(null);
+				jDialog.setVisible(true);
+				
+				
 			}
 		} catch (CancelledException | IOException | VersionException e) {
 			// TODO Auto-generated catch block

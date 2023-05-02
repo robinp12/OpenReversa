@@ -10,10 +10,13 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -35,30 +38,37 @@ import javax.swing.JDialog;
 
 import docking.DialogComponentProvider;
 import docking.widgets.checkbox.GCheckBox;
+import ghidra.app.decompiler.ClangTokenGroup;
 import ghidra.feature.fid.db.FidFile;
+import ghidra.feature.fid.hash.FidHashQuad;
 import ghidra.feature.fid.plugin.FidPlugin;
 import ghidra.framework.plugintool.PluginTool;
+import ghidra.program.model.lang.CompilerSpecID;
+import ghidra.program.model.lang.LanguageID;
 import ghidra.util.HelpLocation;
+import ghidra.util.Msg;
 import ghidra.util.layout.VerticalLayout;
 
 public class Selection extends DialogComponentProvider{
 	
 	private ArrayList<MyItem> output;
+	private boolean verif;
 	private List<JCheckBox> checkboxes = new ArrayList<>();
 	private static final String POST_URL = "http://127.0.0.1:5000/";
 	private static String regmessage = "";
 
-	public Selection(ArrayList<MyItem> output) {
+	public Selection(ArrayList<MyItem> output, boolean verif) {
 		super("Select Files", false);
-		
-		this.output = new ArrayList<>(output);
-		
-		addWorkPanel(buildMainPanel());
-		addOKButton();
-		setOkButtonText("Dismiss");
-		setRememberSize(false);
-		setPreferredSize(400, 400);
-		setHelpLocation(new HelpLocation(FidPlugin.FID_HELP, "chooseactivemenu"));
+
+	    this.output = new ArrayList<>(output);
+	    this.verif = verif;
+	    addWorkPanel(buildMainPanel());
+	    addOKButton();
+	    setOkButtonText("Dismiss");
+	    setRememberSize(false);
+	    setPreferredSize(400, 400);
+	    setHelpLocation(new HelpLocation(FidPlugin.FID_HELP, "chooseactivemenu"));
+	    
 	}
 	
 	protected void okCallback() {
@@ -67,15 +77,31 @@ public class Selection extends DialogComponentProvider{
 	        if (checkbox.isSelected()) {
 	            String itemName = checkbox.getText();
 	            MyItem selected = output.stream()
-	                    .filter(item -> item.getName().equals(itemName))
+	                    .filter(item -> item.getFun_name().equals(itemName))
 	                    .findFirst().orElse(null);
-	            if (selected != null) {
-	                sb.append(selected.getName()).append(": ").append(selected.getInfo1()).append("\n");
+	            if (verif) {
+		            try {
+						sendPOST(selected.getFullHash(), selected.getLibraryFamilyNameTextField(), selected.getVersionTextField(),
+	selected.getVariantTextField(), selected.getApp_version(), 
+	selected.getLang_id(), selected.getLang_ver(),
+	selected.getLang_minor_ver(), selected.getCompiler_spec(),
+	selected.getHashFunction(), selected.getFun_name(), 
+	selected.getFun_entry(), selected.getTokgroup());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+		           
+		            if (selected != null) {
+		                sb.append(selected.getFun_name()).append(": ").append(selected.getFullHash()).append("\n");
+		            }
 	            }
 	        }
 	    }
 	    System.out.println("Selected items: \n" + sb.toString());
-	    close();
+
+	    JDialog dialog = (JDialog) SwingUtilities.getWindowAncestor(getComponent());
+	    dialog.dispose();
 	}
 
 	private JComponent buildMainPanel() {
@@ -104,21 +130,35 @@ public class Selection extends DialogComponentProvider{
 	}
 
 	private Component buildCheckboxPanelScroller() {
-		JScrollPane scrollPane = new JScrollPane(buildCheckBoxPanel());
+		JScrollPane scrollPane;
+		scrollPane = new JScrollPane(buildCheckBoxPanelPush());
 		return scrollPane;
 	}
-
-	private Component buildCheckBoxPanel() {
+	
+	private Component buildCheckBoxPanelPush() {
 	    JPanel panel = new JPanel(new VerticalLayout(5));
 	    panel.setOpaque(true);
 	    panel.setBackground(Color.WHITE);
 	    panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 	    for (MyItem items : output) {
-	        JCheckBox checkbox = new JCheckBox(items.getName());
+	    	JCheckBox checkbox = new JCheckBox(items.getFun_name());
+	    	checkboxes.add(checkbox);
+	        panel.add(checkbox);
+	    }
+		return panel;
+	}
+
+	/*private Component buildCheckBoxPanel() {
+	    JPanel panel = new JPanel(new VerticalLayout(5));
+	    panel.setOpaque(true);
+	    panel.setBackground(Color.WHITE);
+	    panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+	    for (MyItem items : output) {
+	        JCheckBox checkbox = new JCheckBox(items.getFun_name());
 	        checkbox.addMouseListener(new MouseAdapter() {
 	            public void mouseClicked(MouseEvent e) {
 	                if (e.getClickCount() == 2) {
-	                    JTextArea textArea = new JTextArea(items.getInfo1());
+	                    JTextArea textArea = new JTextArea(items.getHashFunction());
 	                    textArea.setLineWrap(true);
 	                    textArea.setWrapStyleWord(true);
 	                    textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -196,7 +236,7 @@ public class Selection extends DialogComponentProvider{
 	        panel.add(checkbox);
 	    }
 	    return panel;
-	}
+	}*/
 	
 	private static boolean discuss(String userto) throws IOException {
 		URL obj = new URL(POST_URL + "discuss");
@@ -315,5 +355,77 @@ public class Selection extends DialogComponentProvider{
         	return false;
 		}
 	}
+	
+	private void sendPOST(long fullHash, String libraryFamilyName, String libraryVersion,
+			String libraryVariant, String ghidraVersion, 
+			LanguageID languageID, int languageVersion,
+			int languageMinorVersion, CompilerSpecID compilerSpecID,
+			FidHashQuad hashQuad, String funName, 
+			long entryPoint, ClangTokenGroup tokgroup) throws IOException {
+
+		URL url = new URL(POST_URL + "fid");
+		String response = "";
+		
+		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+		connection.setRequestMethod("POST");
+		connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+		
+		connection.setRequestProperty("fullHash", Long.toString(fullHash));
+		
+		connection.setRequestProperty("unique_id", LoginDialog.getUserId());
+		connection.setRequestProperty("libraryFamilyName", libraryFamilyName);
+		connection.setRequestProperty("libraryVersion", libraryVersion);
+		connection.setRequestProperty("libraryVariant", libraryVariant);
+		
+		connection.setRequestProperty("ghidraVersion", ghidraVersion);
+		connection.setRequestProperty("languageID", languageID.toString());
+		connection.setRequestProperty("languageVersion", Integer.toString(languageVersion));
+		connection.setRequestProperty("languageMinorVersion", Integer.toString(languageMinorVersion));
+		connection.setRequestProperty("compilerSpecID", compilerSpecID.toString());
+		connection.setRequestProperty("hashQuad", hashQuad.toString());
+		connection.setRequestProperty("funName", funName);
+		connection.setRequestProperty("entryPoint", Long.toString(entryPoint));
+		connection.setRequestProperty("codeC", tokgroup.toString());
+		connection.setDoOutput(true);
+		System.out.println(connection.getResponseCode());
+		
+		if(connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
+			InputStream con = connection.getInputStream();
+			Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
+		
+			StringBuilder sb = new StringBuilder();
+			for (int c; (c = result.read()) >= 0; ) {
+					sb.append((char) c);
+			}
+			response = sb.toString();
+			Msg.showInfo(getClass(), null, "Function uploaded", response);
+		
+		}
+		if(connection.getResponseCode() == HttpURLConnection.HTTP_CONFLICT) {
+			InputStream con = connection.getErrorStream();
+			Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
+		
+			StringBuilder sb = new StringBuilder();
+			for (int c; (c = result.read()) >= 0; ) {
+				sb.append((char) c);
+			}
+			response = sb.toString();
+			Msg.showError(getClass(), null, "Error", response);
+	
+		}
+		if(connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+			InputStream con = connection.getErrorStream();
+			Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
+		
+			StringBuilder sb = new StringBuilder();
+			for (int c; (c = result.read()) >= 0; ) {
+				sb.append((char) c);
+			}
+			response = sb.toString();
+			Msg.showError(getClass(), null, "Not connected", response);
+		}
+}
+	
+	
  
 }

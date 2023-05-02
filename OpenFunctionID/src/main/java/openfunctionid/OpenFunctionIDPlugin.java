@@ -230,7 +230,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             @Override
             public void actionPerformed(ActionContext context) { 
             	try {
-					pullRequest();
+					//pullRequest();
 					/*updateOpenFiDbFiles();
 			        attachAll();
 			        chooseActive();*/
@@ -455,6 +455,10 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         }
     }
     
+    private void show(Selection dialog) {
+    	tool.showDialog(dialog);
+    }
+    
     private void pushOpenFiDbFiles() {
     	JFileChooser chooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter(
@@ -559,7 +563,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
 		}
     }
     
-    public boolean pullRequest() throws Exception {
+    /*public boolean pullRequest() throws Exception {
     	URL url = new URL(POST_URL + "download_files");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
@@ -628,7 +632,8 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             e.printStackTrace();
         }
         return output;
-    }
+    }*/
+    
     private void updateOpenFiDbFiles(){
         List<ResourceFile> resourceFiles = Application.findFilesByExtensionInMyModule(".fidb");
 

@@ -68,7 +68,6 @@ public class Selection extends DialogComponentProvider{
 	    setRememberSize(false);
 	    setPreferredSize(400, 400);
 	    setHelpLocation(new HelpLocation(FidPlugin.FID_HELP, "chooseactivemenu"));
-	    
 	}
 	
 	protected void okCallback() {
@@ -82,16 +81,17 @@ public class Selection extends DialogComponentProvider{
 	            if (verif) {
 		            try {
 						sendPOST(selected.getFullHash(), selected.getLibraryFamilyNameTextField(), selected.getVersionTextField(),
-	selected.getVariantTextField(), selected.getApp_version(), 
-	selected.getLang_id(), selected.getLang_ver(),
-	selected.getLang_minor_ver(), selected.getCompiler_spec(),
-	selected.getHashFunction(), selected.getFun_name(), 
-	selected.getFun_entry(), selected.getTokgroup());
+						selected.getVariantTextField(), selected.getApp_version(), 
+						selected.getLang_id(), selected.getLang_ver(),
+						selected.getLang_minor_ver(), selected.getCompiler_spec(),
+						selected.getHashFunction(), selected.getFun_name(), 
+						selected.getFun_entry(), selected.getTokgroup());
+					    JDialog dialog = (JDialog) SwingUtilities.getWindowAncestor(getComponent());
+					    dialog.dispose();
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-		           
 		            if (selected != null) {
 		                sb.append(selected.getFun_name()).append(": ").append(selected.getFullHash()).append("\n");
 		            }
@@ -99,9 +99,6 @@ public class Selection extends DialogComponentProvider{
 	        }
 	    }
 	    System.out.println("Selected items: \n" + sb.toString());
-
-	    JDialog dialog = (JDialog) SwingUtilities.getWindowAncestor(getComponent());
-	    dialog.dispose();
 	}
 
 	private JComponent buildMainPanel() {
@@ -361,7 +358,7 @@ public class Selection extends DialogComponentProvider{
 			LanguageID languageID, int languageVersion,
 			int languageMinorVersion, CompilerSpecID compilerSpecID,
 			FidHashQuad hashQuad, String funName, 
-			long entryPoint, ClangTokenGroup tokgroup) throws IOException {
+			long entryPoint, String tokgroup) throws IOException {
 
 		URL url = new URL(POST_URL + "fid");
 		String response = "";
@@ -385,7 +382,7 @@ public class Selection extends DialogComponentProvider{
 		connection.setRequestProperty("hashQuad", hashQuad.toString());
 		connection.setRequestProperty("funName", funName);
 		connection.setRequestProperty("entryPoint", Long.toString(entryPoint));
-		connection.setRequestProperty("codeC", tokgroup.toString());
+		connection.setRequestProperty("codeC", tokgroup);
 		connection.setDoOutput(true);
 		System.out.println(connection.getResponseCode());
 		

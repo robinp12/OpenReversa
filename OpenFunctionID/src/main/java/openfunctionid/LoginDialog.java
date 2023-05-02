@@ -196,15 +196,20 @@ public class LoginDialog extends JDialog {
                             message,
                             "Login error",
                             JOptionPane.ERROR_MESSAGE);
-                    // reset password
                     passLogField.setText("");
                     succeeded = false;
-                } else {
+                } else if (isLogged == 4){
+                    JOptionPane.showMessageDialog(LoginDialog.this,
+                            "Sorry, the server is currently unavailable. Please try again later.",
+                            "Server error",
+                            JOptionPane.ERROR_MESSAGE);
+                    passLogField.setText("");
+                    succeeded = false;
+            	} else {
                 	JOptionPane.showMessageDialog(LoginDialog.this,
                             "Verify Your Email Address",
                             "Login error",
                             JOptionPane.ERROR_MESSAGE);
-                    // reset password
                     passLogField.setText("");
                     succeeded = false;
                 }
@@ -338,8 +343,13 @@ public class LoginDialog extends JDialog {
             message = "Sorry, the server is currently unavailable. Please try again later.";
             e.printStackTrace();
         }
-        int responseCode = con.getResponseCode();
-        System.out.println("POST Response Code :: " + responseCode);
+        int responseCode = 0;
+        try {			
+        	responseCode = con.getResponseCode();
+        	System.out.println("POST Response Code :: " + responseCode);
+		} catch (Exception e) {
+			return 4;
+		}
         if (responseCode == HttpURLConnection.HTTP_OK) { // success
             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
             String inputLine;
@@ -359,11 +369,12 @@ public class LoginDialog extends JDialog {
 	    	if (decrypt) {
 	    		userId = saltAndPwdHash[2];
 	    		return 1;
-	    	}return 3;
+	    	}
+	    	return 3;
         	
         } else {
             System.out.println("GET request did not work.");
-            return 3;
+            return 4;
         }
     }	
  
@@ -402,8 +413,13 @@ public class LoginDialog extends JDialog {
 	        regmessage = "Sorry, the server is currently unavailable. Please try again later.";
 			e.printStackTrace();
 		}
-        
-        int responseCode = con.getResponseCode();
+		int responseCode = con.getResponseCode();
+		try {			
+        	responseCode = con.getResponseCode();
+        	System.out.println("POST Response Code :: " + responseCode);
+		} catch (Exception e) {
+			return false;
+		}
         System.out.println("POST Response Code :: " + responseCode);
 
         if (responseCode == HttpURLConnection.HTTP_OK) { //success

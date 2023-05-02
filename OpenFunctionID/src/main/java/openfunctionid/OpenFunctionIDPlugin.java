@@ -20,6 +20,7 @@ import docking.action.DockingAction;
 import docking.action.MenuData;
 import docking.tool.ToolConstants;
 import generic.jar.ResourceFile;
+import ghidra.app.decompiler.ClangTokenGroup;
 import ghidra.app.plugin.PluginCategoryNames;
 import ghidra.app.plugin.ProgramPlugin;
 import ghidra.feature.fid.db.FidFile;
@@ -28,6 +29,8 @@ import ghidra.framework.Application;
 import ghidra.framework.plugintool.PluginInfo;
 import ghidra.framework.plugintool.PluginTool;
 import ghidra.framework.plugintool.util.PluginStatus;
+import ghidra.program.model.lang.CompilerSpecID;
+import ghidra.program.model.lang.LanguageID;
 import ghidra.util.HelpLocation;
 import ghidra.util.Msg;
 import org.apache.commons.io.FileUtils;
@@ -122,7 +125,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         loginAction.setEnabled(true);
         logoutAction.setEnabled(false);
         populateAction.setEnabled(false);
-        pullAction.setEnabled(false);
+        //pullAction.setEnabled(false);
         pushAction.setEnabled(false);
         deleteAction.setEnabled(false);
         removeAction.setEnabled(false);
@@ -230,7 +233,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             @Override
             public void actionPerformed(ActionContext context) { 
             	try {
-					//pullRequest();
+					pullRequest();
 					/*updateOpenFiDbFiles();
 			        attachAll();
 			        chooseActive();*/
@@ -563,7 +566,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
 		}
     }
     
-    /*public boolean pullRequest() throws Exception {
+    public boolean pullRequest() throws Exception {
     	URL url = new URL(POST_URL + "download_files");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
@@ -580,59 +583,48 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         }
         in.close();
 
-        String[] lines = response.toString().split("\\.");
-        System.out.println(Arrays.toString(lines));
+        String[] lines = response.toString().split("\\]");
     	String fileName = "MainDatabase.c";
 
-        ArrayList<MyItem> output = writeCfile(fileName, lines);
-        Selection dialog = new Selection(output);
+    	ArrayList<MyItem> output = new ArrayList<MyItem>();
+
+         
+        for (String line : lines) {
+        	String[] fields = line.substring(1).split(",");
+        	
+        	String user = fields[0].substring(1);
+        	String username = user.startsWith("[")?user.substring(1).replace("\"", ""):user.replace("\"", "");
+
+        	String library_name = fields[1].replace("\"", "");
+        	String library_version = fields[2].replace("\"", "");
+        	String library_variant = fields[3].replace("\"", "");
+        	String Ghidraversion = fields[4].replace("\"", "");
+            System.out.println(fields[4]);
+            System.out.println(fields[5]);
+
+        	String Languageversion = fields[5].replace("\"", "");
+        	String Languageminorversion = fields[6].replace("\"", "");
+        	String Compilerspecid = fields[7].replace("\"", "");
+        	String Hashquad = fields[8].replace("\"", "");
+        	String Entrypoint = fields[9].replace("\"", "");
+        	String Languageid = fields[10].replace("\"", "");
+        	String funName = fields[11].replace("\"", "");
+        	//String Codec = fields[12];
+            
+            MyItem item = new MyItem(null, library_name, library_version, 
+            						library_variant, Ghidraversion, new LanguageID(Languageid), 
+            						Integer.parseInt(Languageversion.trim()), 
+            						Integer.parseInt(Languageminorversion.trim()), 
+            						new CompilerSpecID(Compilerspecid), 
+            						null, funName, Long.parseLong(Entrypoint.trim()), "Oui");
+            output.add(item);
+
+        }
+        Selection dialog = new Selection(output,false);
         tool.showDialog(dialog);
         return true;
     }
     
-   
-    private ArrayList<MyItem> writeCfile(String fileName, String[] fileContent) {
-        ArrayList<MyItem> output = new ArrayList<MyItem>();
-
-    	try {
-            FileWriter fileWriter = new FileWriter(fileName);
-            
-            for (String line : fileContent) {
-            	String[] fields = line.split(";");
-            	System.out.println(Arrays.toString(fields));
-            	String user = fields[0];
-                String libraryName = fields[1];
-                String libraryVersion = fields[2];
-                String libraryVariant = fields[3];
-                String languageId = fields[4];
-                String functionName = fields[5];
-                String functionHash = fields[6];
-                byte[] decoded = Base64.getDecoder().decode(functionHash);
-                String decodedString = new String(decoded);
-                String[] pair = new String[3];
-                
-                fileWriter.write("// user : "+ user +"\n");
-                fileWriter.write("// libraryName : "+ libraryName +"\n");
-                fileWriter.write("// libraryVersion : "+ libraryVersion +"\n");
-                fileWriter.write("// libraryVariant : "+ libraryVariant +"\n");
-                fileWriter.write("// languageId : "+ languageId +"\n");
-                fileWriter.write(decodedString);
-                fileWriter.write("\n");
-                fileWriter.write("\n");
-
-                MyItem item = new MyItem(functionName, decodedString, user);
-                output.add(item);
-            }
-            
-            
-            fileWriter.close();
-            System.out.println("File written successfully.");
-        } catch (IOException e) {
-            System.out.println("An error occurred.");
-            e.printStackTrace();
-        }
-        return output;
-    }*/
     
     private void updateOpenFiDbFiles(){
         List<ResourceFile> resourceFiles = Application.findFilesByExtensionInMyModule(".fidb");

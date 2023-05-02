@@ -300,7 +300,7 @@ def download_files():
     data = list(collection.find())
 
     # Create an empty string to store the CSV data
-    csv_data = ""
+    csv_data = []
 
     # Iterate through the data and retrieve each desired field from each item
     for item in data:
@@ -309,15 +309,21 @@ def download_files():
             item["library_name"],
             item["library_version"],
             item["library_variant"],
-            item["language_id"],
-            item["function_name"],
-            item["function_hash"]
+            item["Ghidraversion"],
+            item["Languageversion"],
+            item["Languageminorversion"],
+            item["Compilerspecid"],
+            item["Hashquad"],
+            item["Entrypoint"],
+            item["Languageid"],
+            item["funName"]
+            # item["Codec"]
         ]
         # Join the fields with commas and add a newline character
-        csv_data += ";".join(item_data) + "."
-
+        csv_data.append(item_data)
+    print(csv_data)
     # Return the CSV data as a plain text response
-    return Response(csv_data, mimetype='text/plain')
+    return Response(json.dumps(csv_data), mimetype='text/plain')
 
 @app.route('/get_remove/<id>', methods=['GET'])
 def get_remove(id):

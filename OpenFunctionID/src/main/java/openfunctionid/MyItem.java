@@ -18,13 +18,17 @@ public class MyItem {
     private FidHashQuad hashFunction;
     private String fun_name;
     private long fun_entry;
-    private ClangTokenGroup tokgroup;
+    private String tokgroup;
 
-    public MyItem(Long fullHash, String libraryFamilyNameTextField, String versionTextField, String ariantTextField, String app_version, LanguageID lang_id, int lang_ver, int lang_minor_ver, CompilerSpecID compiler_spec, FidHashQuad hashFunction, String fun_name, long fun_entry, ClangTokenGroup tokgroup) {
+    public MyItem(Long fullHash, String libraryFamilyNameTextField, String versionTextField, 
+    		String variantTextField, String app_version, LanguageID lang_id, 
+    		int lang_ver, int lang_minor_ver, CompilerSpecID compiler_spec, 
+    		FidHashQuad hashFunction, String fun_name, long fun_entry, 
+    		String tokgroup) {
         this.fullHash = fullHash; 
         this.libraryFamilyNameTextField = libraryFamilyNameTextField; 
         this.versionTextField = versionTextField; 
-        this.variantTextField = ariantTextField; 
+        this.variantTextField = variantTextField; 
         this.app_version = app_version;
         this.lang_id = lang_id; 
         this.lang_ver = lang_ver; 
@@ -84,7 +88,7 @@ public class MyItem {
         return fun_entry;
     }
 
-    public ClangTokenGroup getTokgroup() {
+    public String getTokgroup() {
         return tokgroup;
     }
 }

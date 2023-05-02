@@ -24,20 +24,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
-import java.awt.Component;
-import java.awt.Panel;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import javax.swing.*;
 import java.util.TreeMap;
@@ -65,7 +55,6 @@ import ghidra.framework.model.DomainFile;
 import ghidra.framework.model.DomainFolder;
 import ghidra.framework.model.DomainObject;
 import ghidra.framework.plugintool.PluginTool;
-import ghidra.framework.plugintool.mgr.DialogManager;
 import ghidra.program.database.ProgramContentHandler;
 import ghidra.program.model.lang.CompilerSpecID;
 import ghidra.program.model.lang.LanguageID;
@@ -74,13 +63,10 @@ import ghidra.program.model.listing.FunctionIterator;
 import ghidra.program.model.listing.FunctionManager;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.mem.MemoryAccessException;
-import ghidra.util.Msg;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.exception.VersionException;
 import ghidra.util.task.TaskMonitor;
 import ghidra.util.task.TaskMonitorAdapter;
-import docking.tool.ToolConstants;
-import docking.widgets.OptionDialog;
 
 
 public class RetrieveRenamedFunction extends GhidraScript {
@@ -360,15 +346,17 @@ public class RetrieveRenamedFunction extends GhidraScript {
 					   ClangTokenGroup tokgroup = res.getCCodeMarkup();
 					System.out.println(tokgroup);
 					
-					item = new MyItem(hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction, fun_name, fun_entry, tokgroup);
+					item = new MyItem(hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction, fun_name, fun_entry, tokgroup.toString());
 					output.add(item);
 					//sendPOST(hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction, fun_name, fun_entry, tokgroup);
 
 				}
 				Selection dialog = new Selection(output, true);
 				JDialog jDialog = new JDialog();
+				
 				jDialog.setTitle("Select Files");
 				jDialog.getContentPane().add(dialog.getComponent());
+				jDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 				jDialog.pack();
 				jDialog.setLocationRelativeTo(null);
 				jDialog.setVisible(true);
@@ -493,17 +481,6 @@ public class RetrieveRenamedFunction extends GhidraScript {
 
 	}
 	*/
-	private void selectFidFile() throws CancelledException, VersionException, IOException {
-		FidFileManager fidFileManager = FidFileManager.getInstance();
-		List<FidFile> userFid = fidFileManager.getUserAddedFiles();
-		if (userFid.isEmpty()) {
-			return;
-		}
-		fidFile = askChoice("List Domain files", "Choose FID database", userFid, userFid.get(0));
-		fidDb = fidFile.getFidDB(true);
-		monitor.initialize(1);
-
-	}
 
 	@Override
 	protected void run() throws Exception {

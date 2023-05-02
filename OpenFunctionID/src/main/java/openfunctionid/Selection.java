@@ -43,12 +43,12 @@ import ghidra.util.layout.VerticalLayout;
 
 public class Selection extends DialogComponentProvider{
 	
-	private ArrayList<String[]> output;
+	private ArrayList<MyItem> output;
 	private List<JCheckBox> checkboxes = new ArrayList<>();
 	private static final String POST_URL = "http://127.0.0.1:5000/";
 	private static String regmessage = "";
 
-	public Selection(ArrayList<String[]> output) {
+	public Selection(ArrayList<MyItem> output) {
 		super("Select Files", false);
 		
 		this.output = new ArrayList<>(output);
@@ -62,7 +62,20 @@ public class Selection extends DialogComponentProvider{
 	}
 	
 	protected void okCallback() {
-		close();
+	    StringBuilder sb = new StringBuilder();
+	    for (JCheckBox checkbox : checkboxes) {
+	        if (checkbox.isSelected()) {
+	            String itemName = checkbox.getText();
+	            MyItem selected = output.stream()
+	                    .filter(item -> item.getName().equals(itemName))
+	                    .findFirst().orElse(null);
+	            if (selected != null) {
+	                sb.append(selected.getName()).append(": ").append(selected.getInfo1()).append("\n");
+	            }
+	        }
+	    }
+	    System.out.println("Selected items: \n" + sb.toString());
+	    close();
 	}
 
 	private JComponent buildMainPanel() {
@@ -100,12 +113,12 @@ public class Selection extends DialogComponentProvider{
 	    panel.setOpaque(true);
 	    panel.setBackground(Color.WHITE);
 	    panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-	    for (String[] names : output) {
-	        JCheckBox checkbox = new JCheckBox(names[0]);
+	    for (MyItem items : output) {
+	        JCheckBox checkbox = new JCheckBox(items.getName());
 	        checkbox.addMouseListener(new MouseAdapter() {
 	            public void mouseClicked(MouseEvent e) {
 	                if (e.getClickCount() == 2) {
-	                    JTextArea textArea = new JTextArea(names[1]);
+	                    JTextArea textArea = new JTextArea(items.getInfo1());
 	                    textArea.setLineWrap(true);
 	                    textArea.setWrapStyleWord(true);
 	                    textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -115,14 +128,14 @@ public class Selection extends DialogComponentProvider{
 	                    messagePanel.add(scrollPane, BorderLayout.CENTER);
 	                    
 	                    JPanel buttonPanel = new JPanel(new FlowLayout());
-	                    if (names[2].equals(LoginDialog.getUserId())) {
+	                    if (items.getInfo2().equals(LoginDialog.getUserId())) {
 	                    	JButton deleteButton = new JButton("delete function");
 		                    deleteButton.addActionListener(new ActionListener() {
 		                        @Override
 		                        public void actionPerformed(ActionEvent e) {
 		                            try {
-										deleteSelectedItem(names[0]);
-										output.remove(names);
+										deleteSelectedItem(items.getName());
+										output.remove(items);
 			
 							            panel.remove(checkbox);
 							            panel.revalidate();
@@ -147,7 +160,7 @@ public class Selection extends DialogComponentProvider{
 		                        @Override
 		                        public void actionPerformed(ActionEvent e) {
 		                            try {
-		                                discuss(names[2]);
+		                                discuss(items.getInfo2());
 		                            } catch (IOException e1) {
 		                                e1.printStackTrace();
 		                            }
@@ -162,7 +175,7 @@ public class Selection extends DialogComponentProvider{
 		                        @Override
 		                        public void actionPerformed(ActionEvent e) {
 		                            try {
-		                                report(names[2]);
+		                                report(items.getInfo2());
 		                            } catch (IOException e1) {
 		                                e1.printStackTrace();
 		                            }

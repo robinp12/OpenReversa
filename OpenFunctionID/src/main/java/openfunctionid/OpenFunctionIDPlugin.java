@@ -580,15 +580,15 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         System.out.println(Arrays.toString(lines));
     	String fileName = "MainDatabase.c";
 
-        ArrayList<String[]> output = writeCfile(fileName, lines);
+        ArrayList<MyItem> output = writeCfile(fileName, lines);
         Selection dialog = new Selection(output);
         tool.showDialog(dialog);
         return true;
     }
     
    
-    private ArrayList<String[]> writeCfile(String fileName, String[] fileContent) {
-        ArrayList<String[]> output = new ArrayList<String[]>();
+    private ArrayList<MyItem> writeCfile(String fileName, String[] fileContent) {
+        ArrayList<MyItem> output = new ArrayList<MyItem>();
 
     	try {
             FileWriter fileWriter = new FileWriter(fileName);
@@ -616,11 +616,8 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
                 fileWriter.write("\n");
                 fileWriter.write("\n");
 
-                
-                pair[0] = functionName;
-                pair[1] = decodedString;
-                pair[2] = user;
-                output.add(pair);
+                MyItem item = new MyItem(functionName, decodedString, user);
+                output.add(item);
             }
             
             

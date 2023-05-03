@@ -1,33 +1,46 @@
 package openfunctionid;
 
-import ghidra.app.decompiler.ClangTokenGroup;
-import ghidra.feature.fid.hash.FidHashQuad;
 import ghidra.program.model.lang.CompilerSpecID;
 import ghidra.program.model.lang.LanguageID;
 
 public class MyItem {
-    private Long fullHash;
+	private String user;
+
+	private Long fullHash;
+	private short codeUnitSize;
+	private byte specificHashAdditionalSize;
+	private long specificHash;
+	
     private String libraryFamilyNameTextField;
     private String versionTextField;
     private String variantTextField;
+    
     private String app_version;
     private LanguageID lang_id;
     private int lang_ver;
     private int lang_minor_ver;
     private CompilerSpecID compiler_spec;
-    private String hashFunction;
     private String fun_name;
     private long fun_entry;
     private String tokgroup;
-    private String user;
+    
 
-    public MyItem(String user, Long fullHash, String libraryFamilyNameTextField, String versionTextField, 
-    		String variantTextField, String app_version, LanguageID lang_id, 
-    		int lang_ver, int lang_minor_ver, CompilerSpecID compiler_spec, 
-    		String hashFunction, String fun_name, long fun_entry, 
-    		String tokgroup) {
-    	this.user = user;
+
+    
+
+	public MyItem(String user, short codeUnitSize, long fullHash, 
+			byte specificHashAdditionalSize, long specificHash, 
+			String libraryFamilyNameTextField, String versionTextField, 
+			String variantTextField, String app_version, LanguageID lang_id, 
+			int lang_ver, int lang_minor_ver, CompilerSpecID compiler_spec,
+			String fun_name, long fun_entry, String tokgroup) {
+		this.user = user;
+    	
+        this.codeUnitSize = codeUnitSize; 
         this.fullHash = fullHash; 
+        this.specificHashAdditionalSize = specificHashAdditionalSize; 
+        this.specificHash = specificHash; 
+        
         this.libraryFamilyNameTextField = libraryFamilyNameTextField; 
         this.versionTextField = versionTextField; 
         this.variantTextField = variantTextField; 
@@ -36,13 +49,12 @@ public class MyItem {
         this.lang_ver = lang_ver; 
         this.lang_minor_ver = lang_minor_ver; 
         this.compiler_spec = compiler_spec; 
-        this.hashFunction = hashFunction;
         this.fun_name = fun_name; 
         this.fun_entry = fun_entry; 
-        this.tokgroup = tokgroup;
-    }
-    
-    public String getUser() {
+        this.tokgroup = tokgroup;	}
+
+
+	public String getUser() {
         return user;
     }
 
@@ -81,10 +93,6 @@ public class MyItem {
     public CompilerSpecID getCompiler_spec() {
         return compiler_spec;
     }
-    
-    public String getHashFunction() {
-        return hashFunction;
-    }
 
     public String getFun_name() {
         return fun_name;
@@ -97,5 +105,20 @@ public class MyItem {
     public String getTokgroup() {
         return tokgroup;
     }
+
+
+	public short getCodeUnitSize() {
+		return codeUnitSize;
+	}
+
+
+	public byte getSpecificHashAdditionalSize() {
+		return specificHashAdditionalSize;
+	}
+
+
+	public long getSpecificHash() {
+		return specificHash;
+	}
     
 }

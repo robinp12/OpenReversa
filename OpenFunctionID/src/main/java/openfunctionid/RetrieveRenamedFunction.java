@@ -35,14 +35,12 @@ import java.util.TreeSet;
 
 import generic.hash.FNV1a64MessageDigest;
 import generic.hash.MessageDigest;
-import ghidra.app.decompiler.ClangTokenGroup;
 import ghidra.app.decompiler.DecompInterface;
 import ghidra.app.decompiler.DecompileResults;
 import ghidra.app.decompiler.DecompiledFunction;
 import ghidra.app.script.GhidraScript;
 import ghidra.feature.fid.db.FidDB;
 import ghidra.feature.fid.db.FidFile;
-import ghidra.feature.fid.db.FidFileManager;
 import ghidra.feature.fid.db.LibraryRecord;
 import ghidra.feature.fid.hash.FidHashQuad;
 import ghidra.feature.fid.service.FidPopulateResult;
@@ -92,9 +90,9 @@ public class RetrieveRenamedFunction extends GhidraScript {
 	private List<String> commonSymbols = null;
 	private LanguageID languageID = null;
 
+
 	private MyFidPopulateResultReporter reporter = null;
 
-	private static final int MASTER_DEPTH = 3;
 	private TaskMonitor monitor = new TaskMonitorAdapter();
 	
 	private PluginTool tool;
@@ -107,6 +105,7 @@ public class RetrieveRenamedFunction extends GhidraScript {
 		this.libraryFamilyNameTextField = libraryFamilyNameTextField;
 		this.versionTextField = versionTextField;
 		this.variantTextField = variantTextField;
+
 		try {
 	        pushToDB();
 	    } catch (MemoryAccessException e) {
@@ -307,6 +306,8 @@ public class RetrieveRenamedFunction extends GhidraScript {
 					if(function.getName().startsWith("FUN_") || function.getName().startsWith("Ordinal_")) {
 						continue;
 					}
+					System.out.println("Print this : " + function);
+
 					FidHashQuad hashFunction = service.hashFunction(function);
 					if (hashFunction == null) {
 						System.out.println("passe pas : " + function.getName());
@@ -317,8 +318,9 @@ public class RetrieveRenamedFunction extends GhidraScript {
 					digest.update(function.getName().getBytes(), TaskMonitor.DUMMY);
 					digest.update(hashFunction.getFullHash());
 					
-					//System.out.println(hashFunction.getCodeUnitSize());
-					//System.out.println(hashFunction.getFullHash());
+					FidHashQuad fid = new FidHashQuadImpl(hashFunction.getCodeUnitSize(),hashFunction.getFullHash(),hashFunction.getSpecificHashAdditionalSize(),hashFunction.getSpecificHash());
+					System.out.println(hashFunction.getCodeUnitSize());
+					System.out.println(hashFunction.getFullHash());
 					//System.out.println(hashFunction.getSpecificHashAdditionalSize());
 					//System.out.println(hashFunction.getSpecificHash());
 					
@@ -335,7 +337,7 @@ public class RetrieveRenamedFunction extends GhidraScript {
 					/*LibraryRecord newlib = fidDb.createNewLibrary(libraryFamilyNameTextField, versionTextField, variantTextField, 
 							app_version , lang_id , lang_ver, lang_minor_ver, compiler_spec);
 					
-					FunctionRecord newfunc = fidDb.createNewFunction(newlib, hashFunction, fun_name , fun_entry  , "domainecheminAMODIFIER", false);*/
+					FunctionRecord newfunc = fidDb.createNewFunction(newlib, fid, fun_name , fun_entry  , "domainecheminAMODIFIER", false);*/
 					DecompInterface ifc = new DecompInterface();
 					ifc.openProgram(program);
 					DecompileResults res = ifc.decompileFunction(function, 0, monitor);
@@ -345,9 +347,14 @@ public class RetrieveRenamedFunction extends GhidraScript {
 					      return;
 					   }
 					   DecompiledFunction tokgroup = res.getDecompiledFunction();
-					System.out.println(tokgroup.getC());
+					//System.out.println(tokgroup.getC());
 					
-					item = new MyItem("ok", hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction.toString(), fun_name, fun_entry, tokgroup.getC().toString());
+					item = new MyItem("", hashFunction.getCodeUnitSize(), hashFunction.getFullHash(),
+							hashFunction.getSpecificHashAdditionalSize(), hashFunction.getSpecificHash(), 
+							libraryFamilyNameTextField, versionTextField, 
+							variantTextField, app_version, lang_id, 
+							lang_ver, lang_minor_ver, compiler_spec, 
+							fun_name, fun_entry, tokgroup.getC().toString());
 					output.add(item);
 					//sendPOST(hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction, fun_name, fun_entry, tokgroup);
 
@@ -355,6 +362,7 @@ public class RetrieveRenamedFunction extends GhidraScript {
 				Selection dialog = new Selection(output, true);
 				JDialog jDialog = new JDialog();
 				
+				jDialog.setModal(true);
 				jDialog.setTitle("Select Files");
 				jDialog.getContentPane().add(dialog.getComponent());
 				jDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);

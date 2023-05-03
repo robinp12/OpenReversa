@@ -527,15 +527,20 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             String Languageid = field[10].replaceAll("\"", "");
             String funName = field[11].replaceAll("\"", "");
             String Codec = field[12].replaceAll("\"", "");
+        	
+        	/*String[] parts = Hashquad.split("[\\s()+]");
+        	String hashValue = parts[1];
+        	int size = Integer.parseInt(parts[2]);
 
         	// Create new FidHashQuad object
-        	//FidHashQuad fidHashQuad = new FidHashQuad(hashValue, size);
+        	FidHashQuad fidHashQuad = new FidHashQuad(hashValue, size);*/
             
-            MyItem item = new MyItem(user, (long) 1234, library_name, library_version, 
+            MyItem item = new MyItem(user, (short) 1234, (long) 1234, 
+            						(byte) 1234, (long) 1234, 
+            						library_name, library_version, 
             						library_variant, Ghidraversion, new LanguageID(Languageid), 
-            						Integer.parseInt(Languageversion.trim()), 
-            						Integer.parseInt(Languageminorversion.trim()),
-            						new CompilerSpecID(Compilerspecid), Hashquad, funName, Long.parseLong(Entrypoint.trim()), Codec);
+            						Integer.parseInt(Languageversion.trim()), Integer.parseInt(Languageminorversion.trim()),
+            						new CompilerSpecID(Compilerspecid), funName, Long.parseLong(Entrypoint.trim()), Codec);
             output.add(item);
 
         }

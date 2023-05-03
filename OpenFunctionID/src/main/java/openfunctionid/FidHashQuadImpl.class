@@ -47,16 +47,16 @@ import ghidra.util.layout.VerticalLayout;
 public class Selection extends DialogComponentProvider{
 	
 	private ArrayList<MyItem> output;
-	private boolean isPush;
+	private boolean verif;
 	private List<JCheckBox> checkboxes = new ArrayList<>();
 	private static final String POST_URL = "http://127.0.0.1:5000/";
 	private static String regmessage = "";
 
-	public Selection(ArrayList<MyItem> output, boolean isPush) {
+	public Selection(ArrayList<MyItem> output, boolean verif) {
 		super("Select Files", false);
 
 	    this.output = new ArrayList<>(output);
-	    this.isPush = isPush;
+	    this.verif = verif;
 	    addWorkPanel(buildMainPanel());
 	    addOKButton();
 	    setOkButtonText("Dismiss");
@@ -73,14 +73,14 @@ public class Selection extends DialogComponentProvider{
 	            MyItem selected = output.stream()
 	                    .filter(item -> item.getFun_name().equals(itemName))
 	                    .findFirst().orElse(null);
-	            if (isPush) {
+	            if (verif) {
 		            try {
-						sendPOST(selected.getCodeUnitSize(),selected.getFullHash(),selected.getSpecificHashAdditionalSize(),
-								selected.getSpecificHash(), selected.getLibraryFamilyNameTextField(), selected.getVersionTextField(),
+						sendPOST(selected.getFullHash(), selected.getLibraryFamilyNameTextField(), selected.getVersionTextField(),
 						selected.getVariantTextField(), selected.getApp_version(), 
 						selected.getLang_id(), selected.getLang_ver(),
 						selected.getLang_minor_ver(), selected.getCompiler_spec(),
-						selected.getFun_name(), selected.getFun_entry(), selected.getTokgroup());
+						selected.getHashFunction(), selected.getFun_name(), 
+						selected.getFun_entry(), selected.getTokgroup());
 					    JDialog dialog = (JDialog) SwingUtilities.getWindowAncestor(getComponent());
 					    dialog.dispose();
 					} catch (IOException e) {
@@ -123,7 +123,7 @@ public class Selection extends DialogComponentProvider{
 
 	private Component buildCheckboxPanelScroller() {
 		JScrollPane scrollPane;
-		if (isPush) {
+		if (verif) {
 			scrollPane = new JScrollPane(buildCheckBoxPanelPush());
 		}else {
 			scrollPane = new JScrollPane(buildCheckBoxPanelPull());
@@ -170,7 +170,7 @@ public class Selection extends DialogComponentProvider{
 		                        @Override
 		                        public void actionPerformed(ActionEvent e) {
 		                            try {
-										deleteSelectedItem(items);
+										deleteSelectedItem(items.getFun_name());
 										output.remove(items);
 			
 							            panel.remove(checkbox);
@@ -196,7 +196,7 @@ public class Selection extends DialogComponentProvider{
 		                        @Override
 		                        public void actionPerformed(ActionEvent e) {
 		                            try {
-		                                discuss(items);
+		                                discuss(items.getUser());
 		                            } catch (IOException e1) {
 		                                e1.printStackTrace();
 		                            }
@@ -210,8 +210,8 @@ public class Selection extends DialogComponentProvider{
 		                    reportButton.addActionListener(new ActionListener() {
 		                        @Override
 		                        public void actionPerformed(ActionEvent e) {
-		                            try { 
-		                                report(items);
+		                            try {
+		                                report(items.getUser());
 		                            } catch (IOException e1) {
 		                                e1.printStackTrace();
 		                            }
@@ -234,18 +234,15 @@ public class Selection extends DialogComponentProvider{
 	    return panel;
 	}
 	
-	private static boolean discuss(MyItem item) throws IOException {
+	private static boolean discuss(String userto) throws IOException {
 		URL obj = new URL(POST_URL + "discuss");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
         con.setDoOutput(true);
-		System.out.println(item.getFun_name());
-
         String userfrom = LoginDialog.getUserId();
-        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\",\"funname\":\"%s\"}", item.getUser(), userfrom, item.getFun_name());
-		System.out.println(payload);
-
+        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\"}", userto, userfrom);
+        
         OutputStream os = con.getOutputStream();
         os.write(payload.getBytes());
         os.flush();
@@ -276,14 +273,14 @@ public class Selection extends DialogComponentProvider{
 		}
 	}
 	
-	public boolean deleteSelectedItem(MyItem item) throws Exception {
+	public boolean deleteSelectedItem(String item) throws Exception {
     	URL obj = new URL(POST_URL + "delete_selected");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
         con.setDoOutput(true);
         String userfrom = LoginDialog.getUserId();
-        String payload = String.format("{\"item\":\"%s\"}", item.getFun_name());
+        String payload = String.format("{\"item\":\"%s\"}", item);
         
         OutputStream os = con.getOutputStream();
         os.write(payload.getBytes());
@@ -316,14 +313,14 @@ public class Selection extends DialogComponentProvider{
 		}
     }
 		
-	private static boolean report(MyItem item) throws IOException {
+	private static boolean report(String userto) throws IOException {
 		URL obj = new URL(POST_URL + "report");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
         con.setDoOutput(true);
         String userfrom = LoginDialog.getUserId();
-        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\",\"funname\":\"%s\"}", item.getUser(), userfrom, item.getFun_name());
+        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\"}", userto, userfrom);
         
         OutputStream os = con.getOutputStream();
         os.write(payload.getBytes());
@@ -355,12 +352,11 @@ public class Selection extends DialogComponentProvider{
 		}
 	}
 	
-	private void sendPOST(short codeUnitSize, long fullHash, 
-			byte specificHashAdditionalSize, long specificHash, 
-			String libraryFamilyName, String libraryVersion,
+	private void sendPOST(long fullHash, String libraryFamilyName, String libraryVersion,
 			String libraryVariant, String ghidraVersion, 
 			LanguageID languageID, int languageVersion,
-			int languageMinorVersion, CompilerSpecID compilerSpecID, String funName, 
+			int languageMinorVersion, CompilerSpecID compilerSpecID,
+			String hashQuad, String funName, 
 			long entryPoint, String tokgroup) throws IOException {
 
 		URL url = new URL(POST_URL + "fid");
@@ -369,13 +365,10 @@ public class Selection extends DialogComponentProvider{
 		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 		connection.setRequestMethod("POST");
 		connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-		connection.setRequestProperty("unique_id", LoginDialog.getUserId());
 		
-		connection.setRequestProperty("codeUnitSize", Short.toString(codeUnitSize));
 		connection.setRequestProperty("fullHash", Long.toString(fullHash));
-		connection.setRequestProperty("specificHashAdditionalSize", Byte.toString(specificHashAdditionalSize));
-		connection.setRequestProperty("specificHash", Long.toString(specificHash));
 		
+		connection.setRequestProperty("unique_id", LoginDialog.getUserId());
 		connection.setRequestProperty("libraryFamilyName", libraryFamilyName);
 		connection.setRequestProperty("libraryVersion", libraryVersion);
 		connection.setRequestProperty("libraryVariant", libraryVariant);
@@ -385,6 +378,7 @@ public class Selection extends DialogComponentProvider{
 		connection.setRequestProperty("languageVersion", Integer.toString(languageVersion));
 		connection.setRequestProperty("languageMinorVersion", Integer.toString(languageMinorVersion));
 		connection.setRequestProperty("compilerSpecID", compilerSpecID.toString());
+		connection.setRequestProperty("hashQuad", hashQuad.toString());
 		connection.setRequestProperty("funName", funName);
 		connection.setRequestProperty("entryPoint", Long.toString(entryPoint));
 		connection.setRequestProperty("codeC", Base64.getEncoder().encodeToString(tokgroup.getBytes(StandardCharsets.UTF_8)));
@@ -426,7 +420,7 @@ public class Selection extends DialogComponentProvider{
 			response = sb.toString();
 			Msg.showError(getClass(), null, "Not connected", response);
 		}
-	}
+}
 	
 	
  

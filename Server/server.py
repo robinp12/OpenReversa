@@ -203,10 +203,13 @@ def file_push():
 
 @app.route("/fid", methods=['POST'])
 def receivefid():
-    print(request.headers)
-    fullHash = request.headers.get('FullHash')
-
     user_name = request.headers.get('Unique-Id')
+
+    codeUnitSize = request.headers.get('Codeunitsize')
+    fullHash = request.headers.get('Fullhash')
+    specificHashAdditionalSize = request.headers.get('Specifichashadditionalsize')
+    specificHash = request.headers.get('Specifichash')
+
     library_name = request.headers.get('Libraryfamilyname')
     library_version = request.headers.get('Libraryversion')
     library_variant = request.headers.get('Libraryvariant')
@@ -216,7 +219,6 @@ def receivefid():
     Languageversion = request.headers.get('Languageversion')
     Languageminorversion = request.headers.get('Languageminorversion')
     Compilerspecid = request.headers.get('Compilerspecid')
-    Hashquad = request.headers.get('Hashquad')
     funName = request.headers.get('FunName')
     Entrypoint = request.headers.get('Entrypoint')
     Codec = request.headers.get('Codec')
@@ -230,15 +232,21 @@ def receivefid():
         abort(404)
     print(request.headers)
 
-    if Hashquad:
-        existing_file = collection.find_one({"Hashquad": Hashquad})
+    if funName:
+        existing_file = collection.find_one({"funName": funName})
         if existing_file:
             print("Existe deja")
             response = make_response(f"Function '" +funName+ "' already exists in the database.", 409)
-            response.headers['Hashquad'] = existing_file['Hashquad']
+            response.headers['funName'] = existing_file['funName']
             return response
 
         collection.insert_one({"user":user_name,
+                               
+                               "codeUnitSize": codeUnitSize,
+                               "fullHash": fullHash,
+                               "specificHashAdditionalSize": specificHashAdditionalSize,
+                               "specificHash": specificHash,
+                               
                                "library_name": library_name,
                                "library_version": library_version,
                                "library_variant": library_variant,
@@ -247,7 +255,7 @@ def receivefid():
                                "Languageversion": Languageversion,
                                "Languageminorversion": Languageminorversion,
                                "Compilerspecid": Compilerspecid,
-                               "Hashquad": Hashquad,
+                               "Hashquad": funName,
                                "Entrypoint": Entrypoint,
                                "Languageid": Languageid,
                                "funName": funName,

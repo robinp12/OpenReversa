@@ -243,7 +243,7 @@ public class Selection extends DialogComponentProvider{
         con.setRequestProperty("Content-Type", "application/json");
         con.setDoOutput(true);
         String userfrom = LoginDialog.getUserId();
-        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\"}", item.getUser(), userfrom);
+        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\",\"funname\":\"%s\"}", item.getUser(), userfrom, item.getFun_name());
         
         OutputStream os = con.getOutputStream();
         os.write(payload.getBytes());
@@ -322,7 +322,7 @@ public class Selection extends DialogComponentProvider{
         con.setRequestProperty("Content-Type", "application/json");
         con.setDoOutput(true);
         String userfrom = LoginDialog.getUserId();
-        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\"}", item.getUser(), userfrom);
+        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\",\"funname\":\"%s\"}", item.getUser(), userfrom, item.getFun_name());
         
         OutputStream os = con.getOutputStream();
         os.write(payload.getBytes());

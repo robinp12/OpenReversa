@@ -90,7 +90,10 @@ def discuss():
     payload = request.get_json()
     userto = payload['userto']
     userfrom = payload['userfrom']
+    function = payload['funname'].strip()
 
+    function = collection.find_one({'funName': function})
+    function_decoded = base64.b64decode(function['Codec']).decode('utf-8')
     userto = users.find_one({'_id': ObjectId(userto)})
     userfrom = users.find_one({'_id': ObjectId(userfrom)})
 
@@ -99,7 +102,7 @@ def discuss():
 
     recipient_email = userto["email"]
     email_from = userfrom["email"]
-    message = MIMEText(f'Hi {recipient_email}, {email_from} want to discuss with you about your function.')
+    message = MIMEText(f'Hi, {email_from} want to discuss with you about your function : {function_decoded}')
     message['Subject'] = 'discussion request'
     message['From'] = FROM_EMAIL
     message['To'] = recipient_email
@@ -119,7 +122,11 @@ def report():
     payload = request.get_json()
     userto = payload['userto']
     userfrom = payload['userfrom']
+    function = payload['funname'].strip()
 
+    print(userto)
+    function = collection.find_one({'funName': function})
+    function_decoded = base64.b64decode(function['Codec']).decode('utf-8')
     userto = users.find_one({'_id': ObjectId(userto)})
     userfrom = users.find_one({'_id': ObjectId(userfrom)})
 
@@ -130,7 +137,7 @@ def report():
     email_from = userfrom["email"]
     print(email_from)
     print(recipient_email)
-    message = MIMEText(f'Hi, {email_from} want to report : {recipient_email}')
+    message = MIMEText(f'{email_from} want to report : {recipient_email} about his function : {function_decoded}')
     print(message)
     message['Subject'] = 'report request'
     message['From'] = FROM_EMAIL

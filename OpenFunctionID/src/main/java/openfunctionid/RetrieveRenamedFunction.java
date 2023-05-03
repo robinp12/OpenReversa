@@ -346,7 +346,7 @@ public class RetrieveRenamedFunction extends GhidraScript {
 					   ClangTokenGroup tokgroup = res.getCCodeMarkup();
 					System.out.println(tokgroup);
 					
-					item = new MyItem(hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction, fun_name, fun_entry, tokgroup.toString());
+					item = new MyItem("ok", hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction.toString(), fun_name, fun_entry, tokgroup.toString());
 					output.add(item);
 					//sendPOST(hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction, fun_name, fun_entry, tokgroup);
 

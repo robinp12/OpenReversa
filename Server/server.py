@@ -316,8 +316,8 @@ def download_files():
             item["Hashquad"],
             item["Entrypoint"],
             item["Languageid"],
-            item["funName"]
-            # item["Codec"]
+            item["funName"],
+            item["Codec"]
         ]
         # Join the fields with commas and add a newline character
         csv_data.append(item_data)

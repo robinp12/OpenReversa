@@ -15,16 +15,18 @@ public class MyItem {
     private int lang_ver;
     private int lang_minor_ver;
     private CompilerSpecID compiler_spec;
-    private FidHashQuad hashFunction;
+    private String hashFunction;
     private String fun_name;
     private long fun_entry;
     private String tokgroup;
+    private String user;
 
-    public MyItem(Long fullHash, String libraryFamilyNameTextField, String versionTextField, 
+    public MyItem(String user, Long fullHash, String libraryFamilyNameTextField, String versionTextField, 
     		String variantTextField, String app_version, LanguageID lang_id, 
     		int lang_ver, int lang_minor_ver, CompilerSpecID compiler_spec, 
-    		FidHashQuad hashFunction, String fun_name, long fun_entry, 
+    		String hashFunction, String fun_name, long fun_entry, 
     		String tokgroup) {
+    	this.user = user;
         this.fullHash = fullHash; 
         this.libraryFamilyNameTextField = libraryFamilyNameTextField; 
         this.versionTextField = versionTextField; 
@@ -38,6 +40,10 @@ public class MyItem {
         this.fun_name = fun_name; 
         this.fun_entry = fun_entry; 
         this.tokgroup = tokgroup;
+    }
+    
+    public String getUser() {
+        return user;
     }
 
     public Long getFullHash() {
@@ -76,7 +82,7 @@ public class MyItem {
         return compiler_spec;
     }
     
-    public FidHashQuad getHashFunction() {
+    public String getHashFunction() {
         return hashFunction;
     }
 
@@ -91,4 +97,5 @@ public class MyItem {
     public String getTokgroup() {
         return tokgroup;
     }
+    
 }

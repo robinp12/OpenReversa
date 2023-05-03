@@ -25,6 +25,7 @@ import ghidra.app.plugin.PluginCategoryNames;
 import ghidra.app.plugin.ProgramPlugin;
 import ghidra.feature.fid.db.FidFile;
 import ghidra.feature.fid.db.FidFileManager;
+import ghidra.feature.fid.hash.FidHashQuad;
 import ghidra.framework.Application;
 import ghidra.framework.plugintool.PluginInfo;
 import ghidra.framework.plugintool.PluginTool;
@@ -582,41 +583,58 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             response.append(inputLine);
         }
         in.close();
+        
+        String[] parts = response.toString().split("(?<=]),"); // split by "]," and keep delimiter
+        List<List<String>> result = new ArrayList<>();
 
-        String[] lines = response.toString().split("\\]");
+        for (String part : parts) {
+            String[] subparts = part.split(",(?=\\[)"); // split by "," followed by "[" and discard delimiter
+            List<String> sublist = new ArrayList<>();
+            for (String subpart : subparts) {
+                sublist.add(subpart.replaceAll("\\[|\\]", "").trim()); // remove brackets and whitespace
+            }
+            result.add(sublist);
+        }
+        
     	String fileName = "MainDatabase.c";
 
     	ArrayList<MyItem> output = new ArrayList<MyItem>();
 
          
-        for (String line : lines) {
-        	String[] fields = line.substring(1).split(",");
-        	
-        	String user = fields[0].substring(1);
+        for (List<String> list : result) {
+        	String[] field = list.get(0).split(",");
+        	String user = field[0];
+        	System.out.println(user);
         	String username = user.startsWith("[")?user.substring(1).replace("\"", ""):user.replace("\"", "");
 
-        	String library_name = fields[1].replace("\"", "");
-        	String library_version = fields[2].replace("\"", "");
-        	String library_variant = fields[3].replace("\"", "");
-        	String Ghidraversion = fields[4].replace("\"", "");
-            System.out.println(fields[4]);
-            System.out.println(fields[5]);
-
-        	String Languageversion = fields[5].replace("\"", "");
-        	String Languageminorversion = fields[6].replace("\"", "");
-        	String Compilerspecid = fields[7].replace("\"", "");
-        	String Hashquad = fields[8].replace("\"", "");
-        	String Entrypoint = fields[9].replace("\"", "");
-        	String Languageid = fields[10].replace("\"", "");
-        	String funName = fields[11].replace("\"", "");
-        	//String Codec = fields[12];
+        	String library_name = field[1].replaceAll("\"", "");
+        	String library_version = field[2].replaceAll("\"", "");
+        	String library_variant = field[3].replaceAll("\"", "");
+        	String Ghidraversion = field[4].replaceAll("\"", "");
+            System.out.println(field[5]);
+            System.out.println(field[6]);
             
-            MyItem item = new MyItem(null, library_name, library_version, 
+            String Languageversion = field[5].replaceAll("\"", "");
+            String Languageminorversion = field[6].replaceAll("\"", "");
+            String Compilerspecid = field[7].replaceAll("\"", "");
+            String Hashquad = field[8].replaceAll("\"", "");
+            String Entrypoint = field[9].replaceAll("\"", "");
+            String Languageid = field[10].replaceAll("\"", "");
+            String funName = field[11].replaceAll("\"", "");
+            String Codec = field[12].replaceAll("\"", "");
+        	
+        	/*String[] parts = Hashquad.split("[\\s()+]");
+        	String hashValue = parts[1];
+        	int size = Integer.parseInt(parts[2]);
+
+        	// Create new FidHashQuad object
+        	FidHashQuad fidHashQuad = new FidHashQuad(hashValue, size);*/
+            
+            MyItem item = new MyItem(user, (long) 1234, library_name, library_version, 
             						library_variant, Ghidraversion, new LanguageID(Languageid), 
             						Integer.parseInt(Languageversion.trim()), 
-            						Integer.parseInt(Languageminorversion.trim()), 
-            						new CompilerSpecID(Compilerspecid), 
-            						null, funName, Long.parseLong(Entrypoint.trim()), "Oui");
+            						Integer.parseInt(Languageminorversion.trim()),
+            						new CompilerSpecID(Compilerspecid), Hashquad, funName, Long.parseLong(Entrypoint.trim()), Codec);
             output.add(item);
 
         }

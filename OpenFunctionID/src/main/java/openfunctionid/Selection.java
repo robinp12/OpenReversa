@@ -128,7 +128,11 @@ public class Selection extends DialogComponentProvider{
 
 	private Component buildCheckboxPanelScroller() {
 		JScrollPane scrollPane;
-		scrollPane = new JScrollPane(buildCheckBoxPanelPush());
+		if (verif) {
+			scrollPane = new JScrollPane(buildCheckBoxPanelPush());
+		}else {
+			scrollPane = new JScrollPane(buildCheckBoxPanelPull());
+		}
 		return scrollPane;
 	}
 	
@@ -145,7 +149,7 @@ public class Selection extends DialogComponentProvider{
 		return panel;
 	}
 
-	/*private Component buildCheckBoxPanel() {
+	private Component buildCheckBoxPanelPull() {
 	    JPanel panel = new JPanel(new VerticalLayout(5));
 	    panel.setOpaque(true);
 	    panel.setBackground(Color.WHITE);
@@ -155,7 +159,7 @@ public class Selection extends DialogComponentProvider{
 	        checkbox.addMouseListener(new MouseAdapter() {
 	            public void mouseClicked(MouseEvent e) {
 	                if (e.getClickCount() == 2) {
-	                    JTextArea textArea = new JTextArea(items.getHashFunction());
+	                    JTextArea textArea = new JTextArea(items.getTokgroup());
 	                    textArea.setLineWrap(true);
 	                    textArea.setWrapStyleWord(true);
 	                    textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -165,13 +169,13 @@ public class Selection extends DialogComponentProvider{
 	                    messagePanel.add(scrollPane, BorderLayout.CENTER);
 	                    
 	                    JPanel buttonPanel = new JPanel(new FlowLayout());
-	                    if (items.getInfo2().equals(LoginDialog.getUserId())) {
+	                    if (items.getUser().equals(LoginDialog.getUserId())) {
 	                    	JButton deleteButton = new JButton("delete function");
 		                    deleteButton.addActionListener(new ActionListener() {
 		                        @Override
 		                        public void actionPerformed(ActionEvent e) {
 		                            try {
-										deleteSelectedItem(items.getName());
+										deleteSelectedItem(items.getFun_name());
 										output.remove(items);
 			
 							            panel.remove(checkbox);
@@ -197,7 +201,7 @@ public class Selection extends DialogComponentProvider{
 		                        @Override
 		                        public void actionPerformed(ActionEvent e) {
 		                            try {
-		                                discuss(items.getInfo2());
+		                                discuss(items.getUser());
 		                            } catch (IOException e1) {
 		                                e1.printStackTrace();
 		                            }
@@ -212,7 +216,7 @@ public class Selection extends DialogComponentProvider{
 		                        @Override
 		                        public void actionPerformed(ActionEvent e) {
 		                            try {
-		                                report(items.getInfo2());
+		                                report(items.getUser());
 		                            } catch (IOException e1) {
 		                                e1.printStackTrace();
 		                            }
@@ -233,7 +237,7 @@ public class Selection extends DialogComponentProvider{
 	        panel.add(checkbox);
 	    }
 	    return panel;
-	}*/
+	}
 	
 	private static boolean discuss(String userto) throws IOException {
 		URL obj = new URL(POST_URL + "discuss");
@@ -357,7 +361,7 @@ public class Selection extends DialogComponentProvider{
 			String libraryVariant, String ghidraVersion, 
 			LanguageID languageID, int languageVersion,
 			int languageMinorVersion, CompilerSpecID compilerSpecID,
-			FidHashQuad hashQuad, String funName, 
+			String hashQuad, String funName, 
 			long entryPoint, String tokgroup) throws IOException {
 
 		URL url = new URL(POST_URL + "fid");

@@ -20,12 +20,10 @@ import docking.action.DockingAction;
 import docking.action.MenuData;
 import docking.tool.ToolConstants;
 import generic.jar.ResourceFile;
-import ghidra.app.decompiler.ClangTokenGroup;
 import ghidra.app.plugin.PluginCategoryNames;
 import ghidra.app.plugin.ProgramPlugin;
 import ghidra.feature.fid.db.FidFile;
 import ghidra.feature.fid.db.FidFileManager;
-import ghidra.feature.fid.hash.FidHashQuad;
 import ghidra.framework.Application;
 import ghidra.framework.plugintool.PluginInfo;
 import ghidra.framework.plugintool.PluginTool;
@@ -55,13 +53,13 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import java.io.OutputStream;
 import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import javax.swing.JList;
 import javax.swing.DefaultListModel;
 
-import java.util.Base64;
+import ghidra.feature.fid.plugin.ActiveFidConfigureDialog;
+
 
 /**
  * TODO: Provide class-level documentation that describes what this plugin does.
@@ -156,7 +154,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         loginAction = action;
         
         //remove
-        action = new DockingAction("remove", getName()) {
+        action = new DockingAction("delete function", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
             	try {
@@ -267,99 +265,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         this.tool.addAction(action);
         deleteAction = action;
 
-        //Discard local changes
-        /*
-        action = new DockingAction("Discard local changes",getName()) {
-            @Override
-            public void actionPerformed(ActionContext context) {
-                discardLocalChanges();
-            }
-        };
-        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "discardlocal"));
-        action.setMenuBarData(new MenuData(
-                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
-                        "Discard local changes"},
-                null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "2"));
-        this.tool.addAction(action);
-        discardAction = action;
-        */
-
-    }
-    /*
-	private void pullRepo(){
-        ProcessBuilder processBuilder = new ProcessBuilder()
-                .command("git", "-C", REPO_NAME,"pull","--recurse-submodules")
-                .directory(new File(Application.getMyModuleRootDirectory().getAbsolutePath()+"/data"));
-        try {
-            startProcess("GitPull",processBuilder);
-        } catch (IOException e) {
-            Msg.showError(getClass(),null,"Clone repository error",e);
-        }
-
-    }
-
-    private void cloneRepo(){
-        File dir = new File(Application.getMyModuleRootDirectory().getAbsolutePath()+"/data");
-        ProcessBuilder processBuilder = new ProcessBuilder()
-                .command("git", "clone", "--recurse-submodules", REPO_URL)
-                .directory(dir);
-        ProcessBuilder initSubmodule = new ProcessBuilder()
-                .command("git","submodule","update","--init","--recursive")
-                .directory(dir);
-        try {
-            startProcess("GitClone",processBuilder);
-            //startProcess("GitInitSubmodules",initSubmodule);
-        } catch (IOException e) {
-            Msg.showError(getClass(),null,"Pull repository error",e);
-        }
-    }
-
-    private void discardLocalChanges(){
-        ProcessBuilder processBuilder = new ProcessBuilder()
-                .command("git", "-C", REPO_NAME,"restore",".")
-                .directory(new File(Application.getMyModuleRootDirectory().getAbsolutePath()+"/data"));
-        try {
-            startProcess("GitDiscardLocalChanges",processBuilder);
-            Msg.showInfo(getClass(),null,"Local changes discarded","All local changes have been discarded");
-        } catch (IOException e) {
-            Msg.showError(getClass(),null,"Discard local changes error",e);
-        }
-    }
-
-    private void statusRepo(){
-        ProcessBuilder processBuilder = new ProcessBuilder()
-                .command("git", "-C", REPO_NAME,"status")
-                .directory(new File(Application.getMyModuleRootDirectory().getAbsolutePath()+"/data"));
-        try {
-            Process p = processBuilder.start();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            BufferedReader errorReader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-
-            StringBuilder output = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                output.append(line).append("\n");
-            }
-            while ((line = errorReader.readLine()) != null) {
-                output.append(line).append("\n");
-            }
-            Msg.showInfo(getClass(),null,"Repository status",output.toString());
-            println(findModified(output.toString()).toString());
-
-        } catch (IOException e) {
-            Msg.showError(getClass(),null,"Status repository error",e);
-        }
-    }
-
-    private List<String> findModified(String searchString){
-        List<String> modifiedFiles = null;
-        for (String line: searchString.split("\n")){
-            if (line.contains("modified:") && line.contains("Collaborative")){
-                String file = line.split("Collaborative")[1].trim();
-                modifiedFiles.add(file);
-            }
-        }
-        return modifiedFiles;
     }
 
     private void attachAll(){
@@ -389,7 +294,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         ActiveFidConfigureDialog dialog =
                 new ActiveFidConfigureDialog(fidFileManager.getFidFiles());
         tool.showDialog(dialog);
-    }*/
+    }
 
     private void removeAndDeleteAll(){
         List<FidFile> fidFiles = fidFileManager.getFidFiles();
@@ -603,7 +508,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
          
         for (List<String> list : result) {
         	String[] field = list.get(0).split(",");
-        	String user = field[0];
+        	String user = field[0].replaceAll("\"", "");
         	System.out.println(user);
         	String username = user.startsWith("[")?user.substring(1).replace("\"", ""):user.replace("\"", "");
 
@@ -622,13 +527,9 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             String Languageid = field[10].replaceAll("\"", "");
             String funName = field[11].replaceAll("\"", "");
             String Codec = field[12].replaceAll("\"", "");
-        	
-        	/*String[] parts = Hashquad.split("[\\s()+]");
-        	String hashValue = parts[1];
-        	int size = Integer.parseInt(parts[2]);
 
         	// Create new FidHashQuad object
-        	FidHashQuad fidHashQuad = new FidHashQuad(hashValue, size);*/
+        	//FidHashQuad fidHashQuad = new FidHashQuad(hashValue, size);
             
             MyItem item = new MyItem(user, (long) 1234, library_name, library_version, 
             						library_variant, Ghidraversion, new LanguageID(Languageid), 

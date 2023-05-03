@@ -47,16 +47,16 @@ import ghidra.util.layout.VerticalLayout;
 public class Selection extends DialogComponentProvider{
 	
 	private ArrayList<MyItem> output;
-	private boolean verif;
+	private boolean isPush;
 	private List<JCheckBox> checkboxes = new ArrayList<>();
 	private static final String POST_URL = "http://127.0.0.1:5000/";
 	private static String regmessage = "";
 
-	public Selection(ArrayList<MyItem> output, boolean verif) {
+	public Selection(ArrayList<MyItem> output, boolean isPush) {
 		super("Select Files", false);
 
 	    this.output = new ArrayList<>(output);
-	    this.verif = verif;
+	    this.isPush = isPush;
 	    addWorkPanel(buildMainPanel());
 	    addOKButton();
 	    setOkButtonText("Dismiss");
@@ -73,7 +73,7 @@ public class Selection extends DialogComponentProvider{
 	            MyItem selected = output.stream()
 	                    .filter(item -> item.getFun_name().equals(itemName))
 	                    .findFirst().orElse(null);
-	            if (verif) {
+	            if (isPush) {
 		            try {
 						sendPOST(selected.getFullHash(), selected.getLibraryFamilyNameTextField(), selected.getVersionTextField(),
 						selected.getVariantTextField(), selected.getApp_version(), 
@@ -90,6 +90,8 @@ public class Selection extends DialogComponentProvider{
 		            if (selected != null) {
 		                sb.append(selected.getFun_name()).append(": ").append(selected.getFullHash()).append("\n");
 		            }
+	            }else {
+	            	//add fidb function
 	            }
 	        }
 	    }
@@ -123,7 +125,7 @@ public class Selection extends DialogComponentProvider{
 
 	private Component buildCheckboxPanelScroller() {
 		JScrollPane scrollPane;
-		if (verif) {
+		if (isPush) {
 			scrollPane = new JScrollPane(buildCheckBoxPanelPush());
 		}else {
 			scrollPane = new JScrollPane(buildCheckBoxPanelPull());
@@ -170,7 +172,7 @@ public class Selection extends DialogComponentProvider{
 		                        @Override
 		                        public void actionPerformed(ActionEvent e) {
 		                            try {
-										deleteSelectedItem(items.getFun_name());
+										deleteSelectedItem(items);
 										output.remove(items);
 			
 							            panel.remove(checkbox);
@@ -196,7 +198,7 @@ public class Selection extends DialogComponentProvider{
 		                        @Override
 		                        public void actionPerformed(ActionEvent e) {
 		                            try {
-		                                discuss(items.getUser());
+		                                discuss(items);
 		                            } catch (IOException e1) {
 		                                e1.printStackTrace();
 		                            }
@@ -210,8 +212,8 @@ public class Selection extends DialogComponentProvider{
 		                    reportButton.addActionListener(new ActionListener() {
 		                        @Override
 		                        public void actionPerformed(ActionEvent e) {
-		                            try {
-		                                report(items.getUser());
+		                            try { 
+		                                report(items);
 		                            } catch (IOException e1) {
 		                                e1.printStackTrace();
 		                            }
@@ -234,14 +236,14 @@ public class Selection extends DialogComponentProvider{
 	    return panel;
 	}
 	
-	private static boolean discuss(String userto) throws IOException {
+	private static boolean discuss(MyItem item) throws IOException {
 		URL obj = new URL(POST_URL + "discuss");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
         con.setDoOutput(true);
         String userfrom = LoginDialog.getUserId();
-        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\"}", userto, userfrom);
+        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\"}", item.getUser(), userfrom);
         
         OutputStream os = con.getOutputStream();
         os.write(payload.getBytes());
@@ -273,14 +275,14 @@ public class Selection extends DialogComponentProvider{
 		}
 	}
 	
-	public boolean deleteSelectedItem(String item) throws Exception {
+	public boolean deleteSelectedItem(MyItem item) throws Exception {
     	URL obj = new URL(POST_URL + "delete_selected");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
         con.setDoOutput(true);
         String userfrom = LoginDialog.getUserId();
-        String payload = String.format("{\"item\":\"%s\"}", item);
+        String payload = String.format("{\"item\":\"%s\"}", item.getFun_name());
         
         OutputStream os = con.getOutputStream();
         os.write(payload.getBytes());
@@ -313,14 +315,14 @@ public class Selection extends DialogComponentProvider{
 		}
     }
 		
-	private static boolean report(String userto) throws IOException {
+	private static boolean report(MyItem item) throws IOException {
 		URL obj = new URL(POST_URL + "report");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
         con.setDoOutput(true);
         String userfrom = LoginDialog.getUserId();
-        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\"}", userto, userfrom);
+        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\"}", item.getUser(), userfrom);
         
         OutputStream os = con.getOutputStream();
         os.write(payload.getBytes());

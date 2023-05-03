@@ -1,6 +1,5 @@
 package openfunctionid;
 
-import java.io.BufferedReader;
 /* ###
  * IP: GHIDRA
  *
@@ -41,6 +40,7 @@ import ghidra.app.decompiler.DecompiledFunction;
 import ghidra.app.script.GhidraScript;
 import ghidra.feature.fid.db.FidDB;
 import ghidra.feature.fid.db.FidFile;
+import ghidra.feature.fid.db.FidFileManager;
 import ghidra.feature.fid.db.LibraryRecord;
 import ghidra.feature.fid.hash.FidHashQuad;
 import ghidra.feature.fid.service.FidPopulateResult;
@@ -90,7 +90,6 @@ public class RetrieveRenamedFunction extends GhidraScript {
 	private List<String> commonSymbols = null;
 	private LanguageID languageID = null;
 
-
 	private MyFidPopulateResultReporter reporter = null;
 
 	private TaskMonitor monitor = new TaskMonitorAdapter();
@@ -115,7 +114,17 @@ public class RetrieveRenamedFunction extends GhidraScript {
 			//getAllModifiedFunc();
 
 	}
-	
+	private void selectFidFile() throws CancelledException, VersionException, IOException {
+		FidFileManager fidFileManager = FidFileManager.getInstance();
+		List<FidFile> userFid = fidFileManager.getUserAddedFiles();
+		if (userFid.isEmpty()) {
+			return;
+		}
+		fidFile = askChoice("List Domain files", "Choose FID database", userFid, userFid.get(0));
+		fidDb = fidFile.getFidDB(true);
+		monitor.initialize(1);
+
+	}
 
 	protected void outputLine(String line) {
 		if (outlog != null) {
@@ -378,6 +387,7 @@ public class RetrieveRenamedFunction extends GhidraScript {
 		}
 
 	}
+	
 	/*
 	public void getAllModifiedFunc() throws CancelledException, MemoryAccessException {
 		ArrayList<DomainFile> programs = new ArrayList<DomainFile>();
@@ -493,7 +503,6 @@ public class RetrieveRenamedFunction extends GhidraScript {
 
 	@Override
 	protected void run() throws Exception {
-		//selectFidFile();
 		//getAllModifiedFunc();
 		pushToDB();
 	}

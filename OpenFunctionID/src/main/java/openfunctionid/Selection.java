@@ -37,12 +37,23 @@ import javax.swing.JScrollPane;
 import javax.swing.JDialog;
 
 import docking.DialogComponentProvider;
+import ghidra.app.script.GhidraScript;
+import ghidra.feature.fid.db.FidDB;
+import ghidra.feature.fid.db.FidFile;
+import ghidra.feature.fid.db.FidFileManager;
+import ghidra.feature.fid.db.FunctionRecord;
+import ghidra.feature.fid.db.LibraryRecord;
+import ghidra.feature.fid.hash.FidHashQuad;
 import ghidra.feature.fid.plugin.FidPlugin;
 import ghidra.program.model.lang.CompilerSpecID;
 import ghidra.program.model.lang.LanguageID;
 import ghidra.util.HelpLocation;
 import ghidra.util.Msg;
+import ghidra.util.exception.CancelledException;
+import ghidra.util.exception.VersionException;
 import ghidra.util.layout.VerticalLayout;
+import ghidra.util.task.TaskMonitor;
+import ghidra.util.task.TaskMonitorAdapter;
 
 public class Selection extends DialogComponentProvider{
 	
@@ -51,6 +62,10 @@ public class Selection extends DialogComponentProvider{
 	private List<JCheckBox> checkboxes = new ArrayList<>();
 	private static final String POST_URL = "http://127.0.0.1:5000/";
 	private static String regmessage = "";
+	private FidDB fidDb = null;
+	private TaskMonitor monitor = new TaskMonitorAdapter();
+
+
 
 	public Selection(ArrayList<MyItem> output, boolean isPush) {
 		super("Select Files", false);
@@ -90,6 +105,40 @@ public class Selection extends DialogComponentProvider{
 		            if (selected != null) {
 		                sb.append(selected.getFun_name()).append(": ").append(selected.getFullHash()).append("\n");
 		            }
+	            }
+	            else {
+	            	FidFileManager fidFileManager = FidFileManager.getInstance();
+	        		List<FidFile> userFid = fidFileManager.getUserAddedFiles();
+	        		if (userFid.isEmpty()) {
+	        			return;
+	        		}
+					try {
+						GhidraScript g = null;
+		            	FidFile fidFile = g.askChoice("List Domain files", "Choose FID database", userFid, userFid.get(0));
+		            	FidDB fidDb = fidFile.getFidDB(true);
+		        		monitor.initialize(1);			
+		        		
+
+		            	LibraryRecord newlib = fidDb.createNewLibrary(selected.getLibraryFamilyNameTextField(), 
+		            			selected.getVersionTextField(), selected.getVariantTextField(),
+		            			selected.getApp_version(), selected.getLang_id(), selected.getLang_ver(), 
+		            			selected.getLang_minor_ver(), selected.getCompiler_spec());
+		            	
+		            	FidHashQuad hashQuad = new FidHashQuadImpl(selected.getCodeUnitSize(), 
+		            			selected.getFullHash(), selected.getSpecificHashAdditionalSize(), 
+		            			selected.getSpecificHash());
+		            	
+		            	FunctionRecord newfunc = fidDb.createNewFunction(newlib, hashQuad, 
+		            			selected.getFun_name(), selected.getFun_entry(), "", false);
+		            	
+						fidDb.saveDatabase("Saving", monitor);
+
+		            	
+		        		
+					} catch (CancelledException | VersionException | IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 	            }
 	        }
 	    }
@@ -233,7 +282,7 @@ public class Selection extends DialogComponentProvider{
 	    }
 	    return panel;
 	}
-	
+
 	private static boolean discuss(MyItem item) throws IOException {
 		URL obj = new URL(POST_URL + "discuss");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();

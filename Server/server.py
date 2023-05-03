@@ -119,6 +119,7 @@ def discuss():
 
 @app.route("/report", methods=['POST'])
 def report():
+
     payload = request.get_json()
     userto = payload['userto']
     userfrom = payload['userfrom']
@@ -255,7 +256,6 @@ def receivefid():
                                "Languageversion": Languageversion,
                                "Languageminorversion": Languageminorversion,
                                "Compilerspecid": Compilerspecid,
-                               "Hashquad": funName,
                                "Entrypoint": Entrypoint,
                                "Languageid": Languageid,
                                "funName": funName,
@@ -320,15 +320,21 @@ def download_files():
     # Iterate through the data and retrieve each desired field from each item
     for item in data:
         item_data = [
-            item["user"],
+           item["user"],
+
+            item["codeUnitSize"],
+            item["fullHash"],
+            item["specificHashAdditionalSize"],
+            item["specificHash"],
+
             item["library_name"],
             item["library_version"],
             item["library_variant"],
+            
             item["Ghidraversion"],
             item["Languageversion"],
             item["Languageminorversion"],
             item["Compilerspecid"],
-            item["Hashquad"],
             item["Entrypoint"],
             item["Languageid"],
             item["funName"],

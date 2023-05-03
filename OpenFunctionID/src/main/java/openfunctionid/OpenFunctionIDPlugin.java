@@ -509,34 +509,47 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         for (List<String> list : result) {
         	String[] field = list.get(0).split(",");
         	String user = field[0].replaceAll("\"", "");
-        	System.out.println(user);
-        	String username = user.startsWith("[")?user.substring(1).replace("\"", ""):user.replace("\"", "");
 
-        	String library_name = field[1].replaceAll("\"", "");
-        	String library_version = field[2].replaceAll("\"", "");
-        	String library_variant = field[3].replaceAll("\"", "");
-        	String Ghidraversion = field[4].replaceAll("\"", "");
+        	String codeUnitSize = field[1].replaceAll("\"", "");
+        	String fullHash = field[2].replaceAll("\"", "");
+        	String specificHashAdditionalSize = field[3].replaceAll("\"", "");
+        	String specificHash = field[4].replaceAll("\"", "");
+
+        	
+        	String library_name = field[5].replaceAll("\"", "");
+        	String library_version = field[6].replaceAll("\"", "");
+        	String library_variant = field[7].replaceAll("\"", "");
+        	
+        	String Ghidraversion = field[8].replaceAll("\"", "");
+
+            
+            String Languageversion = field[9].replaceAll("\"", "");
+            String Languageminorversion = field[10].replaceAll("\"", "");
+            String Compilerspecid = field[11].replaceAll("\"", "");
+            String Entrypoint = field[12].replaceAll("\"", "");
+            String Languageid = field[13].replaceAll("\"", "");
+            String funName = field[14].replaceAll("\"", "");
+            String Codec = field[15].replaceAll("\"", "");
+        	
+            System.out.println(field[0]);
+            System.out.println(field[1]);
+            System.out.println(field[2]);
+            System.out.println(field[3]);
+            System.out.println(field[4]);
             System.out.println(field[5]);
             System.out.println(field[6]);
+            System.out.println(field[7]);
+            System.out.println(field[8]);
+            System.out.println(field[9]);
+            System.out.println(field[10]);
+            System.out.println(field[11]);
+            System.out.println(field[12]);
+            System.out.println(field[13]);
+            System.out.println(field[14]);
+            System.out.println(field[15]);
             
-            String Languageversion = field[5].replaceAll("\"", "");
-            String Languageminorversion = field[6].replaceAll("\"", "");
-            String Compilerspecid = field[7].replaceAll("\"", "");
-            String Hashquad = field[8].replaceAll("\"", "");
-            String Entrypoint = field[9].replaceAll("\"", "");
-            String Languageid = field[10].replaceAll("\"", "");
-            String funName = field[11].replaceAll("\"", "");
-            String Codec = field[12].replaceAll("\"", "");
-        	
-        	/*String[] parts = Hashquad.split("[\\s()+]");
-        	String hashValue = parts[1];
-        	int size = Integer.parseInt(parts[2]);
-
-        	// Create new FidHashQuad object
-        	FidHashQuad fidHashQuad = new FidHashQuad(hashValue, size);*/
-            
-            MyItem item = new MyItem(user, (short) 1234, (long) 1234, 
-            						(byte) 1234, (long) 1234, 
+            MyItem item = new MyItem(user, Short.parseShort(codeUnitSize.trim()), Long.parseLong(fullHash.trim()), 
+            						Byte.parseByte(specificHashAdditionalSize.trim()), Long.parseLong(specificHash.trim()), 
             						library_name, library_version, 
             						library_variant, Ghidraversion, new LanguageID(Languageid), 
             						Integer.parseInt(Languageversion.trim()), Integer.parseInt(Languageminorversion.trim()),

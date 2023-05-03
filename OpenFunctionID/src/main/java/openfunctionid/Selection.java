@@ -18,7 +18,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Base64;
 import java.util.List;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
@@ -37,12 +37,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JDialog;
 
 import docking.DialogComponentProvider;
-import docking.widgets.checkbox.GCheckBox;
-import ghidra.app.decompiler.ClangTokenGroup;
-import ghidra.feature.fid.db.FidFile;
-import ghidra.feature.fid.hash.FidHashQuad;
 import ghidra.feature.fid.plugin.FidPlugin;
-import ghidra.framework.plugintool.PluginTool;
 import ghidra.program.model.lang.CompilerSpecID;
 import ghidra.program.model.lang.LanguageID;
 import ghidra.util.HelpLocation;
@@ -159,7 +154,7 @@ public class Selection extends DialogComponentProvider{
 	        checkbox.addMouseListener(new MouseAdapter() {
 	            public void mouseClicked(MouseEvent e) {
 	                if (e.getClickCount() == 2) {
-	                    JTextArea textArea = new JTextArea(items.getTokgroup());
+	                    JTextArea textArea = new JTextArea(new String(Base64.getDecoder().decode(items.getTokgroup().trim()), StandardCharsets.UTF_8));
 	                    textArea.setLineWrap(true);
 	                    textArea.setWrapStyleWord(true);
 	                    textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -386,7 +381,7 @@ public class Selection extends DialogComponentProvider{
 		connection.setRequestProperty("hashQuad", hashQuad.toString());
 		connection.setRequestProperty("funName", funName);
 		connection.setRequestProperty("entryPoint", Long.toString(entryPoint));
-		connection.setRequestProperty("codeC", tokgroup);
+		connection.setRequestProperty("codeC", Base64.getEncoder().encodeToString(tokgroup.getBytes(StandardCharsets.UTF_8)));
 		connection.setDoOutput(true);
 		System.out.println(connection.getResponseCode());
 		

@@ -38,6 +38,7 @@ import generic.hash.MessageDigest;
 import ghidra.app.decompiler.ClangTokenGroup;
 import ghidra.app.decompiler.DecompInterface;
 import ghidra.app.decompiler.DecompileResults;
+import ghidra.app.decompiler.DecompiledFunction;
 import ghidra.app.script.GhidraScript;
 import ghidra.feature.fid.db.FidDB;
 import ghidra.feature.fid.db.FidFile;
@@ -343,10 +344,10 @@ public class RetrieveRenamedFunction extends GhidraScript {
 					        System.out.println(res.getErrorMessage());
 					      return;
 					   }
-					   ClangTokenGroup tokgroup = res.getCCodeMarkup();
-					System.out.println(tokgroup);
+					   DecompiledFunction tokgroup = res.getDecompiledFunction();
+					System.out.println(tokgroup.getC());
 					
-					item = new MyItem("ok", hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction.toString(), fun_name, fun_entry, tokgroup.toString());
+					item = new MyItem("ok", hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction.toString(), fun_name, fun_entry, tokgroup.getC().toString());
 					output.add(item);
 					//sendPOST(hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction, fun_name, fun_entry, tokgroup);
 

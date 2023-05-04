@@ -9,15 +9,17 @@ package openfunctionid;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import ghidra.app.script.GhidraScript;
+import ghidra.feature.fid.db.FidDB;
 import ghidra.feature.fid.db.FidFile;
 import ghidra.feature.fid.db.FidFileManager;
 import ghidra.framework.store.db.PackedDatabase;
 import ghidra.util.Msg;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.exception.DuplicateFileException;
-
+import ghidra.util.exception.VersionException;
 import db.DBHandle;
 import db.DBRecord;
 import db.RecordIterator;
@@ -47,6 +49,17 @@ public class CreateNewFidDatabase extends GhidraScript {
 	 * extension (.fidb).  If they don't, we will add it for them.
      * @throws Exception 
 	 */
+    
+	public FidDB selectFidFile() throws CancelledException, VersionException, IOException {
+		FidFileManager fidFileManager = FidFileManager.getInstance();
+		List<FidFile> userFid = fidFileManager.getUserAddedFiles();
+		if (userFid.isEmpty()) {
+			return null;
+		}
+		FidFile fidFile = askChoice("List Domain files", "Choose FID database", userFid, userFid.get(0));
+		FidDB fidDb = fidFile.getFidDB(true);
+		return fidDb;
+	}
     
 	public void createFidDb() throws Exception {
 		File dbFile = askFile("Create new FidDb file", "Create");

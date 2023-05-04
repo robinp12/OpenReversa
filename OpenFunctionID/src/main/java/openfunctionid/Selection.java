@@ -82,6 +82,18 @@ public class Selection extends DialogComponentProvider{
 	
 	protected void okCallback() {
 	    StringBuilder sb = new StringBuilder();
+	    
+	    if(!isPush) {
+			CreateNewFidDatabase rrf = new CreateNewFidDatabase();
+			try {
+				fidDb = rrf.selectFidFile();
+			} catch (CancelledException | VersionException | IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			monitor.initialize(1);
+	    }
+	    
 	    for (JCheckBox checkbox : checkboxes) {
 	        if (checkbox.isSelected()) {
 	            String itemName = checkbox.getText();
@@ -107,18 +119,7 @@ public class Selection extends DialogComponentProvider{
 		            }
 	            }
 	            else {
-	            	FidFileManager fidFileManager = FidFileManager.getInstance();
-	        		List<FidFile> userFid = fidFileManager.getUserAddedFiles();
-	        		if (userFid.isEmpty()) {
-	        			return;
-	        		}
 					try {
-						GhidraScript g = null;
-		            	FidFile fidFile = g.askChoice("List Domain files", "Choose FID database", userFid, userFid.get(0));
-		            	FidDB fidDb = fidFile.getFidDB(true);
-		        		monitor.initialize(1);			
-		        		
-
 		            	LibraryRecord newlib = fidDb.createNewLibrary(selected.getLibraryFamilyNameTextField(), 
 		            			selected.getVersionTextField(), selected.getVariantTextField(),
 		            			selected.getApp_version(), selected.getLang_id(), selected.getLang_ver(), 
@@ -135,10 +136,13 @@ public class Selection extends DialogComponentProvider{
 
 		            	
 		        		
-					} catch (CancelledException | VersionException | IOException e1) {
+					} catch (CancelledException | IOException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
+					if (selected != null) {
+		                sb.append(selected.getFun_name()).append(": ").append(selected.getFullHash()).append("\n");
+		            }
 	            }
 	        }
 	    }

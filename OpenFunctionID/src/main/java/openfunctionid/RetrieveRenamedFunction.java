@@ -114,16 +114,16 @@ public class RetrieveRenamedFunction extends GhidraScript {
 			//getAllModifiedFunc();
 
 	}
-	private void selectFidFile() throws CancelledException, VersionException, IOException {
+	public FidDB selectFidFile() throws CancelledException, VersionException, IOException {
 		FidFileManager fidFileManager = FidFileManager.getInstance();
 		List<FidFile> userFid = fidFileManager.getUserAddedFiles();
 		if (userFid.isEmpty()) {
-			return;
+			return null;
 		}
 		fidFile = askChoice("List Domain files", "Choose FID database", userFid, userFid.get(0));
 		fidDb = fidFile.getFidDB(true);
 		monitor.initialize(1);
-
+		return fidDb;
 	}
 
 	protected void outputLine(String line) {

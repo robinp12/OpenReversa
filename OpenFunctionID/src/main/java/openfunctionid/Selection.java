@@ -37,11 +37,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JDialog;
 
 import docking.DialogComponentProvider;
-import ghidra.app.script.GhidraScript;
 import ghidra.feature.fid.db.FidDB;
-import ghidra.feature.fid.db.FidFile;
-import ghidra.feature.fid.db.FidFileManager;
 import ghidra.feature.fid.db.FunctionRecord;
+import ghidra.feature.fid.db.FunctionsTable;
 import ghidra.feature.fid.db.LibraryRecord;
 import ghidra.feature.fid.hash.FidHashQuad;
 import ghidra.feature.fid.plugin.FidPlugin;
@@ -68,7 +66,7 @@ public class Selection extends DialogComponentProvider{
 
 
 	public Selection(ArrayList<MyItem> output, boolean isPush) {
-		super("Select Files", false);
+		super("Select Functions (Double click to see entire function)", false);
 
 	    this.output = new ArrayList<>(output);
 	    this.isPush = isPush;
@@ -108,8 +106,7 @@ public class Selection extends DialogComponentProvider{
 						selected.getLang_id(), selected.getLang_ver(),
 						selected.getLang_minor_ver(), selected.getCompiler_spec(),
 						selected.getFun_name(), selected.getFun_entry(), selected.getTokgroup());
-					    JDialog dialog = (JDialog) SwingUtilities.getWindowAncestor(getComponent());
-					    dialog.dispose();
+
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -120,20 +117,29 @@ public class Selection extends DialogComponentProvider{
 	            }
 	            else {
 					try {
-		            	LibraryRecord newlib = fidDb.createNewLibrary(selected.getLibraryFamilyNameTextField(), 
-		            			selected.getVersionTextField(), selected.getVariantTextField(),
-		            			selected.getApp_version(), selected.getLang_id(), selected.getLang_ver(), 
-		            			selected.getLang_minor_ver(), selected.getCompiler_spec());
-		            	
-		            	FidHashQuad hashQuad = new FidHashQuadImpl(selected.getCodeUnitSize(), 
-		            			selected.getFullHash(), selected.getSpecificHashAdditionalSize(), 
-		            			selected.getSpecificHash());
-		            	
-		            	FunctionRecord newfunc = fidDb.createNewFunction(newlib, hashQuad, 
-		            			selected.getFun_name(), selected.getFun_entry(), "", false);
-		            	
-						fidDb.saveDatabase("Saving", monitor);
-
+						if(fidDb!=null) {
+							FunctionsTable ft = new FunctionsTable(fidDb, fidDb!=null?fidDb.getDBHandle():null);
+							int sizeFun = ft.getFunctionRecordsByFullHash(selected.getFullHash()).size();
+						    System.out.println("ici: \n" + ft.getFunctionRecordsByFullHash(selected.getFullHash()).size());
+							if(sizeFun == 0) {
+								LibraryRecord newlib = fidDb.createNewLibrary(selected.getLibraryFamilyNameTextField(), 
+				            			selected.getVersionTextField(), selected.getVariantTextField(),
+				            			selected.getApp_version(), selected.getLang_id(), selected.getLang_ver(), 
+				            			selected.getLang_minor_ver(), selected.getCompiler_spec());
+				            	
+				            	FidHashQuad hashQuad = new FidHashQuadImpl(selected.getCodeUnitSize(), 
+				            			selected.getFullHash(), selected.getSpecificHashAdditionalSize(), 
+				            			selected.getSpecificHash());
+				            	
+				            	FunctionRecord newfunc = fidDb.createNewFunction(newlib, hashQuad, 
+				            			selected.getFun_name(), selected.getFun_entry(), "", false);
+				            	
+								fidDb.saveDatabase("Saving", monitor);
+							    
+							}
+						}
+					    JDialog dialog = (JDialog) SwingUtilities.getWindowAncestor(getComponent());
+		            	dialog.dispose();
 		            	
 		        		
 					} catch (CancelledException | IOException e1) {

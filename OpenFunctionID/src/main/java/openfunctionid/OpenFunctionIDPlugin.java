@@ -44,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.swing.JCheckBox;
 import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -99,10 +98,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private DockingAction logoutAction;
     private DockingAction populateAction;
     private DockingAction removeAction;
-    private String responseString;
     
-    private List<JCheckBox> checkboxes = new ArrayList<>();
-
     /**
      * Plugin constructor.
      *
@@ -233,9 +229,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             public void actionPerformed(ActionContext context) { 
             	try {
 					pullRequest();
-					/*updateOpenFiDbFiles();
-			        attachAll();
-			        chooseActive();*/
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -501,8 +494,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             result.add(sublist);
         }
         
-    	String fileName = "MainDatabase.c";
-
     	ArrayList<MyItem> output = new ArrayList<MyItem>();
 
          
@@ -530,24 +521,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             String Languageid = field[13].replaceAll("\"", "");
             String funName = field[14].replaceAll("\"", "");
             String Codec = field[15].replaceAll("\"", "");
-        	
-            System.out.println(field[0]);
-            System.out.println(field[1]);
-            System.out.println(field[2]);
-            System.out.println(field[3]);
-            System.out.println(field[4]);
-            System.out.println(field[5]);
-            System.out.println(field[6]);
-            System.out.println(field[7]);
-            System.out.println(field[8]);
-            System.out.println(field[9]);
-            System.out.println(field[10]);
-            System.out.println(field[11]);
-            System.out.println(field[12]);
-            System.out.println(field[13]);
-            System.out.println(field[14]);
-            System.out.println(field[15]);
-            
+        	            
             MyItem item = new MyItem(user, Short.parseShort(codeUnitSize.trim()), Long.parseLong(fullHash.trim()), 
             						Byte.parseByte(specificHashAdditionalSize.trim()), Long.parseLong(specificHash.trim()), 
             						library_name, library_version, 
@@ -595,21 +569,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         removeAction.setEnabled(true);
     }
 
-    /*
-    private void startProcess(String name, ProcessBuilder processBuilder) throws IOException {
-        Process p = processBuilder.start();
-        BufferedReader stdInput = new BufferedReader(new InputStreamReader(p.getInputStream()));
-        BufferedReader stdError = new BufferedReader(new InputStreamReader(p.getErrorStream()));
-
-        String s = null;
-        while ((s = stdInput.readLine()) != null) {
-            println(name+" |"+s);
-        }
-
-        while ((s = stdError.readLine()) != null) {
-            println(name+" |"+s);
-        }
-    }*/
     private void println(String s){
         OpenFunctionIDPackage.println(tool,"[OpenFunctionID] "+s);
     }

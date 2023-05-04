@@ -27,7 +27,6 @@ import db.Schema;
 import db.Table;
 import ghidra.framework.store.db.PackedDBHandle;
 import ghidra.util.task.TaskMonitorAdapter;
-import ghidra.util.task.TaskMonitor;
 
 public class CreateNewFidDatabase extends GhidraScript {
 	
@@ -56,7 +55,7 @@ public class CreateNewFidDatabase extends GhidraScript {
 		if (userFid.isEmpty()) {
 			return null;
 		}
-		FidFile fidFile = askChoice("List Domain files", "Choose FID database", userFid, userFid.get(0));
+		FidFile fidFile = askChoice("Choose Fidb file", "Choose FID database to populate", userFid, userFid.get(0));
 		FidDB fidDb = fidFile.getFidDB(true);
 		return fidDb;
 	}

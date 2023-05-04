@@ -20,16 +20,13 @@ package openfunctionid;
 //  Subfolders at a specific depth from this root form the roots of individual libraries
 //    Library Name, Version, and Variant are created from the directory path elements
 //@category FunctionID
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map.Entry;
 
 import javax.swing.*;
-import java.util.TreeMap;
 import java.util.TreeSet;
 
 import generic.hash.FNV1a64MessageDigest;
@@ -39,8 +36,6 @@ import ghidra.app.decompiler.DecompileResults;
 import ghidra.app.decompiler.DecompiledFunction;
 import ghidra.app.script.GhidraScript;
 import ghidra.feature.fid.db.FidDB;
-import ghidra.feature.fid.db.FidFile;
-import ghidra.feature.fid.db.FidFileManager;
 import ghidra.feature.fid.db.LibraryRecord;
 import ghidra.feature.fid.hash.FidHashQuad;
 import ghidra.feature.fid.service.FidPopulateResult;
@@ -53,7 +48,6 @@ import ghidra.framework.Application;
 import ghidra.framework.model.DomainFile;
 import ghidra.framework.model.DomainFolder;
 import ghidra.framework.model.DomainObject;
-import ghidra.framework.plugintool.PluginTool;
 import ghidra.program.database.ProgramContentHandler;
 import ghidra.program.model.lang.CompilerSpecID;
 import ghidra.program.model.lang.LanguageID;
@@ -76,25 +70,13 @@ public class RetrieveRenamedFunction extends GhidraScript {
 	private FidService service;
 	private MatchNameAnalysis matchAnalysis;
 	private FidDB fidDb = null;
-	private FidFile fidFile  = null;
 	private boolean isCancelled = false;
 
-	//private String[] pathelement;
-	private String currentLibraryName;
-	private String currentLibraryVersion;
-	private String currentLibraryVariant;
-
-	private TreeMap<Long, String> duplicatemap = null;
 	private FileOutputStream outlog = null;
-	private File commonSymbolsFile = null;
-	private List<String> commonSymbols = null;
-	private LanguageID languageID = null;
 
-	private MyFidPopulateResultReporter reporter = null;
 
 	private TaskMonitor monitor = new TaskMonitorAdapter();
 	
-	private PluginTool tool;
 	
 	private String libraryFamilyNameTextField;
 	private String versionTextField;
@@ -110,20 +92,7 @@ public class RetrieveRenamedFunction extends GhidraScript {
 	    } catch (MemoryAccessException e) {
 	        e.printStackTrace();
 	    }
-			//selectFidFile();
-			//getAllModifiedFunc();
 
-	}
-	public FidDB selectFidFile() throws CancelledException, VersionException, IOException {
-		FidFileManager fidFileManager = FidFileManager.getInstance();
-		List<FidFile> userFid = fidFileManager.getUserAddedFiles();
-		if (userFid.isEmpty()) {
-			return null;
-		}
-		fidFile = askChoice("List Domain files", "Choose FID database", userFid, userFid.get(0));
-		fidDb = fidFile.getFidDB(true);
-		monitor.initialize(1);
-		return fidDb;
 	}
 
 	protected void outputLine(String line) {
@@ -175,87 +144,6 @@ public class RetrieveRenamedFunction extends GhidraScript {
 
 	}
 
-	private void hashFunction(Program program, ArrayList<Long> hashList)
-			throws MemoryAccessException, CancelledException {
-		FunctionManager functionManager = program.getFunctionManager();
-		FunctionIterator functions = functionManager.getFunctions(true);
-		while (functions.hasNext()) {
-			monitor.checkCanceled();
-			Function func = functions.next();
-			FidHashQuad hashFunction = service.hashFunction(func);
-			if (hashFunction == null) {
-				continue; // No body
-			}
-			MessageDigest digest = new FNV1a64MessageDigest();
-			digest.update(func.getName().getBytes(), TaskMonitor.DUMMY);
-			digest.update(hashFunction.getFullHash());
-			hashList.add(digest.digestLong());
-		}
-	}
-
-	private void hashListProgram(DomainFile domainFile, ArrayList<Long> hashList)
-			throws VersionException, CancelledException, IOException, MemoryAccessException {
-		DomainObject domainObject = null;
-		try {
-			domainObject = domainFile.getDomainObject(this, false, true, TaskMonitor.DUMMY);
-			if (!(domainObject instanceof Program)) {
-				return;
-			}
-			Program program = (Program) domainObject;
-			hashFunction(program, hashList);
-		}
-		finally {
-			if (domainObject != null) {
-				domainObject.release(this);
-			}
-		}
-
-	}
-
-	private long calculateFinalHash(ArrayList<Long> hashList) throws CancelledException {
-		MessageDigest digest = new FNV1a64MessageDigest();
-		Collections.sort(hashList);
-		for (int i = 0; i < hashList.size(); ++i) {
-			monitor.checkCanceled();
-			digest.update(hashList.get(i));
-		}
-		return digest.digestLong();
-	}
-
-	private boolean checkForDuplicate(ArrayList<DomainFile> programs) throws CancelledException {
-		String fullName =
-			currentLibraryName + ':' + currentLibraryVersion + ':' + currentLibraryVariant;
-		ArrayList<Long> hashList = new ArrayList<Long>();
-		for (int i = 0; i < programs.size(); ++i) {
-			monitor.checkCanceled();
-			try {
-				System.out.println(programs.get(i));
-				hashListProgram(programs.get(i), hashList);
-			}
-			catch (VersionException ex) {
-				outputLine("Version exception for " + fullName);
-			}
-			catch (IOException ex) {
-				outputLine("IO exception for " + fullName);
-			}
-			catch (MemoryAccessException ex) {
-				outputLine("Memory access exception for " + fullName);
-			}
-		}
-		long val = calculateFinalHash(hashList);
-		String string = duplicatemap.get(val);
-		boolean res;
-		if (string != null) {
-			outputLine(fullName + " duplicates " + string);
-			res = true;
-		}
-		else {
-			duplicatemap.put(val, fullName);
-			res = false;
-		}
-		return res;
-	}
-	
 	protected void findPrograms(ArrayList<DomainFile> programs, DomainFolder myFolder)
 			throws CancelledException {
 		if (myFolder == null) {
@@ -343,10 +231,6 @@ public class RetrieveRenamedFunction extends GhidraScript {
 					System.out.println("FID Hash for " + fun_name + " at " + function.getEntryPoint() + ": " +
 							hashFunction.toString());
 					
-					/*LibraryRecord newlib = fidDb.createNewLibrary(libraryFamilyNameTextField, versionTextField, variantTextField, 
-							app_version , lang_id , lang_ver, lang_minor_ver, compiler_spec);
-					
-					FunctionRecord newfunc = fidDb.createNewFunction(newlib, fid, fun_name , fun_entry  , "domainecheminAMODIFIER", false);*/
 					DecompInterface ifc = new DecompInterface();
 					ifc.openProgram(program);
 					DecompileResults res = ifc.decompileFunction(function, 0, monitor);
@@ -372,7 +256,7 @@ public class RetrieveRenamedFunction extends GhidraScript {
 				JDialog jDialog = new JDialog();
 				
 				jDialog.setModal(true);
-				jDialog.setTitle("Select Files");
+				jDialog.setTitle("Select Functions");
 				jDialog.getContentPane().add(dialog.getComponent());
 				jDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 				jDialog.pack();
@@ -387,119 +271,6 @@ public class RetrieveRenamedFunction extends GhidraScript {
 		}
 
 	}
-	
-	/*
-	public void getAllModifiedFunc() throws CancelledException, MemoryAccessException {
-		ArrayList<DomainFile> programs = new ArrayList<DomainFile>();
-		service = new FidService();
-		matchAnalysis = new MatchNameAnalysis();
-
-		try {
-			findPrograms(programs, getProjectRootFolder());
-			System.out.println(programs);
-			for (DomainFile program1 : programs) {
-				DomainObject domainObject = null;
-				domainObject = program1.getDomainObject(this, false, true, TaskMonitor.DUMMY);
-				if (!(domainObject instanceof Program)) {
-					return;
-				}
-					
-				Program program = (Program) domainObject;
-				FunctionManager functionManager = program.getFunctionManager();
-				
-				String app_version = Application.getApplicationVersion();
-				LanguageID lang_id = program.getLanguageID();
-				int lang_ver = program.getLanguage().getVersion();
-				int lang_minor_ver = program.getLanguage().getMinorVersion();
-				CompilerSpecID compiler_spec = program.getCompilerSpec().getCompilerSpecID();
-
-				
-				System.out.println(Application.getApplicationVersion());
-				
-				System.out.println(program.getProgramUserData());
-				
-				System.out.println(program.getCompilerSpec().getCompilerSpecID());
-				System.out.println(program.getLanguageID());
-				System.out.println(program.getLanguage().getVersion());
-				System.out.println(program.getLanguage().getMinorVersion());
-				
-				
-				FunctionIterator functions = functionManager.getFunctions(true);
-				for (Function function : functions) {
-					if (monitor.isCancelled()) {
-						return;
-					}
-					if(function.getName().startsWith("FUN_") || function.getName().startsWith("Ordinal_")) {
-						continue;
-					}
-					FidHashQuad hashFunction = service.hashFunction(function);
-					if (hashFunction == null) {
-						System.out.println("passe pas : " + function.getName());
-
-						continue; // No body
-					}
-					MessageDigest digest = new FNV1a64MessageDigest();
-					digest.update(function.getName().getBytes(), TaskMonitor.DUMMY);
-					digest.update(hashFunction.getFullHash());
-					
-					System.out.println(hashFunction.getCodeUnitSize());
-					System.out.println(hashFunction.getFullHash());
-					System.out.println(hashFunction.getSpecificHashAdditionalSize());
-					System.out.println(hashFunction.getSpecificHash());
-					
-					String fun_name = function.getName();
-					long fun_entry = function.getEntryPoint().getOffset();
-
-					System.out.println(function.getEntryPoint());
-					System.out.println(function.getName());
-					//System.out.println(function.getName().getBytes());
-					System.out.println(function.getSignature());
-					System.out.println("FID Hash for " + function.getName() + " at " + function.getEntryPoint() + ": " +
-							hashFunction.toString());
-					System.out.println();
-					
-					
-					LibraryRecord newlib = fidDb.createNewLibrary(libraryFamilyNameTextField, versionTextField, variantTextField, 
-							app_version , lang_id , lang_ver, lang_minor_ver, compiler_spec);
-					
-					FunctionRecord newfunc = fidDb.createNewFunction(newlib, hashFunction, fun_name , fun_entry  , "domainecheminAMODIFIER", false);
-					DecompInterface ifc = new DecompInterface();
-					ifc.openProgram(program);
-					DecompileResults res = ifc.decompileFunction(function, 0, monitor);
-					 // Check for error conditions
-					   if (!res.decompileCompleted()) {
-					        System.out.println(res.getErrorMessage());
-					      return;
-					   }
-					   ClangTokenGroup tokgroup = res.getCCodeMarkup();
-					//System.out.println(tokgroup);
-				}
-
-			}
-
-		} catch (CancelledException e) {
-			// TODO Auto-generated catch block
-			isCancelled = true;
-		} catch (VersionException e) {
-			// TODO Auto-generated catch block
-			Msg.showError(this, null, "Version Exception",
-					"One of the programs in your domain folder cannot be upgraded: " + e.getMessage());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			Msg.showError(this, null, "FidDb IOException", "Please notify the Ghidra team:", e);
-		}
-		try {
-			fidDb.saveDatabase("Saving", monitor);
-		} catch (CancelledException | IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		finally {
-			fidDb.close();
-		}
-
-	}
-	*/
 
 	@Override
 	protected void run() throws Exception {

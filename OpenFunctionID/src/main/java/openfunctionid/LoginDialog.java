@@ -60,18 +60,19 @@ public class LoginDialog extends JDialog {
 
 	private static final String POST_URL = "http://127.0.0.1:5000/";
 	
-	private static String userId = "";
+	public static String userId = "";
 	private static String message = "Verify credentials";
 	private static String regmessage = "";
+	
+	Request request = new Request();
 
 
-	public LoginDialog(DockingAction loginAction, DockingAction pullAction, DockingAction pushAction, DockingAction deleteAction,
+	public LoginDialog(DockingAction loginAction, DockingAction pullAction, DockingAction deleteAction,
 		 DockingAction logoutAction, DockingAction removeAction, DockingAction populateAction) {
 		
 		this.loginAction = loginAction;
 		this.pullAction = pullAction;
 		this.deleteAction = deleteAction;
-		this.pushAction = pushAction;
 		this.logoutAction = logoutAction;
 		this.removeAction = removeAction;
 		this.populateAction = populateAction;
@@ -168,7 +169,7 @@ public class LoginDialog extends JDialog {
                 }
                 int isLogged = 0;
                 try {
-                    isLogged = login_request(getUsername(), getPassword());
+                    isLogged = request.login_request(getUsername(), getPassword());
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
@@ -184,7 +185,6 @@ public class LoginDialog extends JDialog {
                     pullAction.setEnabled(true);
                     populateAction.setEnabled(true);
                     deleteAction.setEnabled(true);
-                    pushAction.setEnabled(true);
                     logoutAction.setEnabled(true);
                     removeAction.setEnabled(true);
                     OpenFunctionIDUploadC.setConnected(true); 
@@ -299,7 +299,7 @@ public class LoginDialog extends JDialog {
 						return;
 					}
 					else {
-						isRegistered = register_request(getRegisterUsername(), getRegisterPassword(), getConfirm());
+						isRegistered = request.register_request(getRegisterUsername(), getRegisterPassword(), getConfirm());
 					}
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
@@ -324,128 +324,5 @@ public class LoginDialog extends JDialog {
 		});  
 		dialog.setVisible(true);
     }
-    
-    private int login_request(String username, String password) throws IOException {
-        URL obj = new URL(POST_URL + "get_salt");
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/json");
-        String payload;
-        try {
-            payload = String.format("{\"username\":\"%s\"}", username);
-            con.setDoOutput(true);
-            try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
-                byte[] postData = payload.getBytes(StandardCharsets.UTF_8);
-                wr.write(postData);
-            }
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            message = "Sorry, the server is currently unavailable. Please try again later.";
-            e.printStackTrace();
-        }
-        int responseCode = 0;
-        try {			
-        	responseCode = con.getResponseCode();
-        	System.out.println("POST Response Code :: " + responseCode);
-		} catch (Exception e) {
-			return 4;
-		}
-        if (responseCode == HttpURLConnection.HTTP_OK) { // success
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
 
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            
-            if(response.toString().contains("didnt verify")) {
-            	return 2;
-            }
-            
-	        String[] saltAndPwdHash = response.toString().split(",");
-	    	boolean decrypt = Encryption.verifyUserPassword(password, saltAndPwdHash[1], saltAndPwdHash[0]);
-	    	if (decrypt) {
-	    		userId = saltAndPwdHash[2];
-	    		return 1;
-	    	}
-	    	return 3;
-        	
-        } else {
-            System.out.println("GET request did not work.");
-            return 4;
-        }
-    }	
- 
-   
-    private static boolean isValidEmailAddress(String email) {
-        String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(email);
-        return matcher.matches();
-    }
-
-    private static boolean register_request(String username, String password, String confirm) throws IOException {
-        if (!isValidEmailAddress(username)) {
-            // Show an error message to the user
-            regmessage = "Invalid email address.";
-            return false;
-        }
-    	
-    	String saltvalue = Encryption.getSaltvalue(30);
-    	String encryptedpassword = Encryption.generateSecurePassword(password, saltvalue);
-    	URL obj = new URL(POST_URL + "register");
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/json");
-        String payload;
-		try {
-			payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\",\"salt\":\"%s\"}", username, encryptedpassword, saltvalue);
-			//payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username, hashString(password));
-			con.setDoOutput(true);
-	        try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
-	            byte[] postData = payload.getBytes(StandardCharsets.UTF_8);
-	            wr.write(postData);
-	        }
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-	        regmessage = "Sorry, the server is currently unavailable. Please try again later.";
-			e.printStackTrace();
-		}
-		int responseCode = con.getResponseCode();
-		try {			
-        	responseCode = con.getResponseCode();
-        	System.out.println("POST Response Code :: " + responseCode);
-		} catch (Exception e) {
-			return false;
-		}
-        System.out.println("POST Response Code :: " + responseCode);
-
-        if (responseCode == HttpURLConnection.HTTP_OK) { //success
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-            
-            regmessage = response.toString();
-            System.out.println(regmessage);
-            
-            if(response.toString().contains("Success!")) {
-            	return true;
-            }
-            if(response.toString().contains("Sorry")) {
-            	return false;
-            }
-        }
-        else {
-        	System.out.println("POST request did not work.");
-        	return false;
-        }
-		return false;
-    }
 }

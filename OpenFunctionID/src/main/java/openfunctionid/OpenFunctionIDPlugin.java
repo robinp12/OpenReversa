@@ -86,6 +86,8 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private FidFileManager fidFileManager;
     private File file;
 
+    Request request = new Request();
+    
     private List<File> openFiDbFiles;
     private List<String> openFiDbFilesNames;
     
@@ -93,7 +95,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
 
     private DockingAction loginAction;
     private DockingAction pullAction;
-    private DockingAction pushAction;
     private DockingAction deleteAction;
     private DockingAction logoutAction;
     private DockingAction populateAction;
@@ -120,8 +121,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         loginAction.setEnabled(true);
         logoutAction.setEnabled(false);
         populateAction.setEnabled(false);
-        //pullAction.setEnabled(false);
-        pushAction.setEnabled(false);
+        pullAction.setEnabled(false);
         deleteAction.setEnabled(false);
         removeAction.setEnabled(false);
     }
@@ -138,7 +138,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         action = new DockingAction("Login", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
-            	LoginDialog login = new LoginDialog(loginAction,pullAction,pushAction,deleteAction,logoutAction,removeAction,populateAction);
+            	LoginDialog login = new LoginDialog(loginAction,pullAction,deleteAction,logoutAction,removeAction,populateAction);
             }
         };
         action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "login"));
@@ -154,17 +154,18 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             @Override
             public void actionPerformed(ActionContext context) {
             	try {
-					removeRequest(LoginDialog.getUserId());
+            		Request request = new Request();
+					request.removeRequest(LoginDialog.getUserId());
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
             }
         };
-        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "remove"));
+        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "delete function"));
         action.setMenuBarData(new MenuData(
                 new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
-                        "remove"},
+                        "delete function"},
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
         removeAction = action;
@@ -207,28 +208,13 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
         populateAction = action;
-        
-        //Push FiDb files
-        action = new DockingAction("Push FiDb files",getName()) {
-            @Override
-            public void actionPerformed(ActionContext context) { 
-            	pushOpenFiDbFiles();
-            }
-        };
-        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "push"));
-        action.setMenuBarData(new MenuData(
-                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
-                        "Push FiDb files"},
-                null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
-        this.tool.addAction(action);
-        pushAction = action;
-        
+
         //Pull the repo
         action = new DockingAction("Pull the repo",getName()) {
             @Override
             public void actionPerformed(ActionContext context) { 
             	try {
-					pullRequest();
+					pullDialog();
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -309,194 +295,15 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         updateOpenFiDbFiles();
     }
     
-    private static void sendPOST(File file) throws IOException {
-        String fileName = file.getName();
-        URL obj = new URL(POST_URL + "file");
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/octet-stream");
-        con.setRequestProperty("Content-Length", String.valueOf(file.length()));
-        con.setRequestProperty("X-File-Name", fileName); // add this line to include the file name
-        System.out.println(LoginDialog.getUserId());
-        con.setRequestProperty("Username", LoginDialog.getUserId()); // add this line to include the file name
-        con.setDoOutput(true);
-
-        int chunkSize = 4096;
-        byte[] buffer = new byte[chunkSize];
-        try (FileInputStream fis = new FileInputStream(file);
-             OutputStream os = con.getOutputStream()) {
-
-            int bytesRead;
-            while ((bytesRead = fis.read(buffer)) > 0) {
-                os.write(buffer, 0, bytesRead);
-                os.flush();
-            }
-        }
-
-        int responseCode = con.getResponseCode();
-        System.out.println("POST Response Code :: " + responseCode);
-
-        if (responseCode == HttpURLConnection.HTTP_OK) { //success
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
-
-            // print result
-            System.out.println(response.toString());
-        } else if (responseCode == HttpURLConnection.HTTP_CONFLICT) { // file already exists in the database
-        	String message = "This file has already been inserted into the database by ";
-            message += con.getHeaderField("user_name") + ".";
-            JOptionPane.showMessageDialog(null, message, "File Already Exists", JOptionPane.WARNING_MESSAGE);
-        }  else {
-            System.out.println("POST request did not work.");
-        }
-    }
-    
     private void show(Selection dialog) {
     	tool.showDialog(dialog);
     }
     
-    private void pushOpenFiDbFiles() {
-    	JFileChooser chooser = new JFileChooser();
-        FileNameExtensionFilter filter = new FileNameExtensionFilter(
-            "fidb files", "fidb");
-        chooser.setFileFilter(filter);
-        int returnVal = chooser.showOpenDialog(null);
-        if(returnVal == JFileChooser.APPROVE_OPTION) {
-           System.out.println("You chose to open this file: " +
-                chooser.getSelectedFile().getName());
-           file = chooser.getSelectedFile();
-           try {
-			 sendPOST(file);
-           } catch (IOException e) {
-			// TODO Auto-generated catch block
-			 e.printStackTrace();
-           }
-        }
-
-    }
-    
-    public boolean removeRequest(String user) throws Exception {
-        URL url = new URL(POST_URL + "get_remove/" + user);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-
-        int responseCode = connection.getResponseCode();
-        System.out.println("Response code: " + responseCode);
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        String inputLine;
-        StringBuffer response = new StringBuffer();
-
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-        in.close();
-
-        System.out.println(response.toString());
-
-        Gson gson = new Gson();
-        Object[] items = gson.fromJson(response.toString(), Object[].class);
-
-        DefaultListModel<Object> listModel = new DefaultListModel<>();
-        listModel.addAll(Arrays.asList(items));
-        JList<Object> jList = new JList<>(listModel);
-
-        jList.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting()) {
-                    Object selectedItem = jList.getSelectedValue();
-                }
-            }
-        });
-
-        int result = JOptionPane.showConfirmDialog(null, jList, "Select item to remove", JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.OK_OPTION) {
-            Object selectedItem = jList.getSelectedValue();
-            deleteSelectedItem(selectedItem.toString());
-        }
-
-        return true;
-    }
-    
-    public boolean deleteSelectedItem(String item) throws Exception {
-    	URL obj = new URL(POST_URL + "delete_selected");
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/json");
-        con.setDoOutput(true);
-        String userfrom = LoginDialog.getUserId();
-        String payload = String.format("{\"item\":\"%s\"}", item);
-        
-        OutputStream os = con.getOutputStream();
-        os.write(payload.getBytes());
-        os.flush();
-        os.close();
-        
-        int responseCode = con.getResponseCode();
-		if (responseCode == HttpURLConnection.HTTP_OK) {
-		    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-		    String inputLine;
-		    StringBuilder response = new StringBuilder();
-		    while ((inputLine = in.readLine()) != null) {
-		        response.append(inputLine);
-		    }
-		    in.close();
-		    String regmessage = response.toString();
-		    
-		    if(response.toString().contains("Success!")) {
-		    	JOptionPane.showMessageDialog(null, regmessage);
-            	return true;
-            }
-		    else {
-		    	return false;
-		    }  
-		    
-		}
-		else {
-			System.out.println("POST request did not work.");
-        	return false;
-		}
-    }
-    
-    public boolean pullRequest() throws Exception {
-    	URL url = new URL(POST_URL + "download_files");
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-
-        int responseCode = connection.getResponseCode();
-        System.out.println("Response code: " + responseCode);
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        String inputLine;
-        StringBuffer response = new StringBuffer();
-
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-        in.close();
-        
-        String[] parts = response.toString().split("(?<=]),"); // split by "]," and keep delimiter
-        List<List<String>> result = new ArrayList<>();
-
-        for (String part : parts) {
-            String[] subparts = part.split(",(?=\\[)"); // split by "," followed by "[" and discard delimiter
-            List<String> sublist = new ArrayList<>();
-            for (String subpart : subparts) {
-                sublist.add(subpart.replaceAll("\\[|\\]", "").trim()); // remove brackets and whitespace
-            }
-            result.add(sublist);
-        }
-        
+    public boolean pullDialog() throws Exception {
+    	List<List<String>> result = request.pullRequest();
+    	
     	ArrayList<MyItem> output = new ArrayList<MyItem>();
 
-         
         for (List<String> list : result) {
         	String[] field = list.get(0).split(",");
         	String user = field[0].replaceAll("\"", "");
@@ -554,7 +361,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     	logoutAction.setEnabled(false);
         populateAction.setEnabled(false);
         pullAction.setEnabled(false);
-        pushAction.setEnabled(false);
         deleteAction.setEnabled(false);
         removeAction.setEnabled(false);
     }
@@ -564,7 +370,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     	logoutAction.setEnabled(true);
         populateAction.setEnabled(true);
         pullAction.setEnabled(true);
-        pushAction.setEnabled(true);
         deleteAction.setEnabled(true);
         removeAction.setEnabled(true);
     }

@@ -360,7 +360,6 @@ def get_remove(id):
 def delete_selected():
     payload = request.get_json()
     function = payload['item'].strip()
-    print(function)
     collection.delete_one({'funName': function})
     return Response("Success! this function has been deleted")
 if __name__ == '__main__':

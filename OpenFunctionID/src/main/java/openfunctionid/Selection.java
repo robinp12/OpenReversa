@@ -9,6 +9,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -61,6 +63,7 @@ public class Selection extends DialogComponentProvider{
 	private static final String POST_URL = "http://127.0.0.1:5000/";
 	private static String regmessage = "";
 	private FidDB fidDb = null;
+	Request request = new Request();
 	private TaskMonitor monitor = new TaskMonitorAdapter();
 
 
@@ -100,7 +103,7 @@ public class Selection extends DialogComponentProvider{
 	                    .findFirst().orElse(null);
 	            if (isPush) {
 		            try {
-						sendPOST(selected.getCodeUnitSize(),selected.getFullHash(),selected.getSpecificHashAdditionalSize(),
+						request.sendToDBrequest(selected.getCodeUnitSize(),selected.getFullHash(),selected.getSpecificHashAdditionalSize(),
 								selected.getSpecificHash(), selected.getLibraryFamilyNameTextField(), selected.getVersionTextField(),
 						selected.getVariantTextField(), selected.getApp_version(), 
 						selected.getLang_id(), selected.getLang_ver(),
@@ -229,7 +232,7 @@ public class Selection extends DialogComponentProvider{
 		                        @Override
 		                        public void actionPerformed(ActionEvent e) {
 		                            try {
-										deleteSelectedItem(items);
+										request.deleteSelectedItem(items.getFun_name());
 										output.remove(items);
 			
 							            panel.remove(checkbox);
@@ -250,35 +253,60 @@ public class Selection extends DialogComponentProvider{
 		                    });
 		                    buttonPanel.add(deleteButton);
 	                    }else {
-		                    JButton discussionButton = new JButton("Send a discussion request");
-		                    discussionButton.addActionListener(new ActionListener() {
-		                        @Override
-		                        public void actionPerformed(ActionEvent e) {
-		                            try {
-		                                discuss(items);
-		                            } catch (IOException e1) {
-		                                e1.printStackTrace();
-		                            }
-		                            JOptionPane.showMessageDialog(null, "Discussion request sent successfully");
-		                            System.out.println("Message envoyé");
-		                        }
-		                    });
-		                    buttonPanel.add(discussionButton);
+	                    	
+	                    	JButton discussionButton = new JButton("Send a discussion request");
+	                    	discussionButton.addActionListener(new ActionListener() {
+	                    	    @Override
+	                    	    public void actionPerformed(ActionEvent e) {
+	                    	        JDialog dialog = new JDialog();
+	                    	        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+	                    	        dialog.setModal(true);
+	                    	        dialog.addWindowListener(new WindowAdapter() {
+	                    	            @Override
+	                    	            public void windowDeactivated(WindowEvent e) {
+	                    	                dialog.requestFocus();
+	                    	            }
+	                    	        });
+	                    	        int choice = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to send a discussion request ? This will send your email address to the user in question", "Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+	                    	        if (choice == JOptionPane.YES_OPTION) {
+	                    	            try {
+	                    	                request.discuss(items);
+	                    	            } catch (IOException e1) {
+	                    	                e1.printStackTrace();
+	                    	            }
+	                    	            JOptionPane.showMessageDialog(null, "Discussion request sent successfully");
+	                    	            System.out.println("Message envoyé");
+	                    	        }
+	                    	    }
+	                    	});
+	                    	buttonPanel.add(discussionButton);
 		                    
-		                    JButton reportButton = new JButton("report");
-		                    reportButton.addActionListener(new ActionListener() {
-		                        @Override
-		                        public void actionPerformed(ActionEvent e) {
-		                            try { 
-		                                report(items);
-		                            } catch (IOException e1) {
-		                                e1.printStackTrace();
-		                            }
-		                            JOptionPane.showMessageDialog(null, "report request sent successfully");
-		                            System.out.println("Message signalé");
-		                        }
-		                    });
-		                    buttonPanel.add(reportButton);
+	                    	JButton reportButton = new JButton("report");
+	                    	reportButton.addActionListener(new ActionListener() {
+	                    	    @Override
+	                    	    public void actionPerformed(ActionEvent e) {
+	                    	        JDialog dialog = new JDialog();
+	                    	        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+	                    	        dialog.setModal(true);
+	                    	        dialog.addWindowListener(new WindowAdapter() {
+	                    	            @Override
+	                    	            public void windowDeactivated(WindowEvent e) {
+	                    	                dialog.requestFocus();
+	                    	            }
+	                    	        });
+		                        	int choice = JOptionPane.showConfirmDialog(null, "Are you sure you want to report this user ?", "Confirmation", JOptionPane.YES_NO_OPTION);
+		                        	if (choice == JOptionPane.YES_OPTION) {
+	                    	            try {
+	                    	                request.report(items);
+	                    	            } catch (IOException e1) {
+	                    	                e1.printStackTrace();
+	                    	            }
+	                    	            JOptionPane.showMessageDialog(null, "report sent successfully");
+	                    	            System.out.println("Message envoyé");
+	                    	        }
+	                    	    }
+	                    	});
+	                    	buttonPanel.add(reportButton);
 	                    }
 	                    
 	                    messagePanel.add(buttonPanel, BorderLayout.SOUTH);
@@ -291,202 +319,6 @@ public class Selection extends DialogComponentProvider{
 	        panel.add(checkbox);
 	    }
 	    return panel;
-	}
-
-	private static boolean discuss(MyItem item) throws IOException {
-		URL obj = new URL(POST_URL + "discuss");
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/json");
-        con.setDoOutput(true);
-		System.out.println(item.getFun_name());
-
-        String userfrom = LoginDialog.getUserId();
-        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\",\"funname\":\"%s\"}", item.getUser(), userfrom, item.getFun_name());
-		System.out.println(payload);
-
-        OutputStream os = con.getOutputStream();
-        os.write(payload.getBytes());
-        os.flush();
-        os.close();
-        
-        int responseCode = con.getResponseCode();
-		if (responseCode == HttpURLConnection.HTTP_OK) {
-		    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-		    String inputLine;
-		    StringBuilder response = new StringBuilder();
-		    while ((inputLine = in.readLine()) != null) {
-		        response.append(inputLine);
-		    }
-		    in.close();
-		    regmessage = response.toString();
-		    
-		    if(response.toString().contains("Success!")) {
-            	return true;
-            }
-		    else {
-		    	return false;
-		    }  
-		    
-		}
-		else {
-			System.out.println("POST request did not work.");
-        	return false;
-		}
-	}
-	
-	public boolean deleteSelectedItem(MyItem item) throws Exception {
-    	URL obj = new URL(POST_URL + "delete_selected");
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/json");
-        con.setDoOutput(true);
-        String userfrom = LoginDialog.getUserId();
-        String payload = String.format("{\"item\":\"%s\"}", item.getFun_name());
-        
-        OutputStream os = con.getOutputStream();
-        os.write(payload.getBytes());
-        os.flush();
-        os.close();
-        
-        int responseCode = con.getResponseCode();
-		if (responseCode == HttpURLConnection.HTTP_OK) {
-		    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-		    String inputLine;
-		    StringBuilder response = new StringBuilder();
-		    while ((inputLine = in.readLine()) != null) {
-		        response.append(inputLine);
-		    }
-		    in.close();
-		    String regmessage = response.toString();
-		    
-		    if(response.toString().contains("Success!")) {
-		    	JOptionPane.showMessageDialog(null, regmessage);
-            	return true;
-            }
-		    else {
-		    	return false;
-		    }  
-		    
-		}
-		else {
-			System.out.println("POST request did not work.");
-        	return false;
-		}
-    }
-		
-	private static boolean report(MyItem item) throws IOException {
-		URL obj = new URL(POST_URL + "report");
-        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        con.setRequestMethod("POST");
-        con.setRequestProperty("Content-Type", "application/json");
-        con.setDoOutput(true);
-        String userfrom = LoginDialog.getUserId();
-        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\",\"funname\":\"%s\"}", item.getUser(), userfrom, item.getFun_name());
-        
-        OutputStream os = con.getOutputStream();
-        os.write(payload.getBytes());
-        os.flush();
-        os.close();
-        
-        int responseCode = con.getResponseCode();
-		if (responseCode == HttpURLConnection.HTTP_OK) {
-		    BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-		    String inputLine;
-		    StringBuilder response = new StringBuilder();
-		    while ((inputLine = in.readLine()) != null) {
-		        response.append(inputLine);
-		    }
-		    in.close();
-		    regmessage = response.toString();
-		    
-		    if(response.toString().contains("Success!")) {
-            	return true;
-            }
-		    else {
-		    	return false;
-		    }  
-		    
-		}
-		else {
-			System.out.println("POST request did not work.");
-        	return false;
-		}
-	}
-	
-	private void sendPOST(short codeUnitSize, long fullHash, 
-			byte specificHashAdditionalSize, long specificHash, 
-			String libraryFamilyName, String libraryVersion,
-			String libraryVariant, String ghidraVersion, 
-			LanguageID languageID, int languageVersion,
-			int languageMinorVersion, CompilerSpecID compilerSpecID, String funName, 
-			long entryPoint, String tokgroup) throws IOException {
-
-		URL url = new URL(POST_URL + "fid");
-		String response = "";
-		
-		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-		connection.setRequestMethod("POST");
-		connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-		connection.setRequestProperty("unique_id", LoginDialog.getUserId());
-		
-		connection.setRequestProperty("codeUnitSize", Short.toString(codeUnitSize));
-		connection.setRequestProperty("fullHash", Long.toString(fullHash));
-		connection.setRequestProperty("specificHashAdditionalSize", Byte.toString(specificHashAdditionalSize));
-		connection.setRequestProperty("specificHash", Long.toString(specificHash));
-		
-		connection.setRequestProperty("libraryFamilyName", libraryFamilyName);
-		connection.setRequestProperty("libraryVersion", libraryVersion);
-		connection.setRequestProperty("libraryVariant", libraryVariant);
-		
-		connection.setRequestProperty("ghidraVersion", ghidraVersion);
-		connection.setRequestProperty("languageID", languageID.toString());
-		connection.setRequestProperty("languageVersion", Integer.toString(languageVersion));
-		connection.setRequestProperty("languageMinorVersion", Integer.toString(languageMinorVersion));
-		connection.setRequestProperty("compilerSpecID", compilerSpecID.toString());
-		connection.setRequestProperty("funName", funName);
-		connection.setRequestProperty("entryPoint", Long.toString(entryPoint));
-		connection.setRequestProperty("codeC", Base64.getEncoder().encodeToString(tokgroup.getBytes(StandardCharsets.UTF_8)));
-		connection.setDoOutput(true);
-		System.out.println(connection.getResponseCode());
-		
-		if(connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-			InputStream con = connection.getInputStream();
-			Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
-		
-			StringBuilder sb = new StringBuilder();
-			for (int c; (c = result.read()) >= 0; ) {
-					sb.append((char) c);
-			}
-			response = sb.toString();
-			Msg.showInfo(getClass(), null, "Function uploaded", response);
-		
-		}
-		if(connection.getResponseCode() == HttpURLConnection.HTTP_CONFLICT) {
-			InputStream con = connection.getErrorStream();
-			Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
-		
-			StringBuilder sb = new StringBuilder();
-			for (int c; (c = result.read()) >= 0; ) {
-				sb.append((char) c);
-			}
-			response = sb.toString();
-			Msg.showError(getClass(), null, "Error", response);
-	
-		}
-		if(connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-			InputStream con = connection.getErrorStream();
-			Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
-		
-			StringBuilder sb = new StringBuilder();
-			for (int c; (c = result.read()) >= 0; ) {
-				sb.append((char) c);
-			}
-			response = sb.toString();
-			Msg.showError(getClass(), null, "Not connected", response);
-		}
-	}
-	
-	
+	}	
  
 }

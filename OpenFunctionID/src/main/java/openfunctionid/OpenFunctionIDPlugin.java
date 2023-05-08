@@ -4,9 +4,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -34,28 +34,10 @@ import ghidra.util.HelpLocation;
 import ghidra.util.Msg;
 import org.apache.commons.io.FileUtils;
 
-import com.google.gson.Gson;
-
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
-import javax.swing.JOptionPane;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
-import javax.swing.JFileChooser;
-import javax.swing.filechooser.FileNameExtensionFilter;
-
-import java.io.OutputStream;
-import java.io.FileInputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import javax.swing.JList;
-import javax.swing.DefaultListModel;
 
 import ghidra.feature.fid.plugin.ActiveFidConfigureDialog;
 
@@ -74,24 +56,23 @@ import ghidra.feature.fid.plugin.ActiveFidConfigureDialog;
 //@formatter:on
 
 
-public class OpenFunctionIDPlugin extends ProgramPlugin{
+public class OpenFunctionIDPlugin extends ProgramPlugin {
 
-	private static final String FUNCTION_ID_NAME = "Function ID";
+    private static final String FUNCTION_ID_NAME = "Function ID";
+    private static final String MENU_GROUP_0 = "group0";
     private static final String MENU_GROUP_1 = "group1";
     private static final String MENU_GROUP_2 = "group2";
     //private static final String REPO_URL = "https://github.com/Cyjanss/OpenFiDb.git";
     private static final String REPO_NAME = "OpenFiDb";
-    
-    
+
+
     private FidFileManager fidFileManager;
     private File file;
 
     Request request = new Request();
-    
+
     private List<File> openFiDbFiles;
     private List<String> openFiDbFilesNames;
-    
-    private static final String POST_URL = "http://127.0.0.1:5000/";
 
     private DockingAction loginAction;
     private DockingAction pullAction;
@@ -99,20 +80,20 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     private DockingAction logoutAction;
     private DockingAction populateAction;
     private DockingAction removeAction;
-    
+
     /**
      * Plugin constructor.
      *
      * @param tool The plugin tool that this plugin is added to.
      */
     public OpenFunctionIDPlugin(PluginTool plugintool) {
-		super(plugintool);
-		// TODO Auto-generated constructor stub
-	}
+        super(plugintool);
+        // TODO Auto-generated constructor stub
+    }
 
     @Override
     public void init() {
-        super.init();        
+        super.init();
         fidFileManager = FidFileManager.getInstance();
         OpenFunctionIDUploadC uploadCAction = new OpenFunctionIDUploadC();
         tool.getComponentProvider("Decompiler").addLocalAction(uploadCAction);
@@ -138,43 +119,43 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
         action = new DockingAction("Login", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
-            	LoginDialog login = new LoginDialog(loginAction,pullAction,deleteAction,logoutAction,removeAction,populateAction);
+                LoginDialog login = new LoginDialog(loginAction, pullAction, deleteAction, logoutAction, removeAction, populateAction);
             }
         };
         action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "login"));
         action.setMenuBarData(new MenuData(
                 new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
                         "Login"},
-                null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
+                null, MENU_GROUP_0, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
         loginAction = action;
-        
+
         //remove
         action = new DockingAction("delete function", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
-            	try {
-            		Request request = new Request();
-					request.removeRequest(LoginDialog.getUserId());
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+                try {
+                    Request request = new Request();
+                    request.removeRequest(LoginDialog.getUserId());
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         };
         action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "delete function"));
         action.setMenuBarData(new MenuData(
                 new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
-                        "delete function"},
-                null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
+                        "Delete function from database"},
+                null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "3"));
         this.tool.addAction(action);
         removeAction = action;
-        
+
         //Logout
         action = new DockingAction("Logout", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
-            	disableActions();
+                disableActions();
             }
         };
         action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "logout"));
@@ -184,53 +165,53 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
                 null, MENU_GROUP_2, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
         logoutAction = action;
-        
-      //DB Populate
-        action = new DockingAction("Populate DB", getName()) {
+
+        //DB Populate
+        action = new DockingAction("Add function to database", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
 
-            CustomPopulate c = new CustomPopulate();
-            
-            try {
-            	c.libraryInput();
-            } catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+                CustomPopulate c = new CustomPopulate();
+
+                try {
+                    c.libraryInput();
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
-            
+
         };
-        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "Populate DB"));
+        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "Add function to database"));
         action.setMenuBarData(new MenuData(
                 new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
-                        "Populate DB"},
+                        "Share function in database"},
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
         populateAction = action;
 
         //Pull the repo
-        action = new DockingAction("Pull the repo",getName()) {
+        action = new DockingAction("Pull function from database", getName()) {
             @Override
-            public void actionPerformed(ActionContext context) { 
-            	try {
-					pullDialog();
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+            public void actionPerformed(ActionContext context) {
+                try {
+                    pullDialog();
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
             }
         };
-        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "pulltherepo"));
+        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "pull function from database"));
         action.setMenuBarData(new MenuData(
                 new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
-                        "Pull the repo"},
-                null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
+                        "Pull database's function(s) in fidb"},
+                null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "2"));
         this.tool.addAction(action);
         pullAction = action;
 
         //Delete all openFiDb files
-        action = new DockingAction("Delete all openFiDb files",getName()) {
+        action = new DockingAction("Delete all openFiDb files", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
                 removeAndDeleteAll();
@@ -246,81 +227,81 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
 
     }
 
-    private void attachAll(){
+    private void attachAll() {
         List<FidFile> originalFidFiles = fidFileManager.getFidFiles();
         List<String> originalFidFilesNames = new ArrayList<>();
         originalFidFiles.forEach(originalFidFile -> originalFidFilesNames.add(originalFidFile.getName()));
 
-        for (File file: openFiDbFiles) {
-            if (file != null && !originalFidFilesNames.contains(file.getName())){
+        for (File file : openFiDbFiles) {
+            if (file != null && !originalFidFilesNames.contains(file.getName())) {
                 fidFileManager.addUserFidFile(file);
-                println("FiDb file : "+file.getName()+" attached.");
+                println("FiDb file : " + file.getName() + " attached.");
             }
         }
 
         //Set inactive, only for new fidbfiles
         List<FidFile> fidFiles = fidFileManager.getFidFiles();
 
-        for (FidFile fidFile: fidFiles) {
+        for (FidFile fidFile : fidFiles) {
             String fidFileName = fidFile.getName();
-            if (openFiDbFilesNames.contains(fidFileName) && !originalFidFilesNames.contains(fidFileName)){
+            if (openFiDbFilesNames.contains(fidFileName) && !originalFidFilesNames.contains(fidFileName)) {
                 fidFile.setActive(false);
             }
         }
     }
 
-    private synchronized void chooseActive(){
+    private synchronized void chooseActive() {
         ActiveFidConfigureDialog dialog =
                 new ActiveFidConfigureDialog(fidFileManager.getFidFiles());
         tool.showDialog(dialog);
     }
 
-    private void removeAndDeleteAll(){
+    private void removeAndDeleteAll() {
         List<FidFile> fidFiles = fidFileManager.getFidFiles();
-        for (File openFiDbFile: openFiDbFiles){
-            for (FidFile fidFile: fidFiles){
-                if (openFiDbFile.getName().equals(fidFile.getName())){
+        for (File openFiDbFile : openFiDbFiles) {
+            for (FidFile fidFile : fidFiles) {
+                if (openFiDbFile.getName().equals(fidFile.getName())) {
                     fidFileManager.removeUserFile(fidFile);
                     openFiDbFile.delete();
                 }
             }
         }
-        File gitDir = new File(Application.getMyModuleRootDirectory().getAbsolutePath()+"/data/"+REPO_NAME);
+        File gitDir = new File(Application.getMyModuleRootDirectory().getAbsolutePath() + "/data/" + REPO_NAME);
         try {
             FileUtils.deleteDirectory(gitDir);
         } catch (IOException e) {
-            Msg.showError(getClass(),null,"Couldn't delete the directory",e);
+            Msg.showError(getClass(), null, "Couldn't delete the directory", e);
         }
         println("OpenFiDb folder deleted.");
         updateOpenFiDbFiles();
     }
-    
+
     private void show(Selection dialog) {
-    	tool.showDialog(dialog);
+        tool.showDialog(dialog);
     }
-    
+
     public boolean pullDialog() throws Exception {
-    	List<List<String>> result = request.pullRequest();
-    	
-    	ArrayList<MyItem> output = new ArrayList<MyItem>();
+        List<List<String>> result = request.pullRequest();
+
+        ArrayList<MyItem> output = new ArrayList<MyItem>();
 
         for (List<String> list : result) {
-        	String[] field = list.get(0).split(",");
-        	String user = field[0].replaceAll("\"", "");
+            String[] field = list.get(0).split(",");
+            String user = field[0].replaceAll("\"", "");
 
-        	String codeUnitSize = field[1].replaceAll("\"", "");
-        	String fullHash = field[2].replaceAll("\"", "");
-        	String specificHashAdditionalSize = field[3].replaceAll("\"", "");
-        	String specificHash = field[4].replaceAll("\"", "");
+            String codeUnitSize = field[1].replaceAll("\"", "");
+            String fullHash = field[2].replaceAll("\"", "");
+            String specificHashAdditionalSize = field[3].replaceAll("\"", "");
+            String specificHash = field[4].replaceAll("\"", "");
 
-        	
-        	String library_name = field[5].replaceAll("\"", "");
-        	String library_version = field[6].replaceAll("\"", "");
-        	String library_variant = field[7].replaceAll("\"", "");
-        	
-        	String Ghidraversion = field[8].replaceAll("\"", "");
 
-            
+            String library_name = field[5].replaceAll("\"", "");
+            String library_version = field[6].replaceAll("\"", "");
+            String library_variant = field[7].replaceAll("\"", "");
+
+            String Ghidraversion = field[8].replaceAll("\"", "");
+
+
             String Languageversion = field[9].replaceAll("\"", "");
             String Languageminorversion = field[10].replaceAll("\"", "");
             String Compilerspecid = field[11].replaceAll("\"", "");
@@ -328,37 +309,37 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
             String Languageid = field[13].replaceAll("\"", "");
             String funName = field[14].replaceAll("\"", "");
             String Codec = field[15].replaceAll("\"", "");
-        	            
-            MyItem item = new MyItem(user, Short.parseShort(codeUnitSize.trim()), Long.parseLong(fullHash.trim()), 
-            						Byte.parseByte(specificHashAdditionalSize.trim()), Long.parseLong(specificHash.trim()), 
-            						library_name, library_version, 
-            						library_variant, Ghidraversion, new LanguageID(Languageid), 
-            						Integer.parseInt(Languageversion.trim()), Integer.parseInt(Languageminorversion.trim()),
-            						new CompilerSpecID(Compilerspecid), funName, Long.parseLong(Entrypoint.trim()), Codec);
+
+            MyItem item = new MyItem(user, Short.parseShort(codeUnitSize.trim()), Long.parseLong(fullHash.trim()),
+                    Byte.parseByte(specificHashAdditionalSize.trim()), Long.parseLong(specificHash.trim()),
+                    library_name, library_version,
+                    library_variant, Ghidraversion, new LanguageID(Languageid),
+                    Integer.parseInt(Languageversion.trim()), Integer.parseInt(Languageminorversion.trim()),
+                    new CompilerSpecID(Compilerspecid), funName, Long.parseLong(Entrypoint.trim()), Codec);
             output.add(item);
 
         }
-        Selection dialog = new Selection(output,false);
+        Selection dialog = new Selection(output, false);
         tool.showDialog(dialog);
         return true;
     }
-    
-    
-    private void updateOpenFiDbFiles(){
+
+
+    private void updateOpenFiDbFiles() {
         List<ResourceFile> resourceFiles = Application.findFilesByExtensionInMyModule(".fidb");
 
         openFiDbFiles = new ArrayList<>();
         resourceFiles.forEach((resourceFile) -> {
-        	openFiDbFiles.add(resourceFile.getFile(false));
+            openFiDbFiles.add(resourceFile.getFile(false));
         });
-        
+
         openFiDbFilesNames = new ArrayList<>();
         openFiDbFiles.forEach(dbFile -> openFiDbFilesNames.add(dbFile.getName()));
     }
-    
+
     private void disableActions() {
-    	loginAction.setEnabled(true);
-    	logoutAction.setEnabled(false);
+        loginAction.setEnabled(true);
+        logoutAction.setEnabled(false);
         populateAction.setEnabled(false);
         pullAction.setEnabled(false);
         deleteAction.setEnabled(false);
@@ -366,16 +347,16 @@ public class OpenFunctionIDPlugin extends ProgramPlugin{
     }
 
     private void enableActions() {
-    	loginAction.setEnabled(false);
-    	logoutAction.setEnabled(true);
+        loginAction.setEnabled(false);
+        logoutAction.setEnabled(true);
         populateAction.setEnabled(true);
         pullAction.setEnabled(true);
         deleteAction.setEnabled(true);
         removeAction.setEnabled(true);
     }
 
-    private void println(String s){
-        OpenFunctionIDPackage.println(tool,"[OpenFunctionID] "+s);
+    private void println(String s) {
+        OpenFunctionIDPackage.println(tool, "[OpenFunctionID] " + s);
     }
 }
 

@@ -4,17 +4,17 @@ import ghidra.program.model.lang.CompilerSpecID;
 import ghidra.program.model.lang.LanguageID;
 
 public class MyItem {
-	private String user;
+    private String user;
 
-	private Long fullHash;
-	private short codeUnitSize;
-	private byte specificHashAdditionalSize;
-	private long specificHash;
-	
+    private Long fullHash;
+    private short codeUnitSize;
+    private byte specificHashAdditionalSize;
+    private long specificHash;
+
     private String libraryFamilyNameTextField;
     private String versionTextField;
     private String variantTextField;
-    
+
     private String app_version;
     private LanguageID lang_id;
     private int lang_ver;
@@ -23,38 +23,36 @@ public class MyItem {
     private String fun_name;
     private long fun_entry;
     private String tokgroup;
-    
 
 
-    
+    public MyItem(String user, short codeUnitSize, long fullHash,
+                  byte specificHashAdditionalSize, long specificHash,
+                  String libraryFamilyNameTextField, String versionTextField,
+                  String variantTextField, String app_version, LanguageID lang_id,
+                  int lang_ver, int lang_minor_ver, CompilerSpecID compiler_spec,
+                  String fun_name, long fun_entry, String tokgroup) {
+        this.user = user;
 
-	public MyItem(String user, short codeUnitSize, long fullHash, 
-			byte specificHashAdditionalSize, long specificHash, 
-			String libraryFamilyNameTextField, String versionTextField, 
-			String variantTextField, String app_version, LanguageID lang_id, 
-			int lang_ver, int lang_minor_ver, CompilerSpecID compiler_spec,
-			String fun_name, long fun_entry, String tokgroup) {
-		this.user = user;
-    	
-        this.codeUnitSize = codeUnitSize; 
-        this.fullHash = fullHash; 
-        this.specificHashAdditionalSize = specificHashAdditionalSize; 
-        this.specificHash = specificHash; 
-        
-        this.libraryFamilyNameTextField = libraryFamilyNameTextField; 
-        this.versionTextField = versionTextField; 
-        this.variantTextField = variantTextField; 
+        this.codeUnitSize = codeUnitSize;
+        this.fullHash = fullHash;
+        this.specificHashAdditionalSize = specificHashAdditionalSize;
+        this.specificHash = specificHash;
+
+        this.libraryFamilyNameTextField = libraryFamilyNameTextField;
+        this.versionTextField = versionTextField;
+        this.variantTextField = variantTextField;
         this.app_version = app_version;
-        this.lang_id = lang_id; 
-        this.lang_ver = lang_ver; 
-        this.lang_minor_ver = lang_minor_ver; 
-        this.compiler_spec = compiler_spec; 
-        this.fun_name = fun_name; 
-        this.fun_entry = fun_entry; 
-        this.tokgroup = tokgroup;	}
+        this.lang_id = lang_id;
+        this.lang_ver = lang_ver;
+        this.lang_minor_ver = lang_minor_ver;
+        this.compiler_spec = compiler_spec;
+        this.fun_name = fun_name;
+        this.fun_entry = fun_entry;
+        this.tokgroup = tokgroup;
+    }
 
 
-	public String getUser() {
+    public String getUser() {
         return user;
     }
 
@@ -107,18 +105,18 @@ public class MyItem {
     }
 
 
-	public short getCodeUnitSize() {
-		return codeUnitSize;
-	}
+    public short getCodeUnitSize() {
+        return codeUnitSize;
+    }
 
 
-	public byte getSpecificHashAdditionalSize() {
-		return specificHashAdditionalSize;
-	}
+    public byte getSpecificHashAdditionalSize() {
+        return specificHashAdditionalSize;
+    }
 
 
-	public long getSpecificHash() {
-		return specificHash;
-	}
-    
+    public long getSpecificHash() {
+        return specificHash;
+    }
+
 }

@@ -11,12 +11,12 @@ public class OpenFunctionIDPackage extends PluginPackage {
     public static final String SHORT_DESCRIPTION = "This plugin provides the access to the OpenFunctionID Database";
     public static final String OPENFIDB_ICON = "images/OpenFiDb_small.png";
 
-    public OpenFunctionIDPackage(){
+    public OpenFunctionIDPackage() {
         super(NAME, ResourceManager.loadImage(OPENFIDB_ICON),
                 SHORT_DESCRIPTION);
     }
 
-    public static void println(PluginTool tool, String s){
+    public static void println(PluginTool tool, String s) {
         tool.getService(ConsoleService.class).println(s);
     }
 }

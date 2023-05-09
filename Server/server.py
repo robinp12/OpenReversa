@@ -23,7 +23,7 @@ FROM_EMAIL = os.getenv('FROM_EMAIL')
 PASSWORD = os.getenv('PASSWORD')
 
 app = Flask(__name__)
-client = MongoClient('mongodb://localhost:28017/')
+client = MongoClient('mongodb://localhost:27017/')
 db = client['FunctionID']
 collection = db['fidb']
 users = db['users']

@@ -109,7 +109,6 @@ public class Request {
         String payload;
         try {
             payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\",\"salt\":\"%s\"}", username, encryptedpassword, saltvalue);
-            //payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username, hashString(password));
             con.setDoOutput(true);
             try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
                 byte[] postData = payload.getBytes(StandardCharsets.UTF_8);
@@ -208,9 +207,13 @@ public class Request {
                     "database error",
                     JOptionPane.ERROR_MESSAGE);
         	return null;
+        } else {
+        	JOptionPane.showMessageDialog(null,
+        			"Sorry, the server is currently unavailable. Please try again later.",
+                    "server error",
+                    JOptionPane.ERROR_MESSAGE);
+        	return null;
         }
-        return null;
-
     }
 
     public void removeRequest(String user) throws Exception {
@@ -262,6 +265,12 @@ public class Request {
                     "database error",
                     JOptionPane.ERROR_MESSAGE);
         }
+        else{
+        	JOptionPane.showMessageDialog(null,
+        			"Sorry, the server is currently unavailable. Please try again later.",
+                    "server error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
 
         
         
@@ -304,8 +313,6 @@ public class Request {
                     JOptionPane.ERROR_MESSAGE);
         	return false;
         	
-        } else {
-            System.out.println("POST request did not work.");
         }
         return true;
 
@@ -479,8 +486,13 @@ public class Request {
             response = sb.toString();
             Msg.showError(getClass(), null, "Not connected", response);
             return false;
+        }else{
+        	JOptionPane.showMessageDialog(null,
+        			"Sorry, the server is currently unavailable. Please try again later.",
+                    "server error",
+                    JOptionPane.ERROR_MESSAGE);
+        	return false;
         }
-        return true;
     }
 
 

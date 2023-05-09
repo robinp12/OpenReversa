@@ -65,7 +65,11 @@ public class Selection extends DialogComponentProvider {
         this.isPush = isPush;
         addWorkPanel(buildMainPanel());
         addOKButton();
-        setOkButtonText("Dismiss");
+        if (isPush) {
+        	setOkButtonText("push functions");
+        }else {
+        	setOkButtonText("pull functions");
+        }
         setRememberSize(false);
         setPreferredSize(400, 400);
         setHelpLocation(new HelpLocation(FidPlugin.FID_HELP, "chooseactivemenu"));
@@ -73,21 +77,11 @@ public class Selection extends DialogComponentProvider {
 
     protected void okCallback() {
         StringBuilder sb = new StringBuilder();
-
-        if (!isPush) {
-            CreateNewFidDatabase rrf = new CreateNewFidDatabase();
-            try {
-                fidDb = rrf.selectFidFile();
-            } catch (CancelledException | VersionException | IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            monitor.initialize(1);
-        }
-
+        
+        int checkIfSelected = 0;
         for (JCheckBox checkbox : checkboxes) {
             if (checkbox.isSelected()) {
-           	
+            	checkIfSelected += 1;
             	String itemName = checkbox.getText();
                 MyItem selected = output.stream()
                         .filter(item -> item.getFun_name().equals(itemName))
@@ -114,6 +108,7 @@ public class Selection extends DialogComponentProvider {
                         sb.append(selected.getFun_name()).append(": ").append(selected.getFullHash()).append("\n");
                     }
                 } else {
+                	System.out.println(selected.getFun_name());
                     try {
                         if (fidDb != null) {
                             FunctionsTable ft = new FunctionsTable(fidDb, fidDb != null ? fidDb.getDBHandle() : null);
@@ -149,6 +144,20 @@ public class Selection extends DialogComponentProvider {
                     }
                 }
             }
+        }if (!isPush && checkIfSelected > 0) {
+            CreateNewFidDatabase rrf = new CreateNewFidDatabase();
+            try {
+                fidDb = rrf.selectFidFile();
+            } catch (CancelledException | VersionException | IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            monitor.initialize(1);
+        }else {
+        	JOptionPane.showMessageDialog(null,
+        			"Please select one or more function(s) to continue",
+                    "selection error",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 

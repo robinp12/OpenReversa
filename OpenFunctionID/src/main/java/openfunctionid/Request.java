@@ -80,18 +80,22 @@ public class Request {
                 return 1;
             }
             return 3;
-
+        }
+        else if (responseCode == 500){
+            System.out.println("POST request did not work.");
+            return 5;
+       
         } else {
             System.out.println("GET request did not work.");
             return 4;
         }
     }
 
-    public static boolean register_request(String username, String password, String confirm) throws IOException {
+    public int register_request(String username, String password, String confirm) throws IOException {
         if (!isValidEmailAddress(username)) {
             // Show an error message to the user
             regmessage = "Invalid email address.";
-            return false;
+            return 3;
         }
 
         String saltvalue = Encryption.getSaltvalue(30);
@@ -119,7 +123,7 @@ public class Request {
             responseCode = con.getResponseCode();
             System.out.println("POST Response Code :: " + responseCode);
         } catch (Exception e) {
-            return false;
+            return 3;
         }
         System.out.println("POST Response Code :: " + responseCode);
 
@@ -135,18 +139,26 @@ public class Request {
 
             regmessage = response.toString();
             System.out.println(regmessage);
+            System.out.println(response.toString());
 
             if (response.toString().contains("Success!")) {
-                return true;
+                return 1;
             }
+            
             if (response.toString().contains("Sorry")) {
-                return false;
+                return 3;
             }
+        }
+        
+        else if (responseCode == 500){
+            System.out.println("POST request did not work.");
+            return 2;
+        
         } else {
             System.out.println("POST request did not work.");
-            return false;
+            return 3;
         }
-        return false;
+        return 3;
     }
 
     private static boolean isValidEmailAddress(String email) {
@@ -162,75 +174,95 @@ public class Request {
         connection.setRequestMethod("GET");
 
         int responseCode = connection.getResponseCode();
-        System.out.println("Response code: " + responseCode);
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+        	System.out.println("Response code: " + responseCode);
 
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        String inputLine;
-        StringBuffer response = new StringBuffer();
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
 
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-        in.close();
-
-        String[] parts = response.toString().split("(?<=]),"); // split by "]," and keep delimiter
-        List<List<String>> result = new ArrayList<>();
-
-        for (String part : parts) {
-            String[] subparts = part.split(",(?=\\[)"); // split by "," followed by "[" and discard delimiter
-            List<String> sublist = new ArrayList<>();
-            for (String subpart : subparts) {
-                sublist.add(subpart.replaceAll("\\[|\\]", "").trim()); // remove brackets and whitespace
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
             }
-            result.add(sublist);
-        }
+            in.close();
 
-        return result;
+            String[] parts = response.toString().split("(?<=]),"); // split by "]," and keep delimiter
+            List<List<String>> result = new ArrayList<>();
+
+            for (String part : parts) {
+                String[] subparts = part.split(",(?=\\[)"); // split by "," followed by "[" and discard delimiter
+                List<String> sublist = new ArrayList<>();
+                for (String subpart : subparts) {
+                    sublist.add(subpart.replaceAll("\\[|\\]", "").trim()); // remove brackets and whitespace
+                }
+                result.add(sublist);
+            }
+
+            return result;
+            
+        } else if (responseCode == 500) {
+        	JOptionPane.showMessageDialog(null,
+        			"Sorry, there was an error with the database connection. Please try again later",
+                    "database error",
+                    JOptionPane.ERROR_MESSAGE);
+        	return null;
+        }
+        return null;
 
     }
 
-    public boolean removeRequest(String user) throws Exception {
+    public void removeRequest(String user) throws Exception {
         URL url = new URL(POST_URL + "get_remove/" + user);
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
 
         int responseCode = connection.getResponseCode();
-        System.out.println("Response code: " + responseCode);
+        if (responseCode == HttpURLConnection.HTTP_OK) {
+        	System.out.println("Response code: " + responseCode);
 
-        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        String inputLine;
-        StringBuffer response = new StringBuffer();
+            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String inputLine;
+            StringBuffer response = new StringBuffer();
 
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-        in.close();
-
-        System.out.println(response.toString());
-
-        Gson gson = new Gson();
-        Object[] items = gson.fromJson(response.toString(), Object[].class);
-
-        DefaultListModel<Object> listModel = new DefaultListModel<>();
-        listModel.addAll(Arrays.asList(items));
-        JList<Object> jList = new JList<>(listModel);
-
-        jList.addListSelectionListener(new ListSelectionListener() {
-            @Override
-            public void valueChanged(ListSelectionEvent e) {
-                if (!e.getValueIsAdjusting()) {
-                    Object selectedItem = jList.getSelectedValue();
-                }
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
             }
-        });
+            in.close();
 
-        int result = JOptionPane.showConfirmDialog(null, jList, "Select function to remove", JOptionPane.OK_CANCEL_OPTION);
-        if (result == JOptionPane.OK_OPTION) {
-            Object selectedItem = jList.getSelectedValue();
-            deleteSelectedItem(selectedItem.toString());
+            
+            System.out.println(response.toString());
+
+            Gson gson = new Gson();
+            Object[] items = gson.fromJson(response.toString(), Object[].class);
+
+            DefaultListModel<Object> listModel = new DefaultListModel<>();
+            listModel.addAll(Arrays.asList(items));
+            JList<Object> jList = new JList<>(listModel);
+
+            jList.addListSelectionListener(new ListSelectionListener() {
+                @Override
+                public void valueChanged(ListSelectionEvent e) {
+                    if (!e.getValueIsAdjusting()) {
+                        Object selectedItem = jList.getSelectedValue();
+                    }
+                }
+            });
+
+            int result = JOptionPane.showConfirmDialog(null, jList, "Select function to remove", JOptionPane.OK_CANCEL_OPTION);
+            if (result == JOptionPane.OK_OPTION) {
+                Object selectedItem = jList.getSelectedValue();
+                deleteSelectedItem(selectedItem.toString());
+            }
+
+        } else if (responseCode == 500) {
+        	JOptionPane.showMessageDialog(null,
+        			"Sorry, there was an error with the database connection. Please try again later",
+                    "database error",
+                    JOptionPane.ERROR_MESSAGE);
         }
 
-        return true;
+        
+        
     }
 
     public boolean deleteSelectedItem(String item) throws Exception {
@@ -260,15 +292,21 @@ public class Request {
 
             if (response.toString().contains("Success!")) {
                 JOptionPane.showMessageDialog(null, regmessage);
-                return true;
-            } else {
-                return false;
             }
-
+            return true;
+            
+        } else if (responseCode == 500) {
+        	JOptionPane.showMessageDialog(null,
+        			"Sorry, there was an error with the database connection. Please try again later",
+                    "database error",
+                    JOptionPane.ERROR_MESSAGE);
+        	return false;
+        	
         } else {
             System.out.println("POST request did not work.");
-            return false;
         }
+        return true;
+
     }
 
     public boolean report(MyItem item) throws IOException {
@@ -297,15 +335,20 @@ public class Request {
             regmessage = response.toString();
 
             if (response.toString().contains("Success!")) {
-                return true;
-            } else {
-                return false;
+            	JOptionPane.showMessageDialog(null, regmessage);
             }
+            return true;
+        } else if (responseCode == 500) {
+        	JOptionPane.showMessageDialog(null,
+        			"Sorry, there was an error with the database connection. Please try again later",
+                    "database error",
+                    JOptionPane.ERROR_MESSAGE);
+        	return false;
 
         } else {
             System.out.println("POST request did not work.");
-            return false;
         }
+       return true;
     }
 
     public boolean discuss(MyItem item) throws IOException {
@@ -337,15 +380,20 @@ public class Request {
             regmessage = response.toString();
 
             if (response.toString().contains("Success!")) {
-                return true;
-            } else {
-                return false;
+            	JOptionPane.showMessageDialog(null, regmessage);
             }
+            return true;
+        } else if (responseCode == 500) {
+        	JOptionPane.showMessageDialog(null,
+        			"Sorry, there was an error with the database connection. Please try again later",
+                    "database error",
+                    JOptionPane.ERROR_MESSAGE);
+        	return false;
 
         } else {
             System.out.println("POST request did not work.");
-            return false;
         }
+        return true;
     }
 
     public void sendToDBrequest(short codeUnitSize, long fullHash,
@@ -396,6 +444,14 @@ public class Request {
             Msg.showInfo(getClass(), null, "Function uploaded", response);
 
         }
+        
+        if (connection.getResponseCode() == 500) {
+        	JOptionPane.showMessageDialog(null,
+        			"Sorry, there was an error with the database connection. Please try again later",
+                    "database error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+      
         if (connection.getResponseCode() == HttpURLConnection.HTTP_CONFLICT) {
             InputStream con = connection.getErrorStream();
             Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));

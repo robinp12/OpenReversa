@@ -229,23 +229,25 @@ public class Selection extends DialogComponentProvider {
 			                    @Override
 			                    public void actionPerformed(ActionEvent e) {
 			                        try {
-			                            request.deleteSelectedItem(items.getFun_name());
-			                            output.remove(items);
-			
-			                            panel.remove(checkbox);
-			                            panel.revalidate();
-			                            panel.repaint();
-			
-			                            Window window = SwingUtilities.getWindowAncestor(buttonPanel);
-			                            if (window instanceof JDialog) {
-			                                JDialog dialog = (JDialog) window;
-			                                dialog.dispose();
-			                            }
+			                        	boolean delete = request.deleteSelectedItem(items.getFun_name());
+		                                if (delete) {
+				                            output.remove(items);
+				
+				                            panel.remove(checkbox);
+				                            panel.revalidate();
+				                            panel.repaint();
+				
+				                            Window window = SwingUtilities.getWindowAncestor(buttonPanel);
+				                            if (window instanceof JDialog) {
+				                                JDialog dialog = (JDialog) window;
+				                                dialog.dispose();
+				                            }
+		                                }
+			                            
 			                        } catch (Exception e1) {
 			                            // TODO Auto-generated catch block
 			                            e1.printStackTrace();
 			                        }
-			                        System.out.println("fonction supprimée");
 			                    }
 			                });
 			                buttonPanel.add(deleteButton);
@@ -267,7 +269,11 @@ public class Selection extends DialogComponentProvider {
 			                        int choice = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to send a discussion request ? This will send your email address to the user in question", "Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 			                        if (choice == JOptionPane.YES_OPTION) {
 			                            try {
-			                                request.discuss(items);
+			                            	boolean discuss = request.discuss(items);
+			                            	System.out.println(discuss);
+			                                if (discuss) {
+			                                	JOptionPane.showMessageDialog(null, "Report successfully sent");
+			                                }
 			                            } catch (IOException e1) {
 			                                e1.printStackTrace();
 			                            }
@@ -293,11 +299,13 @@ public class Selection extends DialogComponentProvider {
 			                        int choice = JOptionPane.showConfirmDialog(null, "Are you sure you want to report this user ?", "Confirmation", JOptionPane.YES_NO_OPTION);
 			                        if (choice == JOptionPane.YES_OPTION) {
 			                            try {
-			                                request.report(items);
+			                                boolean report = request.report(items);
+			                                if (report) {
+			                                	JOptionPane.showMessageDialog(null, "Report successfully sent");
+			                                }
 			                            } catch (IOException e1) {
 			                                e1.printStackTrace();
 			                            }
-			                            JOptionPane.showMessageDialog(null, "Report successfully sent");
 			                        }
 			                    }
 			                });

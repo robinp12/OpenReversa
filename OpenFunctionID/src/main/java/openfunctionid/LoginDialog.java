@@ -190,6 +190,13 @@ public class LoginDialog extends JDialog {
                             JOptionPane.ERROR_MESSAGE);
                     passLogField.setText("");
                     succeeded = false;
+                } else if (isLogged == 5) {
+                    JOptionPane.showMessageDialog(LoginDialog.this,
+                    		"Sorry, there was an error with the database connection. Please try again later",
+                            "database error",
+                            JOptionPane.ERROR_MESSAGE);
+                    passLogField.setText("");
+                    succeeded = false;
                 } else {
                     JOptionPane.showMessageDialog(LoginDialog.this,
                             "Verify Your Email Address",
@@ -273,7 +280,7 @@ public class LoginDialog extends JDialog {
                             JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                boolean isRegistered = false;
+                int isRegistered = 0;
 
                 try {
                     if (!getRegisterPassword().equals(getConfirm())) {
@@ -290,7 +297,7 @@ public class LoginDialog extends JDialog {
                     e1.printStackTrace();
                 }
 
-                if (isRegistered) {
+                if (isRegistered == 1) {
                     JOptionPane.showMessageDialog(LoginDialog.this,
                             regmessage,
                             "Registred",
@@ -298,7 +305,13 @@ public class LoginDialog extends JDialog {
                     dialog.dispose();
 
                 }
-                if (!isRegistered) {
+                if (isRegistered == 2) {
+                    JOptionPane.showMessageDialog(LoginDialog.this,
+                    		"Sorry, there was an error with the database connection. Please try again later",
+                            "database error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+                if (isRegistered == 3) {
                     JOptionPane.showMessageDialog(LoginDialog.this,
                             regmessage,
                             "Not registred",

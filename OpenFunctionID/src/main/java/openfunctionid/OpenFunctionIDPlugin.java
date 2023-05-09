@@ -313,7 +313,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
             MyItem item = new MyItem(user, Short.parseShort(codeUnitSize.trim()), Long.parseLong(fullHash.trim()),
                     Byte.parseByte(specificHashAdditionalSize.trim()), Long.parseLong(specificHash.trim()),
                     library_name, library_version,
-                    library_variant, Ghidraversion, new LanguageID(Languageid),
+                    library_variant, Ghidraversion, new LanguageID(Languageid.trim()),
                     Integer.parseInt(Languageversion.trim()), Integer.parseInt(Languageminorversion.trim()),
                     new CompilerSpecID(Compilerspecid), funName, Long.parseLong(Entrypoint.trim()), Codec);
             output.add(item);

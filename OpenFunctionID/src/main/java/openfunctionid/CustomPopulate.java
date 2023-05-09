@@ -75,7 +75,9 @@ public class CustomPopulate extends GhidraScript {
 
         panel1.add(new GLabel("Language ID: ", SwingConstants.RIGHT));
         langTextField = new JTextField(20);
-        langTextField.setText("x86:LE:64:default");
+        RetrieveRenamedFunction rrf = new RetrieveRenamedFunction();
+        langTextField.setText(rrf.getProgramLanguage().toString());
+        langTextField.setEnabled(false);
         panel1.add(langTextField);
 
         okBtn = new JButton("Confirm");
@@ -103,26 +105,6 @@ public class CustomPopulate extends GhidraScript {
         dialog.pack();
         dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
-    }
-
-    protected void okCallback() {
-        String libraryFamilyName = libraryFamilyNameTextField.getText().trim();
-        String libraryVersion = versionTextField.getText().trim();
-        String libraryVariant = variantTextField.getText().trim();
-
-        Task task = new IngestTask("Populate Library Task", null, null, null,
-                libraryFamilyName, libraryVersion, libraryVariant, "x86:LE:64:default", null,
-                null, new MyFidPopulateResultReporter());
-
-
-        TaskMonitorAdapter monitor = new TaskMonitorAdapter();
-
-        try {
-            task.run(monitor);
-        } catch (CancelledException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
     }
 
 

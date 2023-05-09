@@ -93,7 +93,10 @@ public class RetrieveRenamedFunction extends GhidraScript {
 
     }
 
-    protected void outputLine(String line) {
+    public RetrieveRenamedFunction() {
+		// TODO Auto-generated constructor stub
+	}
+	protected void outputLine(String line) {
         if (outlog != null) {
             try {
                 outlog.write(line.getBytes());
@@ -157,6 +160,31 @@ public class RetrieveRenamedFunction extends GhidraScript {
             monitor.checkCanceled();
             findPrograms(programs, domainFolder);
         }
+    }
+    
+    public LanguageID getProgramLanguage() {
+        ArrayList<DomainFile> programs = new ArrayList<DomainFile>();
+    	try {
+			findPrograms(programs, getProjectRootFolder());
+            DomainObject domainObject = null;
+			domainObject = programs.get(0).getDomainObject(this, false, true, TaskMonitor.DUMMY);
+			if (!(domainObject instanceof Program)) {
+                return null;
+            }
+
+            Program program = (Program) domainObject;
+            return program.getLanguageID();
+		} catch (CancelledException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (VersionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
     }
 
     public void pushToDB() throws MemoryAccessException {

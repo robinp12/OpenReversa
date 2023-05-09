@@ -39,6 +39,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 import ghidra.feature.fid.plugin.ActiveFidConfigureDialog;
 
 
@@ -138,6 +140,8 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
                     Request request = new Request();
                     request.removeRequest(LoginDialog.getUserId());
                 } catch (Exception e) {
+                    Msg.showError(getClass(), null, "Server error", "Sorry, the server is currently unavailable. Please try again later.");
+
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
@@ -176,6 +180,8 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
                 try {
                     c.libraryInput();
                 } catch (Exception e) {
+                    Msg.showError(getClass(), null, "Server error", "Sorry, the server is currently unavailable. Please try again later.");
+
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }
@@ -197,6 +203,8 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
                 try {
                     pullDialog();
                 } catch (Exception e) {
+                    Msg.showError(getClass(), null, "Server error", "Sorry, the server is currently unavailable. Please try again later.");
+
                     // TODO Auto-generated catch block
                     e.printStackTrace();
                 }

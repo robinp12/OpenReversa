@@ -56,6 +56,7 @@ import ghidra.program.model.listing.FunctionIterator;
 import ghidra.program.model.listing.FunctionManager;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.mem.MemoryAccessException;
+import ghidra.util.Msg;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.exception.VersionException;
 import ghidra.util.task.TaskMonitor;
@@ -88,6 +89,7 @@ public class RetrieveRenamedFunction extends GhidraScript {
         try {
             pushToDB();
         } catch (MemoryAccessException e) {
+            Msg.showError(getClass(), null, "Server error", "Sorry, the server is currently unavailable. Please try again later.");
             e.printStackTrace();
         }
 
@@ -211,12 +213,12 @@ public class RetrieveRenamedFunction extends GhidraScript {
                 CompilerSpecID compiler_spec = program.getCompilerSpec().getCompilerSpecID();
 
 
-                System.out.println(app_version);
+                //System.out.println(app_version);
 
-                System.out.println(compiler_spec);
-                System.out.println(lang_id);
-                System.out.println(lang_ver);
-                System.out.println(lang_minor_ver);
+                //System.out.println(compiler_spec);
+                //System.out.println(lang_id);
+                //System.out.println(lang_ver);
+                //System.out.println(lang_minor_ver);
                 ArrayList<MyItem> output = new ArrayList<MyItem>();
                 MyItem item;
                 FunctionIterator functions = functionManager.getFunctions(true);
@@ -227,7 +229,6 @@ public class RetrieveRenamedFunction extends GhidraScript {
                     if (function.getName().startsWith("FUN_") || function.getName().startsWith("Ordinal_")) {
                         continue;
                     }
-                    System.out.println("Print this : " + function);
 
                     FidHashQuad hashFunction = service.hashFunction(function);
                     if (hashFunction == null) {

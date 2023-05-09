@@ -256,7 +256,11 @@ public class Request {
             int result = JOptionPane.showConfirmDialog(null, jList, "Select function to remove", JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
                 Object selectedItem = jList.getSelectedValue();
-                deleteSelectedItem(selectedItem.toString());
+                if(selectedItem != null) {
+                	deleteSelectedItem(selectedItem.toString());
+                }else {
+                    Msg.showError(getClass(), null, "Error", "No function selected.");
+                }
             }
 
         } else if (responseCode == 500) {

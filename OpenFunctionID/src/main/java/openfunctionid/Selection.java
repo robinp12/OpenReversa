@@ -39,8 +39,8 @@ import ghidra.feature.fid.db.LibraryRecord;
 import ghidra.feature.fid.hash.FidHashQuad;
 import ghidra.feature.fid.plugin.FidPlugin;
 import ghidra.program.model.lang.LanguageID;
-import ghidra.program.model.listing.Program;
 import ghidra.util.HelpLocation;
+import ghidra.util.Msg;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.exception.VersionException;
 import ghidra.util.layout.VerticalLayout;
@@ -66,9 +66,9 @@ public class Selection extends DialogComponentProvider {
         addWorkPanel(buildMainPanel());
         addOKButton();
         if (isPush) {
-        	setOkButtonText("push functions");
+        	setOkButtonText("Push function(s)");
         }else {
-        	setOkButtonText("pull functions");
+        	setOkButtonText("Pull function(s)");
         }
         setRememberSize(false);
         setPreferredSize(400, 400);
@@ -95,12 +95,12 @@ public class Selection extends DialogComponentProvider {
                                 selected.getLang_id(), selected.getLang_ver(),
                                 selected.getLang_minor_ver(), selected.getCompiler_spec(),
                                 selected.getFun_name(), selected.getFun_entry(), selected.getTokgroup());
-                        if (!push) {
-                        	JDialog dialog = (JDialog) SwingUtilities.getWindowAncestor(getComponent());
-                            dialog.dispose();
-                        }
+                    	JDialog dialog = (JDialog) SwingUtilities.getWindowAncestor(getComponent());
+                        dialog.dispose();
 
                     } catch (IOException e) {
+                        Msg.showError(getClass(), null, "Server error", "Sorry, the server is currently unavailable. Please try again later.");
+
                         // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
@@ -136,6 +136,8 @@ public class Selection extends DialogComponentProvider {
 
 
                     } catch (CancelledException | IOException e1) {
+                        Msg.showError(getClass(), null, "Server error", "Sorry, the server is currently unavailable. Please try again later.");
+
                         // TODO Auto-generated catch block
                         e1.printStackTrace();
                     }
@@ -144,7 +146,8 @@ public class Selection extends DialogComponentProvider {
                     }
                 }
             }
-        }if (!isPush && checkIfSelected > 0) {
+        }
+        if (!isPush && checkIfSelected > 0) {
             CreateNewFidDatabase rrf = new CreateNewFidDatabase();
             try {
                 fidDb = rrf.selectFidFile();
@@ -153,10 +156,10 @@ public class Selection extends DialogComponentProvider {
                 e.printStackTrace();
             }
             monitor.initialize(1);
-        }else {
+        }else if (checkIfSelected == 0){
         	JOptionPane.showMessageDialog(null,
-        			"Please select one or more function(s) to continue",
-                    "selection error",
+        			"Please select one or more function(s) to continue.",
+                    "Error in selection",
                     JOptionPane.ERROR_MESSAGE);
         }
     }
@@ -201,7 +204,6 @@ public class Selection extends DialogComponentProvider {
         panel.setOpaque(true);
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        RetrieveRenamedFunction rrf = new RetrieveRenamedFunction();
         for (MyItem items : output) {
             JCheckBox checkbox = new JCheckBox(items.getFun_name());
             checkboxes.add(checkbox);
@@ -258,6 +260,8 @@ public class Selection extends DialogComponentProvider {
 		                                }
 			                            
 			                        } catch (Exception e1) {
+			                            Msg.showError(getClass(), null, "Server error", "Sorry, the server is currently unavailable. Please try again later.");
+
 			                            // TODO Auto-generated catch block
 			                            e1.printStackTrace();
 			                        }
@@ -288,6 +292,8 @@ public class Selection extends DialogComponentProvider {
 			                                	JOptionPane.showMessageDialog(null, "Discussion request sent successfully");
 			                                }
 			                            } catch (IOException e1) {
+			                                Msg.showError(getClass(), null, "Server error", "Sorry, the server is currently unavailable. Please try again later.");
+
 			                                e1.printStackTrace();
 			                            }
 			                        }
@@ -316,6 +322,8 @@ public class Selection extends DialogComponentProvider {
 			                                	JOptionPane.showMessageDialog(null, "Report successfully sent");
 			                                }
 			                            } catch (IOException e1) {
+			                                Msg.showError(getClass(), null, "Server error", "Sorry, the server is currently unavailable. Please try again later.");
+
 			                                e1.printStackTrace();
 			                            }
 			                        }

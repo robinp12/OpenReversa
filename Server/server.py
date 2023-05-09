@@ -366,6 +366,6 @@ def delete_selected():
     except pymongo.errors.ConnectionFailure as e:
         return Response("Sorry, there was an error with the database connection. Please try again later."), 500
 
-    return Response("Success! this function has been deleted")
+    return Response("Success! Function has been deleted")
 if __name__ == '__main__':
     app.run(debug=True)

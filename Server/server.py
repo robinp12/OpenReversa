@@ -194,6 +194,7 @@ def get_salt():
 @app.route("/fid", methods=['POST'])
 def receivefid():
     user_name = request.headers.get('Unique-Id')
+    confirm = request.headers.get('confirm')
 
     codeUnitSize = request.headers.get('Codeunitsize')
     fullHash = request.headers.get('Fullhash')
@@ -228,8 +229,31 @@ def receivefid():
     if funName:
         existing_file = collection.find_one({"funName": funName})
         if existing_file:
+            if confirm=="1":
+                collection.insert_one({"user":user_name,
+                               
+                               "codeUnitSize": codeUnitSize,
+                               "fullHash": fullHash,
+                               "specificHashAdditionalSize": specificHashAdditionalSize,
+                               "specificHash": specificHash,
+                               
+                               "library_name": library_name,
+                               "library_version": library_version,
+                               "library_variant": library_variant,
+
+                               "Ghidraversion": Ghidraversion,
+                               "Languageversion": Languageversion,
+                               "Languageminorversion": Languageminorversion,
+                               "Compilerspecid": Compilerspecid,
+                               "Entrypoint": Entrypoint,
+                               "Languageid": Languageid,
+                               "funName": funName,
+                               "Codec": Codec,
+                               })
+                return Response("Function '" +funName+ "' uploaded successfully.")
+
             print("Existe deja")
-            response = make_response(f"Function '" +funName+ "' already exists in the database.", 409)
+            response = make_response(f"Function '" + funName + "' already exists in the database.", 409)
             response.headers['funName'] = existing_file['funName']
             return response
 
@@ -256,53 +280,6 @@ def receivefid():
         return Response("Function '" +funName+ "' uploaded successfully.")
     # else:
         # collection.insert_one({"Hashquad": Hashquad})
-        # return "File uploaded successfully."
-
-
-@app.route("/send_file", methods=['POST'])
-def file_send():
-
-    user_name = request.headers.get('Unique-Id')
-    library_name = request.headers.get('Libraryfamilyname')
-    library_version = request.headers.get('Libraryversion')
-    library_variant = request.headers.get('Libraryvariant')
-    language_id = request.headers.get('Languageid')
-    function_hash = request.headers.get('Codec')
-    function_decoded = base64.b64decode(function_hash).decode('utf-8')
-
-    par_position = function_decoded.find(")") + 1
-    function_name = function_decoded[:par_position].lstrip()
-
-    brack_position = function_decoded.find("{")
-    code_without_name = function_decoded[brack_position:].rstrip()
-    hash_code_only = base64.b64encode(code_without_name.encode('utf-8')).decode('utf-8')
-
-    try:
-        user = users.find_one({'_id':  ObjectId(user_name)})
-    except pymongo.errors.ConnectionFailure as e:
-        return Response("Sorry, there was an error with the database connection. Please try again later."), 500
-    # If others try to send wrong file or not connected user
-    if len(function_hash) <= 0 or user == None:
-        abort(404)
-    if function_hash:
-        existing_file = collection.find_one({"function_hash": function_hash})
-        if existing_file:
-            print("Existe deja")
-            response = make_response(f"Function already exists in the database.", 409)
-            response.headers['function_hash'] = existing_file['function_hash']
-            return response
-
-        collection.insert_one({"user":user_name,
-                               "library_name": library_name,
-                               "library_version": library_version,
-                               "library_variant": library_variant,
-                               "language_id": language_id,
-                               "function_name": function_name,
-                               "function_hash": function_hash,
-                               })
-        return Response("Function uploaded successfully.")
-    # else:
-        # collection.insert_one({"function_hash": function_hash})
         # return "File uploaded successfully."
 
 @app.route('/download_files', methods=['GET'])

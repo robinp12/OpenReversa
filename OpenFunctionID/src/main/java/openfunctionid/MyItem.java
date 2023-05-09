@@ -23,6 +23,7 @@ public class MyItem {
     private String fun_name;
     private long fun_entry;
     private String tokgroup;
+	private String signature;
 
 
     public MyItem(String user, short codeUnitSize, long fullHash,
@@ -94,6 +95,10 @@ public class MyItem {
 
     public String getFun_name() {
         return fun_name;
+    }
+    
+    public String getSignature() {
+        return signature;
     }
 
     public long getFun_entry() {

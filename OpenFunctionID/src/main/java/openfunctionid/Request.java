@@ -82,11 +82,10 @@ public class Request {
                 return 1;
             }
             return 3;
-        }
-        else if (responseCode == 500){
+        } else if (responseCode == 500) {
             System.out.println("POST request did not work.");
             return 5;
-       
+
         } else {
             System.out.println("GET request did not work.");
             return 4;
@@ -108,7 +107,8 @@ public class Request {
         con.setRequestProperty("Content-Type", "application/json");
         String payload;
         try {
-            payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\",\"salt\":\"%s\"}", username, encryptedpassword, saltvalue);
+            payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\",\"salt\":\"%s\"}", username,
+                    encryptedpassword, saltvalue);
             con.setDoOutput(true);
             try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
                 byte[] postData = payload.getBytes(StandardCharsets.UTF_8);
@@ -128,7 +128,7 @@ public class Request {
         }
         System.out.println("POST Response Code :: " + responseCode);
 
-        if (responseCode == HttpURLConnection.HTTP_OK) { //success
+        if (responseCode == HttpURLConnection.HTTP_OK) { // success
             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
             String inputLine;
             StringBuffer response = new StringBuffer();
@@ -145,16 +145,14 @@ public class Request {
             if (response.toString().contains("Success!")) {
                 return 1;
             }
-            
+
             if (response.toString().contains("Sorry")) {
                 return 3;
             }
-        }
-        
-        else if (responseCode == 500){
+        } else if (responseCode == 500) {
             System.out.println("POST request did not work.");
             return 2;
-        
+
         } else {
             System.out.println("POST request did not work.");
             return 3;
@@ -176,7 +174,7 @@ public class Request {
 
         int responseCode = connection.getResponseCode();
         if (responseCode == HttpURLConnection.HTTP_OK) {
-        	System.out.println("Response code: " + responseCode);
+            System.out.println("Response code: " + responseCode);
 
             BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             String inputLine;
@@ -200,19 +198,16 @@ public class Request {
             }
 
             return result;
-            
+
         } else if (responseCode == 500) {
-        	JOptionPane.showMessageDialog(null,
-        			"Sorry, there was an error with the database connection. Please try again later",
-                    "database error",
+            JOptionPane.showMessageDialog(null,
+                    "Sorry, there was an error with the database connection. Please try again later", "Database error",
                     JOptionPane.ERROR_MESSAGE);
-        	return null;
+            return null;
         } else {
-        	JOptionPane.showMessageDialog(null,
-        			"Sorry, the server is currently unavailable. Please try again later.",
-                    "server error",
-                    JOptionPane.ERROR_MESSAGE);
-        	return null;
+            JOptionPane.showMessageDialog(null, "Sorry, the server is currently unavailable. Please try again later.",
+                    "Server error", JOptionPane.ERROR_MESSAGE);
+            return null;
         }
     }
 
@@ -223,7 +218,7 @@ public class Request {
 
         int responseCode = connection.getResponseCode();
         if (responseCode == HttpURLConnection.HTTP_OK) {
-        	System.out.println("Response code: " + responseCode);
+            System.out.println("Response code: " + responseCode);
 
             BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             String inputLine;
@@ -234,7 +229,6 @@ public class Request {
             }
             in.close();
 
-            
             System.out.println(response.toString());
 
             Gson gson = new Gson();
@@ -253,31 +247,26 @@ public class Request {
                 }
             });
 
-            int result = JOptionPane.showConfirmDialog(null, jList, "Select function to remove", JOptionPane.OK_CANCEL_OPTION);
+            int result = JOptionPane.showConfirmDialog(null, jList, "Select function to remove",
+                    JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
                 Object selectedItem = jList.getSelectedValue();
-                if(selectedItem != null) {
-                	deleteSelectedItem(selectedItem.toString());
-                }else {
+                if (selectedItem != null) {
+                    deleteSelectedItem(selectedItem.toString());
+                } else {
                     Msg.showError(getClass(), null, "Error", "No function selected.");
                 }
             }
 
         } else if (responseCode == 500) {
-        	JOptionPane.showMessageDialog(null,
-        			"Sorry, there was an error with the database connection. Please try again later",
-                    "database error",
+            JOptionPane.showMessageDialog(null,
+                    "Sorry, there was an error with the database connection. Please try again later", "Database error",
                     JOptionPane.ERROR_MESSAGE);
-        }
-        else{
-        	JOptionPane.showMessageDialog(null,
-        			"Sorry, the server is currently unavailable. Please try again later.",
-                    "server error",
-                    JOptionPane.ERROR_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(null, "Sorry, the server is currently unavailable. Please try again later.",
+                    "Server error", JOptionPane.ERROR_MESSAGE);
         }
 
-        
-        
     }
 
     public boolean deleteSelectedItem(String item) throws Exception {
@@ -309,14 +298,13 @@ public class Request {
                 JOptionPane.showMessageDialog(null, regmessage);
             }
             return true;
-            
+
         } else if (responseCode == 500) {
-        	JOptionPane.showMessageDialog(null,
-        			"Sorry, there was an error with the database connection. Please try again later",
-                    "database error",
+            JOptionPane.showMessageDialog(null,
+                    "Sorry, there was an error with the database connection. Please try again later", "Database error",
                     JOptionPane.ERROR_MESSAGE);
-        	return false;
-        	
+            return false;
+
         }
         return true;
 
@@ -329,7 +317,8 @@ public class Request {
         con.setRequestProperty("Content-Type", "application/json");
         con.setDoOutput(true);
         String userfrom = LoginDialog.getUserId();
-        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\",\"funname\":\"%s\"}", item.getUser(), userfrom, item.getFun_name());
+        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\",\"funname\":\"%s\"}", item.getUser(),
+                userfrom, item.getFun_name());
 
         OutputStream os = con.getOutputStream();
         os.write(payload.getBytes());
@@ -348,20 +337,19 @@ public class Request {
             regmessage = response.toString();
 
             if (response.toString().contains("Success!")) {
-            	JOptionPane.showMessageDialog(null, regmessage);
+                JOptionPane.showMessageDialog(null, regmessage);
             }
             return true;
         } else if (responseCode == 500) {
-        	JOptionPane.showMessageDialog(null,
-        			"Sorry, there was an error with the database connection. Please try again later",
-                    "database error",
+            JOptionPane.showMessageDialog(null,
+                    "Sorry, there was an error with the database connection. Please try again later", "Database error",
                     JOptionPane.ERROR_MESSAGE);
-        	return false;
+            return false;
 
         } else {
             System.out.println("POST request did not work.");
         }
-       return true;
+        return true;
     }
 
     public boolean discuss(MyItem item) throws IOException {
@@ -373,7 +361,8 @@ public class Request {
         System.out.println(item.getFun_name());
 
         String userfrom = LoginDialog.getUserId();
-        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\",\"funname\":\"%s\"}", item.getUser(), userfrom, item.getFun_name());
+        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\",\"funname\":\"%s\"}", item.getUser(),
+                userfrom, item.getFun_name());
         System.out.println(payload);
 
         OutputStream os = con.getOutputStream();
@@ -393,15 +382,14 @@ public class Request {
             regmessage = response.toString();
 
             if (response.toString().contains("Success!")) {
-            	JOptionPane.showMessageDialog(null, regmessage);
+                JOptionPane.showMessageDialog(null, regmessage);
             }
             return true;
         } else if (responseCode == 500) {
-        	JOptionPane.showMessageDialog(null,
-        			"Sorry, there was an error with the database connection. Please try again later",
-                    "database error",
+            JOptionPane.showMessageDialog(null,
+                    "Sorry, there was an error with the database connection. Please try again later", "Database error",
                     JOptionPane.ERROR_MESSAGE);
-        	return false;
+            return false;
 
         } else {
             System.out.println("POST request did not work.");
@@ -409,13 +397,10 @@ public class Request {
         return true;
     }
 
-    public boolean sendToDBrequest(short codeUnitSize, long fullHash,
-                                byte specificHashAdditionalSize, long specificHash,
-                                String libraryFamilyName, String libraryVersion,
-                                String libraryVariant, String ghidraVersion,
-                                LanguageID languageID, int languageVersion,
-                                int languageMinorVersion, CompilerSpecID compilerSpecID, String funName,
-                                long entryPoint, String tokgroup) throws IOException {
+    public boolean sendToDBrequest(short codeUnitSize, long fullHash, byte specificHashAdditionalSize,
+                                   long specificHash, String libraryFamilyName, String libraryVersion, String libraryVariant,
+                                   String ghidraVersion, LanguageID languageID, int languageVersion, int languageMinorVersion,
+                                   CompilerSpecID compilerSpecID, String funName, long entryPoint, String tokgroup) throws IOException {
 
         URL url = new URL(POST_URL + "fid");
         String response = "";
@@ -441,7 +426,8 @@ public class Request {
         connection.setRequestProperty("compilerSpecID", compilerSpecID.toString());
         connection.setRequestProperty("funName", funName);
         connection.setRequestProperty("entryPoint", Long.toString(entryPoint));
-        connection.setRequestProperty("codeC", Base64.getEncoder().encodeToString(tokgroup.getBytes(StandardCharsets.UTF_8)));
+        connection.setRequestProperty("codeC",
+                Base64.getEncoder().encodeToString(tokgroup.getBytes(StandardCharsets.UTF_8)));
         connection.setDoOutput(true);
         System.out.println(connection.getResponseCode());
 
@@ -456,17 +442,13 @@ public class Request {
             response = sb.toString();
             Msg.showInfo(getClass(), null, "Function uploaded", response);
             return true;
-        }
-        
-        else if (connection.getResponseCode() == 500) {
-        	JOptionPane.showMessageDialog(null,
-        			"Sorry, there was an error with the database connection. Please try again later",
-                    "database error",
+        } else if (connection.getResponseCode() == 500) {
+            JOptionPane.showMessageDialog(null,
+                    "Sorry, there was an error with the database connection. Please try again later", "Database error",
                     JOptionPane.ERROR_MESSAGE);
-        	return false;
-        }
-      
-        else if (connection.getResponseCode() == HttpURLConnection.HTTP_CONFLICT) {
+            return false;
+        } else if (connection.getResponseCode() == HttpURLConnection.HTTP_CONFLICT) {
+
             InputStream con = connection.getErrorStream();
             Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
 
@@ -474,12 +456,47 @@ public class Request {
             for (int c; (c = result.read()) >= 0; ) {
                 sb.append((char) c);
             }
-            response = sb.toString();
-            Msg.showError(getClass(), null, "Error", response);
+            connection.disconnect();
+
+            int res = JOptionPane.showConfirmDialog(null, sb.toString() + " Do you want to add it anyway?", "Confirm",
+                    JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+            System.out.println(res);
+
+            if (res == JOptionPane.YES_OPTION) {
+                System.out.println("ICI.");
+                URL url1 = new URL(POST_URL + "fid");
+
+                HttpURLConnection connection1 = (HttpURLConnection) url1.openConnection();
+                connection1.setRequestMethod("POST");
+                connection1.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+                connection1.setRequestProperty("unique_id", LoginDialog.getUserId());
+                connection1.setRequestProperty("confirm", "1");
+
+                connection1.setRequestProperty("codeUnitSize", Short.toString(codeUnitSize));
+                connection1.setRequestProperty("fullHash", Long.toString(fullHash));
+                connection1.setRequestProperty("specificHashAdditionalSize", Byte.toString(specificHashAdditionalSize));
+                connection1.setRequestProperty("specificHash", Long.toString(specificHash));
+
+                connection1.setRequestProperty("libraryFamilyName", libraryFamilyName);
+                connection1.setRequestProperty("libraryVersion", libraryVersion);
+                connection1.setRequestProperty("libraryVariant", libraryVariant);
+
+                connection1.setRequestProperty("ghidraVersion", ghidraVersion);
+                connection1.setRequestProperty("languageID", languageID.toString());
+                connection1.setRequestProperty("languageVersion", Integer.toString(languageVersion));
+                connection1.setRequestProperty("languageMinorVersion", Integer.toString(languageMinorVersion));
+                connection1.setRequestProperty("compilerSpecID", compilerSpecID.toString());
+                connection1.setRequestProperty("funName", funName);
+                connection1.setRequestProperty("entryPoint", Long.toString(entryPoint));
+                connection1.setRequestProperty("codeC",
+                        Base64.getEncoder().encodeToString(tokgroup.getBytes(StandardCharsets.UTF_8)));
+                connection1.setDoOutput(true);
+                System.out.println(connection.getResponseCode());
+
+            }
             return false;
 
-        }
-        else if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+        } else if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
             InputStream con = connection.getErrorStream();
             Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
 
@@ -490,14 +507,11 @@ public class Request {
             response = sb.toString();
             Msg.showError(getClass(), null, "Not connected", response);
             return false;
-        }else{
-        	JOptionPane.showMessageDialog(null,
-        			"Sorry, the server is currently unavailable. Please try again later.",
-                    "server error",
-                    JOptionPane.ERROR_MESSAGE);
-        	return false;
+        } else {
+            JOptionPane.showMessageDialog(null, "Sorry, the server is currently unavailable. Please try again later.",
+                    "Server error", JOptionPane.ERROR_MESSAGE);
+            return false;
         }
     }
-
 
 }

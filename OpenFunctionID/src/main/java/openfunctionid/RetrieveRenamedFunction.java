@@ -250,6 +250,9 @@ public class RetrieveRenamedFunction extends GhidraScript {
                     long fun_entry = function.getEntryPoint().getOffset();
 
                     //System.out.println(function.getEntryPoint());
+
+                    System.out.println(function.getSignature());
+
                     //System.out.println(fun_name);
                     //System.out.println(function.getName().getBytes());
                     //System.out.println(function.getSignature());

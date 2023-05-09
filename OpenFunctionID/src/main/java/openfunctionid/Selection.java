@@ -95,12 +95,16 @@ public class Selection extends DialogComponentProvider {
 
                 if (isPush) {
                     try {
-                        request.sendToDBrequest(selected.getCodeUnitSize(), selected.getFullHash(), selected.getSpecificHashAdditionalSize(),
+                        boolean push = request.sendToDBrequest(selected.getCodeUnitSize(), selected.getFullHash(), selected.getSpecificHashAdditionalSize(),
                                 selected.getSpecificHash(), selected.getLibraryFamilyNameTextField(), selected.getVersionTextField(),
                                 selected.getVariantTextField(), selected.getApp_version(),
                                 selected.getLang_id(), selected.getLang_ver(),
                                 selected.getLang_minor_ver(), selected.getCompiler_spec(),
                                 selected.getFun_name(), selected.getFun_entry(), selected.getTokgroup());
+                        if (!push) {
+                        	JDialog dialog = (JDialog) SwingUtilities.getWindowAncestor(getComponent());
+                            dialog.dispose();
+                        }
 
                     } catch (IOException e) {
                         // TODO Auto-generated catch block
@@ -272,12 +276,11 @@ public class Selection extends DialogComponentProvider {
 			                            	boolean discuss = request.discuss(items);
 			                            	System.out.println(discuss);
 			                                if (discuss) {
-			                                	JOptionPane.showMessageDialog(null, "Report successfully sent");
+			                                	JOptionPane.showMessageDialog(null, "Discussion request sent successfully");
 			                                }
 			                            } catch (IOException e1) {
 			                                e1.printStackTrace();
 			                            }
-			                            JOptionPane.showMessageDialog(null, "Discussion request sent successfully");
 			                        }
 			                    }
 			                });

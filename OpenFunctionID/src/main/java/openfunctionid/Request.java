@@ -18,8 +18,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JDialog;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -396,7 +398,7 @@ public class Request {
         return true;
     }
 
-    public void sendToDBrequest(short codeUnitSize, long fullHash,
+    public boolean sendToDBrequest(short codeUnitSize, long fullHash,
                                 byte specificHashAdditionalSize, long specificHash,
                                 String libraryFamilyName, String libraryVersion,
                                 String libraryVariant, String ghidraVersion,
@@ -442,17 +444,18 @@ public class Request {
             }
             response = sb.toString();
             Msg.showInfo(getClass(), null, "Function uploaded", response);
-
+            return true;
         }
         
-        if (connection.getResponseCode() == 500) {
+        else if (connection.getResponseCode() == 500) {
         	JOptionPane.showMessageDialog(null,
         			"Sorry, there was an error with the database connection. Please try again later",
                     "database error",
                     JOptionPane.ERROR_MESSAGE);
+        	return false;
         }
       
-        if (connection.getResponseCode() == HttpURLConnection.HTTP_CONFLICT) {
+        else if (connection.getResponseCode() == HttpURLConnection.HTTP_CONFLICT) {
             InputStream con = connection.getErrorStream();
             Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
 
@@ -462,9 +465,10 @@ public class Request {
             }
             response = sb.toString();
             Msg.showError(getClass(), null, "Error", response);
+            return false;
 
         }
-        if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+        else if (connection.getResponseCode() == HttpURLConnection.HTTP_NOT_FOUND) {
             InputStream con = connection.getErrorStream();
             Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
 
@@ -474,7 +478,9 @@ public class Request {
             }
             response = sb.toString();
             Msg.showError(getClass(), null, "Not connected", response);
+            return false;
         }
+        return true;
     }
 
 

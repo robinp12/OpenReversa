@@ -79,6 +79,17 @@ public class Selection extends DialogComponentProvider {
     protected void okCallback() {
         StringBuilder sb = new StringBuilder();
         
+        if (!isPush) {
+            CreateNewFidDatabase rrf = new CreateNewFidDatabase();
+            try {
+                fidDb = rrf.selectFidFile();
+            } catch (CancelledException | VersionException | IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            monitor.initialize(1);
+        }
+        
         int checkIfSelected = 0;
         for (JCheckBox checkbox : checkboxes) {
             if (checkbox.isSelected()) {
@@ -145,20 +156,12 @@ public class Selection extends DialogComponentProvider {
                     }
                 }
             }
-        }if (!isPush && checkIfSelected > 0) {
-            CreateNewFidDatabase rrf = new CreateNewFidDatabase();
-            try {
-                fidDb = rrf.selectFidFile();
-            } catch (CancelledException | VersionException | IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            monitor.initialize(1);
-        }else if (checkIfSelected == 0){
+        
+        }if (checkIfSelected == 0){
         	JOptionPane.showMessageDialog(null,
-        			"Please select one or more function(s) to continue.",
-                    "Error in selection",
-                    JOptionPane.ERROR_MESSAGE);
+        		"Please select one or more function(s) to continue.",
+                "Error in selection",
+                JOptionPane.ERROR_MESSAGE);
         }
     }
 

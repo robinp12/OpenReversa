@@ -23,12 +23,11 @@ FROM_EMAIL = os.getenv('FROM_EMAIL')
 PASSWORD = os.getenv('PASSWORD')
 
 app = Flask(__name__)
-connection_string = 'mongodb+srv://adelcorte:Fger4045@cluster1.umjhakw.mongodb.net/?retryWrites=true&w=majority'
 
-client = MongoClient(connection_string)
-db = client.get_database('FunctionID')
-collection = db.get_collection('fidb')
-users = db.get_collection('users')
+client = MongoClient('mongodb://localhost:27017/')
+db = client['FunctionID']
+collection = db['fidb']
+users = db['users']
 
 @app.route("/register", methods=['POST'])
 def register():
@@ -342,5 +341,4 @@ def delete_selected():
 
     return Response("Success! Function has been deleted")
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(debug=True)

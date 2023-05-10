@@ -81,15 +81,16 @@ public class CustomPopulate extends GhidraScript {
         panel1.add(langTextField);
 
         okBtn = new JButton("Confirm");
+        dialog.getRootPane().setDefaultButton(okBtn);
 
         okBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (isUserInputComplete()) {
+                	dialog.dispose();
                     new RetrieveRenamedFunction(
                             libraryFamilyNameTextField.getText().trim(),
                             versionTextField.getText().trim(),
                             variantTextField.getText().trim());
-                    dialog.dispose();
                 }
 
             }

@@ -30,6 +30,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 
 import docking.DialogComponentProvider;
 import ghidra.feature.fid.db.FidDB;
@@ -66,6 +67,7 @@ public class Selection extends DialogComponentProvider {
         this.isPush = isPush;
         addWorkPanel(buildMainPanel());
         addOKButton();
+        setDefaultButton(okButton);
         if (isPush) {
         	setOkButtonText("Push function(s)");
         }else {
@@ -109,6 +111,7 @@ public class Selection extends DialogComponentProvider {
                                 selected.getFun_name(), selected.getFun_entry(), selected.getTokgroup());
 		                        
                         JDialog dialog = (JDialog) SwingUtilities.getWindowAncestor(getComponent());
+                        dialog.getRootPane().setDefaultButton(okButton);
 		                        dialog.dispose();
                     } catch (IOException e) {
                         // TODO Auto-generated catch block
@@ -159,9 +162,9 @@ public class Selection extends DialogComponentProvider {
         
         }if (checkIfSelected == 0){
         	JOptionPane.showMessageDialog(null,
-        		"Please select one or more function(s) to continue.",
-                "Error in selection",
-                JOptionPane.ERROR_MESSAGE);
+        			"Please select one or more function(s) to continue.",
+                    "Error in selection",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 

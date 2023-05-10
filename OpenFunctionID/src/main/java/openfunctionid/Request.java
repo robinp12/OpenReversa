@@ -33,6 +33,7 @@ import ghidra.util.Msg;
 
 public class Request {
 
+	//private static final String POST_URL = "http://127.0.0.1:5000/";
     private static final String POST_URL = "https://glacial-springs-45246.herokuapp.com/";
     private static String regmessage = "";
 

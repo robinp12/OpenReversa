@@ -23,10 +23,12 @@ FROM_EMAIL = os.getenv('FROM_EMAIL')
 PASSWORD = os.getenv('PASSWORD')
 
 app = Flask(__name__)
-client = MongoClient('mongodb://localhost:27017/')
-db = client['FunctionID']
-collection = db['fidb']
-users = db['users']
+connection_string = 'mongodb+srv://adelcorte:Fger4045@cluster1.umjhakw.mongodb.net/?retryWrites=true&w=majority'
+
+client = MongoClient(connection_string)
+db = client.get_database('FunctionID')
+collection = db.get_collection('fidb')
+users = db.get_collection('users')
 
 @app.route("/register", methods=['POST'])
 def register():
@@ -48,7 +50,7 @@ def register():
     expiration_time = datetime.datetime.utcnow() + datetime.timedelta(days=1)
 
     recipient_email = email
-    message = MIMEText(f'Hi {email}, please click the following link to verify your email address: http://127.0.0.1:5000/verify_email?token={verification_token}')
+    message = MIMEText(f'Hi {email}, please click the following link to verify your email address: https://glacial-springs-45246.herokuapp.com/verify_email?token={verification_token}')
     message['Subject'] = 'Verify Your Email Address'
     message['From'] = FROM_EMAIL
     print(FROM_EMAIL)
@@ -81,10 +83,7 @@ def register():
 def verify_email():
     token = request.args.get('token')
 
-    try:
-        user = users.find_one({'verification_token': token})
-    except pymongo.errors.ConnectionFailure as e:
-        return Response("Sorry, there was an error with the database connection. Please try again later."), 500
+    user = users.find_one({'verification_token': token})
 
     if user == None:
         return Response("Sorry, the verification link is invalid.")
@@ -180,10 +179,7 @@ def get_salt():
     payload = request.get_json()
     email = payload['username']
 
-    try:
-        user = users.find_one({'email': email})
-    except pymongo.errors.ConnectionFailure as e:
-        return Response("Sorry, there was an error with the database connection. Please try again later."), 500
+    user = users.find_one({'email': email})
 
     if "verification_token" in user:
         return Response("You didnt verify your email address")
@@ -193,26 +189,27 @@ def get_salt():
 
 @app.route("/fid", methods=['POST'])
 def receivefid():
-    user_name = request.headers.get('Unique-Id')
-    confirm = request.headers.get('confirm')
+    payload = request.get_json()
+    user_name = payload['unique_id']
+    confirm = payload['confirm']
+    codeUnitSize = payload['codeUnitSize']
+    fullHash = payload['fullHash']
 
-    codeUnitSize = request.headers.get('Codeunitsize')
-    fullHash = request.headers.get('Fullhash')
-    specificHashAdditionalSize = request.headers.get('Specifichashadditionalsize')
-    specificHash = request.headers.get('Specifichash')
+    specificHashAdditionalSize = payload['specificHashAdditionalSize']
+    specificHash = payload['specificHash']
 
-    library_name = request.headers.get('Libraryfamilyname')
-    library_version = request.headers.get('Libraryversion')
-    library_variant = request.headers.get('Libraryvariant')
+    library_name = payload['libraryFamilyName']
+    library_version = payload['libraryVersion']
+    library_variant = payload['libraryVariant']
 
-    Ghidraversion = request.headers.get('Ghidraversion')
-    Languageid = request.headers.get('Languageid')
-    Languageversion = request.headers.get('Languageversion')
-    Languageminorversion = request.headers.get('Languageminorversion')
-    Compilerspecid = request.headers.get('Compilerspecid')
-    funName = request.headers.get('FunName')
-    Entrypoint = request.headers.get('Entrypoint')
-    Codec = request.headers.get('Codec')
+    Ghidraversion = payload['ghidraVersion']
+    Languageid = payload['languageID']
+    Languageversion = payload['languageVersion']
+    Languageminorversion = payload['languageMinorVersion']
+    Compilerspecid = payload['compilerSpecID']
+    funName = payload['funName']
+    Entrypoint = payload['entryPoint']
+    Codec = payload['codeC']
     
     if not(user_name):
         response = make_response(f"No connected user", 409)
@@ -345,4 +342,5 @@ def delete_selected():
 
     return Response("Success! Function has been deleted")
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)

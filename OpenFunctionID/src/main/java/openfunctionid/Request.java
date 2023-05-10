@@ -33,7 +33,7 @@ import ghidra.util.Msg;
 
 public class Request {
 
-    private static final String POST_URL = "http://127.0.0.1:5000/";
+    private static final String POST_URL = "https://glacial-springs-45246.herokuapp.com/";
     private static String regmessage = "";
 
     public int login_request(String username, String password) throws IOException {
@@ -407,28 +407,21 @@ public class Request {
 
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
-        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        connection.setRequestProperty("unique_id", LoginDialog.getUserId());
-
-        connection.setRequestProperty("codeUnitSize", Short.toString(codeUnitSize));
-        connection.setRequestProperty("fullHash", Long.toString(fullHash));
-        connection.setRequestProperty("specificHashAdditionalSize", Byte.toString(specificHashAdditionalSize));
-        connection.setRequestProperty("specificHash", Long.toString(specificHash));
-
-        connection.setRequestProperty("libraryFamilyName", libraryFamilyName);
-        connection.setRequestProperty("libraryVersion", libraryVersion);
-        connection.setRequestProperty("libraryVariant", libraryVariant);
-
-        connection.setRequestProperty("ghidraVersion", ghidraVersion);
-        connection.setRequestProperty("languageID", languageID.toString());
-        connection.setRequestProperty("languageVersion", Integer.toString(languageVersion));
-        connection.setRequestProperty("languageMinorVersion", Integer.toString(languageMinorVersion));
-        connection.setRequestProperty("compilerSpecID", compilerSpecID.toString());
-        connection.setRequestProperty("funName", funName);
-        connection.setRequestProperty("entryPoint", Long.toString(entryPoint));
-        connection.setRequestProperty("codeC",
-                Base64.getEncoder().encodeToString(tokgroup.getBytes(StandardCharsets.UTF_8)));
-        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", "application/json");
+        String payload;
+        try {
+        	payload = String.format("{\"unique_id\":\"%s\",\"confirm\":\"%s\",\"codeUnitSize\":\"%s\",\"fullHash\":\"%s\",\"specificHashAdditionalSize\":\"%s\",\"specificHash\":\"%s\",\"libraryFamilyName\":\"%s\",\"libraryVersion\":\"%s\",\"libraryVariant\":\"%s\",\"ghidraVersion\":\"%s\",\"languageID\":\"%s\",\"languageVersion\":\"%s\",\"languageMinorVersion\":\"%s\",\"compilerSpecID\":\"%s\",\"funName\":\"%s\",\"entryPoint\":\"%s\",\"codeC\":\"%s\"}", 
+            		LoginDialog.getUserId(), "0", Short.toString(codeUnitSize), Long.toString(fullHash), Byte.toString(specificHashAdditionalSize),Long.toString(specificHash),libraryFamilyName, libraryVersion, libraryVariant, ghidraVersion, languageID.toString(), Integer.toString(languageVersion), Integer.toString(languageMinorVersion), compilerSpecID.toString(), funName, Long.toString(entryPoint), Base64.getEncoder().encodeToString(tokgroup.getBytes(StandardCharsets.UTF_8)));
+            connection.setDoOutput(true);
+            try (DataOutputStream wr = new DataOutputStream(connection.getOutputStream())) {
+                byte[] postData = payload.getBytes(StandardCharsets.UTF_8);
+                wr.write(postData);
+            }
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            regmessage = "Sorry, the server is currently unavailable. Please try again later.";
+            e.printStackTrace();
+        }
         System.out.println(connection.getResponseCode());
 
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
@@ -467,30 +460,21 @@ public class Request {
                 URL url1 = new URL(POST_URL + "fid");
 
                 HttpURLConnection connection1 = (HttpURLConnection) url1.openConnection();
-                connection1.setRequestMethod("POST");
-                connection1.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-                connection1.setRequestProperty("unique_id", LoginDialog.getUserId());
-                connection1.setRequestProperty("confirm", "1");
-
-                connection1.setRequestProperty("codeUnitSize", Short.toString(codeUnitSize));
-                connection1.setRequestProperty("fullHash", Long.toString(fullHash));
-                connection1.setRequestProperty("specificHashAdditionalSize", Byte.toString(specificHashAdditionalSize));
-                connection1.setRequestProperty("specificHash", Long.toString(specificHash));
-
-                connection1.setRequestProperty("libraryFamilyName", libraryFamilyName);
-                connection1.setRequestProperty("libraryVersion", libraryVersion);
-                connection1.setRequestProperty("libraryVariant", libraryVariant);
-
-                connection1.setRequestProperty("ghidraVersion", ghidraVersion);
-                connection1.setRequestProperty("languageID", languageID.toString());
-                connection1.setRequestProperty("languageVersion", Integer.toString(languageVersion));
-                connection1.setRequestProperty("languageMinorVersion", Integer.toString(languageMinorVersion));
-                connection1.setRequestProperty("compilerSpecID", compilerSpecID.toString());
-                connection1.setRequestProperty("funName", funName);
-                connection1.setRequestProperty("entryPoint", Long.toString(entryPoint));
-                connection1.setRequestProperty("codeC",
-                        Base64.getEncoder().encodeToString(tokgroup.getBytes(StandardCharsets.UTF_8)));
-                connection1.setDoOutput(true);
+                
+                String payload1;
+                try {
+                	payload1 = String.format("{\"unique_id\":\"%s\",\"confirm\":\"%s\",\"codeUnitSize\":\"%s\",\"fullHash\":\"%s\",\"specificHashAdditionalSize\":\"%s\",\"specificHash\":\"%s\",\"libraryFamilyName\":\"%s\",\"libraryVersion\":\"%s\",\"libraryVariant\":\"%s\",\"ghidraVersion\":\"%s\",\"languageID\":\"%s\",\"languageVersion\":\"%s\",\"languageMinorVersion\":\"%s\",\"compilerSpecID\":\"%s\",\"funName\":\"%s\",\"entryPoint\":\"%s\",\"codeC\":\"%s\"}", 
+                    		LoginDialog.getUserId(), "1", Short.toString(codeUnitSize), Long.toString(fullHash), Byte.toString(specificHashAdditionalSize),Long.toString(specificHash),libraryFamilyName, libraryVersion, libraryVariant, ghidraVersion, languageID.toString(), Integer.toString(languageVersion), Integer.toString(languageMinorVersion), compilerSpecID.toString(), funName, Long.toString(entryPoint), Base64.getEncoder().encodeToString(tokgroup.getBytes(StandardCharsets.UTF_8)));
+                    connection1.setDoOutput(true);
+                    try (DataOutputStream wr = new DataOutputStream(connection1.getOutputStream())) {
+                        byte[] postData = payload1.getBytes(StandardCharsets.UTF_8);
+                        wr.write(postData);
+                    }
+                } catch (Exception e) {
+                    // TODO Auto-generated catch block
+                    regmessage = "Sorry, the server is currently unavailable. Please try again later.";
+                    e.printStackTrace();
+                }
                 System.out.println(connection.getResponseCode());
 
             }

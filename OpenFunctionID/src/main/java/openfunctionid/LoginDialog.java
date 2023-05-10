@@ -299,7 +299,7 @@ public class LoginDialog extends JDialog {
 
                 if (isRegistered == 1) {
                     JOptionPane.showMessageDialog(LoginDialog.this,
-                            regmessage,
+                            "A verification email has been sent to your email address.",
                             "Registred",
                             JOptionPane.INFORMATION_MESSAGE);
                     dialog.dispose();

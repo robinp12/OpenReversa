@@ -295,35 +295,56 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
 
         for (List<String> list : result) {
             String[] field = list.get(0).split(",");
-            String user = field[0].replaceAll("\"", "");
+            String user = field[0].replaceAll("\"", "").trim();
 
-            String codeUnitSize = field[1].replaceAll("\"", "");
-            String fullHash = field[2].replaceAll("\"", "");
-            String specificHashAdditionalSize = field[3].replaceAll("\"", "");
-            String specificHash = field[4].replaceAll("\"", "");
-
-
-            String library_name = field[5].replaceAll("\"", "");
-            String library_version = field[6].replaceAll("\"", "");
-            String library_variant = field[7].replaceAll("\"", "");
-
-            String Ghidraversion = field[8].replaceAll("\"", "");
+            String codeUnitSize = field[1].replaceAll("\"", "").trim();
+            String fullHash = field[2].replaceAll("\"", "").trim();
+            String specificHashAdditionalSize = field[3].replaceAll("\"", "").trim();
+            String specificHash = field[4].replaceAll("\"", "").trim();
 
 
-            String Languageversion = field[9].replaceAll("\"", "");
-            String Languageminorversion = field[10].replaceAll("\"", "");
-            String Compilerspecid = field[11].replaceAll("\"", "");
-            String Entrypoint = field[12].replaceAll("\"", "");
-            String Languageid = field[13].replaceAll("\"", "");
-            String funName = field[14].replaceAll("\"", "");
-            String Codec = field[15].replaceAll("\"", "");
+            String library_name = field[5].replaceAll("\"", "").trim();
+            String library_version = field[6].replaceAll("\"", "").trim();
+            String library_variant = field[7].replaceAll("\"", "").trim();
 
-            MyItem item = new MyItem(user, Short.parseShort(codeUnitSize.trim()), Long.parseLong(fullHash.trim()),
-                    Byte.parseByte(specificHashAdditionalSize.trim()), Long.parseLong(specificHash.trim()),
+            String Ghidraversion = field[8].replaceAll("\"", "").trim();
+
+
+            String Languageversion = field[9].replaceAll("\"", "").trim();
+            String Languageminorversion = field[10].replaceAll("\"", "").trim();
+            String Compilerspecid = field[11].replaceAll("\"", "").trim();
+            String Entrypoint = field[12].replaceAll("\"", "").trim();
+            String Languageid = field[13].replaceAll("\"", "").trim();
+            String funName = field[14].replaceAll("\"", "").trim();
+            String Codec = field[15].replaceAll("\"", "").trim();
+
+            System.out.println("|"+user+"|");
+            
+            System.out.println("|"+codeUnitSize+"|"+Short.parseShort(codeUnitSize));
+            System.out.println("|"+fullHash+"|"+Long.parseLong(fullHash));
+            System.out.println("|"+specificHashAdditionalSize+"|"+Byte.parseByte(specificHashAdditionalSize));
+            System.out.println("|"+specificHash+"|"+Long.parseLong(specificHash));
+            
+            System.out.println("|"+library_name+"|");
+            System.out.println("|"+library_version+"|");
+            System.out.println("|"+library_variant+"|");
+            
+            System.out.println("|"+Ghidraversion+"|");
+            System.out.println("|"+Languageversion+"|");
+            System.out.println("|"+Languageminorversion+"|"+ Integer.parseInt(Languageminorversion));
+            System.out.println("|"+Compilerspecid+"|"+new CompilerSpecID(Compilerspecid));
+            System.out.println("|"+Entrypoint+"|" + Long.parseLong(Entrypoint));
+            System.out.println("|"+Languageid+"|");
+            System.out.println("|"+funName+"|");
+            System.out.println("|"+Codec+"|");
+
+
+            MyItem item = new MyItem(user, Short.parseShort(codeUnitSize), Long.parseLong(fullHash),
+                    Byte.parseByte(specificHashAdditionalSize), Long.parseLong(specificHash),
                     library_name, library_version,
-                    library_variant, Ghidraversion, new LanguageID(Languageid.trim()),
-                    Integer.parseInt(Languageversion.trim()), Integer.parseInt(Languageminorversion.trim()),
-                    new CompilerSpecID(Compilerspecid), funName, Long.parseLong(Entrypoint.trim()), Codec);
+                    library_variant, Ghidraversion, new LanguageID(Languageid),
+                    Integer.parseInt(Languageversion), Integer.parseInt(Languageminorversion),
+                    new CompilerSpecID(Compilerspecid), funName, Long.parseLong(Entrypoint), Codec);
             output.add(item);
 
         }

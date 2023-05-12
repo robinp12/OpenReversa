@@ -208,6 +208,8 @@ def receivefid():
     Compilerspecid = payload['compilerSpecID']
     funName = payload['funName']
     Entrypoint = payload['entryPoint']
+    signature = payload['signature']
+
     Codec = payload['codeC']
     
     if not(user_name):
@@ -244,6 +246,7 @@ def receivefid():
                                "Entrypoint": Entrypoint,
                                "Languageid": Languageid,
                                "funName": funName,
+                               "signature": signature,
                                "Codec": Codec,
                                })
                 return Response("Function '" +funName+ "' uploaded successfully.")
@@ -271,6 +274,7 @@ def receivefid():
                                "Entrypoint": Entrypoint,
                                "Languageid": Languageid,
                                "funName": funName,
+                               "signature": signature,
                                "Codec": Codec,
                                })
         return Response("Function '" +funName+ "' uploaded successfully.")
@@ -309,6 +313,7 @@ def download_files():
             item["Entrypoint"],
             item["Languageid"],
             item["funName"],
+            item["signature"],
             item["Codec"]
         ]
         # Join the fields with commas and add a newline character

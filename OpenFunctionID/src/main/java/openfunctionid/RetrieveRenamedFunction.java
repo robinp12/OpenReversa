@@ -23,7 +23,9 @@ package openfunctionid;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Map.Entry;
 
 import javax.swing.*;
@@ -248,10 +250,8 @@ public class RetrieveRenamedFunction extends GhidraScript {
 
                     String fun_name = function.getName();
                     long fun_entry = function.getEntryPoint().getOffset();
-
+                    String signature = Base64.getEncoder().encodeToString(function.getSignature().toString().getBytes(StandardCharsets.UTF_8));
                     //System.out.println(function.getEntryPoint());
-
-                    System.out.println(function.getSignature());
 
                     //System.out.println(fun_name);
                     //System.out.println(function.getName().getBytes());
@@ -274,7 +274,7 @@ public class RetrieveRenamedFunction extends GhidraScript {
                             libraryFamilyNameTextField, versionTextField,
                             variantTextField, app_version, lang_id,
                             lang_ver, lang_minor_ver, compiler_spec,
-                            fun_name, fun_entry, tokgroup.getC().toString());
+                            fun_name, fun_entry, signature, tokgroup.getC().toString());
                     output.add(item);
                     //sendPOST(hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction, fun_name, fun_entry, tokgroup);
 

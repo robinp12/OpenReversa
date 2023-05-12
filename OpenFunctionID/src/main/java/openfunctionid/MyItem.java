@@ -31,7 +31,7 @@ public class MyItem {
                   String libraryFamilyNameTextField, String versionTextField,
                   String variantTextField, String app_version, LanguageID lang_id,
                   int lang_ver, int lang_minor_ver, CompilerSpecID compiler_spec,
-                  String fun_name, long fun_entry, String tokgroup) {
+                  String fun_name, long fun_entry, String signature, String tokgroup) {
         this.user = user;
 
         this.codeUnitSize = codeUnitSize;
@@ -48,6 +48,7 @@ public class MyItem {
         this.lang_minor_ver = lang_minor_ver;
         this.compiler_spec = compiler_spec;
         this.fun_name = fun_name;
+        this.signature = signature;
         this.fun_entry = fun_entry;
         this.tokgroup = tokgroup;
     }

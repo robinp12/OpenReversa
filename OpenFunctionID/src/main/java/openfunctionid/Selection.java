@@ -96,11 +96,12 @@ public class Selection extends DialogComponentProvider {
         for (JCheckBox checkbox : checkboxes) {
             if (checkbox.isSelected()) {
             	checkIfSelected += 1;
-            	String itemName = checkbox.getText();
+            	String itemName = Base64.getEncoder().encodeToString(checkbox.getText().getBytes(StandardCharsets.UTF_8));
+            	
+            	System.out.println(itemName);
                 MyItem selected = output.stream()
-                        .filter(item -> item.getFun_name().equals(itemName))
+                        .filter(item -> item.getSignature().equals(itemName))
                         .findFirst().orElse(null);
-
                 if (isPush) {
                     try {
                         boolean push = request.sendToDBrequest(selected.getCodeUnitSize(), selected.getFullHash(), selected.getSpecificHashAdditionalSize(),
@@ -108,7 +109,7 @@ public class Selection extends DialogComponentProvider {
                                 selected.getVariantTextField(), selected.getApp_version(),
                                 selected.getLang_id(), selected.getLang_ver(),
                                 selected.getLang_minor_ver(), selected.getCompiler_spec(),
-                                selected.getFun_name(), selected.getFun_entry(), selected.getTokgroup());
+                                selected.getFun_name(), selected.getFun_entry(), selected.getSignature(), selected.getTokgroup());
 		                        
                         JDialog dialog = (JDialog) SwingUtilities.getWindowAncestor(getComponent());
                         dialog.getRootPane().setDefaultButton(okButton);
@@ -119,10 +120,10 @@ public class Selection extends DialogComponentProvider {
                         e.printStackTrace();
                     }
                     if (selected != null) {
-                        sb.append(selected.getFun_name()).append(": ").append(selected.getFullHash()).append("\n");
+                        sb.append(selected.getSignature()).append(": ").append(selected.getFullHash()).append("\n");
                     }
                 } else {
-                	System.out.println(selected.getFun_name());
+                	System.out.println(selected.getSignature());
                     try {
                         if (fidDb != null) {
                             FunctionsTable ft = new FunctionsTable(fidDb, fidDb != null ? fidDb.getDBHandle() : null);
@@ -155,7 +156,7 @@ public class Selection extends DialogComponentProvider {
                     	e1.printStackTrace();
                     }
                     if (selected != null) {
-                        sb.append(selected.getFun_name()).append(": ").append(selected.getFullHash()).append("\n");
+                        sb.append(selected.getSignature()).append(": ").append(selected.getFullHash()).append("\n");
                     }
                 }
             }
@@ -208,9 +209,9 @@ public class Selection extends DialogComponentProvider {
         panel.setOpaque(true);
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        RetrieveRenamedFunction rrf = new RetrieveRenamedFunction();
         for (MyItem items : output) {
-            JCheckBox checkbox = new JCheckBox(items.getFun_name());
+            System.out.println("ici: \n" + new String(Base64.getDecoder().decode(items.getSignature()), StandardCharsets.UTF_8));
+            JCheckBox checkbox = new JCheckBox(new String(Base64.getDecoder().decode(items.getSignature()), StandardCharsets.UTF_8));
             checkboxes.add(checkbox);
             panel.add(checkbox);
         }
@@ -229,7 +230,9 @@ public class Selection extends DialogComponentProvider {
         for (MyItem items : output) {
 			
 			if(items.getLang_id().equals(langId)){
-			    JCheckBox checkbox = new JCheckBox(items.getFun_name());
+	            System.out.println("ici: \n" + new String(Base64.getDecoder().decode(items.getSignature()), StandardCharsets.UTF_8));
+
+			    JCheckBox checkbox = new JCheckBox(new String(Base64.getDecoder().decode(items.getSignature()), StandardCharsets.UTF_8));
 			    checkbox.addMouseListener(new MouseAdapter() {
 			        public void mouseClicked(MouseEvent e) {
 			            if (e.getClickCount() == 2) {

@@ -39,8 +39,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JOptionPane;
-
 import ghidra.feature.fid.plugin.ActiveFidConfigureDialog;
 
 
@@ -97,8 +95,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
     public void init() {
         super.init();
         fidFileManager = FidFileManager.getInstance();
-        OpenFunctionIDUploadC uploadCAction = new OpenFunctionIDUploadC();
-        tool.getComponentProvider("Decompiler").addLocalAction(uploadCAction);
         updateOpenFiDbFiles();
         createActions();
         loginAction.setEnabled(true);
@@ -121,7 +117,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
         action = new DockingAction("Login", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
-                LoginDialog login = new LoginDialog(loginAction, pullAction, deleteAction, logoutAction, removeAction, populateAction);
+                new LoginDialog(loginAction, pullAction, deleteAction, logoutAction, removeAction, populateAction);
             }
         };
         action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "login"));
@@ -316,7 +312,9 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
             String Entrypoint = field[12].replaceAll("\"", "").trim();
             String Languageid = field[13].replaceAll("\"", "").trim();
             String funName = field[14].replaceAll("\"", "").trim();
-            String Codec = field[15].replaceAll("\"", "").trim();
+            String signature = field[15].replaceAll("\"", "").trim();
+
+            String Codec = field[16].replaceAll("\"", "").trim();
 
             System.out.println("|"+user+"|");
             
@@ -336,6 +334,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
             System.out.println("|"+Entrypoint+"|" + Long.parseLong(Entrypoint));
             System.out.println("|"+Languageid+"|");
             System.out.println("|"+funName+"|");
+            System.out.println("|"+signature+"|");
             System.out.println("|"+Codec+"|");
 
 
@@ -344,7 +343,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
                     library_name, library_version,
                     library_variant, Ghidraversion, new LanguageID(Languageid),
                     Integer.parseInt(Languageversion), Integer.parseInt(Languageminorversion),
-                    new CompilerSpecID(Compilerspecid), funName, Long.parseLong(Entrypoint), Codec);
+                    new CompilerSpecID(Compilerspecid), funName, Long.parseLong(Entrypoint), signature, Codec);
             output.add(item);
 
         }

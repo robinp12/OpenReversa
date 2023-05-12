@@ -296,9 +296,9 @@ public class Request {
             String regmessage = response.toString();
 
             if (response.toString().contains("Success!")) {
-                JOptionPane.showMessageDialog(null, regmessage);
+                //JOptionPane.showMessageDialog(null, regmessage);
+                return true;
             }
-            return true;
 
         } else if (responseCode == 500) {
             JOptionPane.showMessageDialog(null,
@@ -338,9 +338,9 @@ public class Request {
             regmessage = response.toString();
 
             if (response.toString().contains("Success!")) {
-                JOptionPane.showMessageDialog(null, regmessage);
+                //JOptionPane.showMessageDialog(null, regmessage);
+                return true;
             }
-            return true;
         } else if (responseCode == 500) {
             JOptionPane.showMessageDialog(null,
                     "Sorry, there was an error with the database connection. Please try again later", "Database error",
@@ -383,9 +383,9 @@ public class Request {
             regmessage = response.toString();
 
             if (response.toString().contains("Success!")) {
-                JOptionPane.showMessageDialog(null, regmessage);
+                //JOptionPane.showMessageDialog(null, regmessage);
+                return true;
             }
-            return true;
         } else if (responseCode == 500) {
             JOptionPane.showMessageDialog(null,
                     "Sorry, there was an error with the database connection. Please try again later", "Database error",
@@ -401,7 +401,7 @@ public class Request {
     public boolean sendToDBrequest(short codeUnitSize, long fullHash, byte specificHashAdditionalSize,
                                    long specificHash, String libraryFamilyName, String libraryVersion, String libraryVariant,
                                    String ghidraVersion, LanguageID languageID, int languageVersion, int languageMinorVersion,
-                                   CompilerSpecID compilerSpecID, String funName, long entryPoint, String tokgroup) throws IOException {
+                                   CompilerSpecID compilerSpecID, String funName, long entryPoint, String signature, String tokgroup) throws IOException {
 
         URL url = new URL(POST_URL + "fid");
         String response = "";
@@ -411,8 +411,8 @@ public class Request {
         connection.setRequestProperty("Content-Type", "application/json");
         String payload;
         try {
-        	payload = String.format("{\"unique_id\":\"%s\",\"confirm\":\"%s\",\"codeUnitSize\":\"%s\",\"fullHash\":\"%s\",\"specificHashAdditionalSize\":\"%s\",\"specificHash\":\"%s\",\"libraryFamilyName\":\"%s\",\"libraryVersion\":\"%s\",\"libraryVariant\":\"%s\",\"ghidraVersion\":\"%s\",\"languageID\":\"%s\",\"languageVersion\":\"%s\",\"languageMinorVersion\":\"%s\",\"compilerSpecID\":\"%s\",\"funName\":\"%s\",\"entryPoint\":\"%s\",\"codeC\":\"%s\"}", 
-            		LoginDialog.getUserId(), "0", Short.toString(codeUnitSize), Long.toString(fullHash), Byte.toString(specificHashAdditionalSize),Long.toString(specificHash),libraryFamilyName, libraryVersion, libraryVariant, ghidraVersion, languageID.toString(), Integer.toString(languageVersion), Integer.toString(languageMinorVersion), compilerSpecID.toString(), funName, Long.toString(entryPoint), Base64.getEncoder().encodeToString(tokgroup.getBytes(StandardCharsets.UTF_8)));
+        	payload = String.format("{\"unique_id\":\"%s\",\"confirm\":\"%s\",\"codeUnitSize\":\"%s\",\"fullHash\":\"%s\",\"specificHashAdditionalSize\":\"%s\",\"specificHash\":\"%s\",\"libraryFamilyName\":\"%s\",\"libraryVersion\":\"%s\",\"libraryVariant\":\"%s\",\"ghidraVersion\":\"%s\",\"languageID\":\"%s\",\"languageVersion\":\"%s\",\"languageMinorVersion\":\"%s\",\"compilerSpecID\":\"%s\",\"funName\":\"%s\",\"signature\":\"%s\",\"entryPoint\":\"%s\",\"codeC\":\"%s\"}", 
+            		LoginDialog.getUserId(), "0", Short.toString(codeUnitSize), Long.toString(fullHash), Byte.toString(specificHashAdditionalSize),Long.toString(specificHash),libraryFamilyName, libraryVersion, libraryVariant, ghidraVersion, languageID.toString(), Integer.toString(languageVersion), Integer.toString(languageMinorVersion), compilerSpecID.toString(), funName, signature, Long.toString(entryPoint), Base64.getEncoder().encodeToString(tokgroup.getBytes(StandardCharsets.UTF_8)));
             connection.setDoOutput(true);
             try (DataOutputStream wr = new DataOutputStream(connection.getOutputStream())) {
                 byte[] postData = payload.getBytes(StandardCharsets.UTF_8);

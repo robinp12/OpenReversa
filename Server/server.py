@@ -331,7 +331,7 @@ def get_remove(id):
 
     list = []
     for document in cursor:
-        list.append(document["funName"])
+        list.append(document["signature"])
 
     return str(list)
 
@@ -339,8 +339,9 @@ def get_remove(id):
 def delete_selected():
     payload = request.get_json()
     function = payload['item'].strip()
+    print(function)
     try:
-        collection.delete_one({'funName': function})
+        collection.delete_one({'signature': function})
     except pymongo.errors.ConnectionFailure as e:
         return Response("Sorry, there was an error with the database connection. Please try again later."), 500
 

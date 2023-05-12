@@ -252,7 +252,7 @@ public class Selection extends DialogComponentProvider {
 			                    @Override
 			                    public void actionPerformed(ActionEvent e) {
 			                        try {
-			                        	boolean delete = request.deleteSelectedItem(items.getFun_name());
+			                        	boolean delete = request.deleteSelectedItem(items.getSignature());
 		                                if (delete) {
 				                            output.remove(items);
 				

@@ -234,7 +234,6 @@ public class Request {
 
             Gson gson = new Gson();
             Object[] items = gson.fromJson(response.toString(), Object[].class);
-
             DefaultListModel<Object> listModel = new DefaultListModel<>();
             listModel.addAll(Arrays.asList(items));
             JList<Object> jList = new JList<>(listModel);
@@ -278,6 +277,7 @@ public class Request {
         con.setDoOutput(true);
         String userfrom = LoginDialog.getUserId();
         String payload = String.format("{\"item\":\"%s\"}", item);
+        System.out.println(item);
 
         OutputStream os = con.getOutputStream();
         os.write(payload.getBytes());
@@ -296,7 +296,7 @@ public class Request {
             String regmessage = response.toString();
 
             if (response.toString().contains("Success!")) {
-                //JOptionPane.showMessageDialog(null, regmessage);
+                JOptionPane.showMessageDialog(null, regmessage);
                 return true;
             }
 

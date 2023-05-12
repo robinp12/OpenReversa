@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -33,8 +34,8 @@ import ghidra.util.Msg;
 
 public class Request {
 
-	//private static final String POST_URL = "http://127.0.0.1:5000/";
-    private static final String POST_URL = "https://glacial-springs-45246.herokuapp.com/";
+	private static final String POST_URL = "http://127.0.0.1:5000/";
+    //private static final String POST_URL = "https://glacial-springs-45246.herokuapp.com/";
     private static String regmessage = "";
 
     public int login_request(String username, String password) throws IOException {
@@ -234,10 +235,14 @@ public class Request {
 
             Gson gson = new Gson();
             Object[] items = gson.fromJson(response.toString(), Object[].class);
+            for (int i = 0; i < items.length; i++) {
+				items[i] = new String(Base64.getDecoder().decode((String) items[i]), StandardCharsets.UTF_8);
+			}
             DefaultListModel<Object> listModel = new DefaultListModel<>();
             listModel.addAll(Arrays.asList(items));
+            
             JList<Object> jList = new JList<>(listModel);
-
+            
             jList.addListSelectionListener(new ListSelectionListener() {
                 @Override
                 public void valueChanged(ListSelectionEvent e) {
@@ -252,7 +257,7 @@ public class Request {
             if (result == JOptionPane.OK_OPTION) {
                 Object selectedItem = jList.getSelectedValue();
                 if (selectedItem != null) {
-                    deleteSelectedItem(selectedItem.toString());
+                    deleteSelectedItem(Base64.getEncoder().encodeToString(selectedItem.toString().getBytes(StandardCharsets.UTF_8)));
                 } else {
                     Msg.showError(getClass(), null, "Error", "No function selected.");
                 }

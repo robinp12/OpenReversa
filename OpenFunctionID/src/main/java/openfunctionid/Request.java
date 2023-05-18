@@ -34,8 +34,8 @@ import ghidra.util.Msg;
 
 public class Request {
 
-	private static final String POST_URL = "http://127.0.0.1:5000/";
-    //private static final String POST_URL = "https://glacial-springs-45246.herokuapp.com/";
+	//private static final String POST_URL = "http://127.0.0.1:5000/";
+    private static final String POST_URL = "https://glacial-springs-45246.herokuapp.com/";
     private static String regmessage = "";
 
     public int login_request(String username, String password) throws IOException {
@@ -256,10 +256,13 @@ public class Request {
                     JOptionPane.OK_CANCEL_OPTION);
             if (result == JOptionPane.OK_OPTION) {
                 Object selectedItem = jList.getSelectedValue();
-                if (selectedItem != null) {
-                    deleteSelectedItem(Base64.getEncoder().encodeToString(selectedItem.toString().getBytes(StandardCharsets.UTF_8)));
-                } else {
-                    Msg.showError(getClass(), null, "Error", "No function selected.");
+                int choice = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete this function ?", "Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                if (choice == JOptionPane.YES_OPTION) {
+	                if (selectedItem != null) {
+	                    deleteSelectedItem(Base64.getEncoder().encodeToString(selectedItem.toString().getBytes(StandardCharsets.UTF_8)));
+	                } else {
+	                    Msg.showError(getClass(), null, "Error", "No function selected.");
+	                }
                 }
             }
 
@@ -358,7 +361,7 @@ public class Request {
         return true;
     }
 
-    public boolean discuss(MyItem item) throws IOException {
+    public boolean discuss(MyItem item, String message) throws IOException {
         URL obj = new URL(POST_URL + "discuss");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
@@ -367,8 +370,8 @@ public class Request {
         System.out.println(item.getFun_name());
 
         String userfrom = LoginDialog.getUserId();
-        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\",\"funname\":\"%s\"}", item.getUser(),
-                userfrom, item.getFun_name());
+        String payload = String.format("{\"userto\":\"%s\",\"userfrom\":\"%s\",\"funname\":\"%s\",\"message\":\"%s\"}", item.getUser(),
+                userfrom, item.getFun_name(), message);
         System.out.println(payload);
 
         OutputStream os = con.getOutputStream();
@@ -388,7 +391,7 @@ public class Request {
             regmessage = response.toString();
 
             if (response.toString().contains("Success!")) {
-                //JOptionPane.showMessageDialog(null, regmessage);
+                JOptionPane.showMessageDialog(null, regmessage);
                 return true;
             }
         } else if (responseCode == 500) {
@@ -406,7 +409,7 @@ public class Request {
     public boolean sendToDBrequest(short codeUnitSize, long fullHash, byte specificHashAdditionalSize,
                                    long specificHash, String libraryFamilyName, String libraryVersion, String libraryVariant,
                                    String ghidraVersion, LanguageID languageID, int languageVersion, int languageMinorVersion,
-                                   CompilerSpecID compilerSpecID, String funName, long entryPoint, String signature, String tokgroup) throws IOException {
+                                   CompilerSpecID compilerSpecID, String funName, long entryPoint, String signature, String tokgroup, String comment) throws IOException {
 
         URL url = new URL(POST_URL + "fid");
         String response = "";
@@ -416,8 +419,8 @@ public class Request {
         connection.setRequestProperty("Content-Type", "application/json");
         String payload;
         try {
-        	payload = String.format("{\"unique_id\":\"%s\",\"confirm\":\"%s\",\"codeUnitSize\":\"%s\",\"fullHash\":\"%s\",\"specificHashAdditionalSize\":\"%s\",\"specificHash\":\"%s\",\"libraryFamilyName\":\"%s\",\"libraryVersion\":\"%s\",\"libraryVariant\":\"%s\",\"ghidraVersion\":\"%s\",\"languageID\":\"%s\",\"languageVersion\":\"%s\",\"languageMinorVersion\":\"%s\",\"compilerSpecID\":\"%s\",\"funName\":\"%s\",\"signature\":\"%s\",\"entryPoint\":\"%s\",\"codeC\":\"%s\"}", 
-            		LoginDialog.getUserId(), "0", Short.toString(codeUnitSize), Long.toString(fullHash), Byte.toString(specificHashAdditionalSize),Long.toString(specificHash),libraryFamilyName, libraryVersion, libraryVariant, ghidraVersion, languageID.toString(), Integer.toString(languageVersion), Integer.toString(languageMinorVersion), compilerSpecID.toString(), funName, signature, Long.toString(entryPoint), Base64.getEncoder().encodeToString(tokgroup.getBytes(StandardCharsets.UTF_8)));
+        	payload = String.format("{\"unique_id\":\"%s\",\"confirm\":\"%s\",\"codeUnitSize\":\"%s\",\"fullHash\":\"%s\",\"specificHashAdditionalSize\":\"%s\",\"specificHash\":\"%s\",\"libraryFamilyName\":\"%s\",\"libraryVersion\":\"%s\",\"libraryVariant\":\"%s\",\"ghidraVersion\":\"%s\",\"languageID\":\"%s\",\"languageVersion\":\"%s\",\"languageMinorVersion\":\"%s\",\"compilerSpecID\":\"%s\",\"funName\":\"%s\",\"signature\":\"%s\",\"entryPoint\":\"%s\",\"codeC\":\"%s\",\"comment\":\"%s\"}", 
+            		LoginDialog.getUserId(), "0", Short.toString(codeUnitSize), Long.toString(fullHash), Byte.toString(specificHashAdditionalSize),Long.toString(specificHash),libraryFamilyName, libraryVersion, libraryVariant, ghidraVersion, languageID.toString(), Integer.toString(languageVersion), Integer.toString(languageMinorVersion), compilerSpecID.toString(), funName, signature, Long.toString(entryPoint), Base64.getEncoder().encodeToString(tokgroup.getBytes(StandardCharsets.UTF_8)), comment);
             connection.setDoOutput(true);
             try (DataOutputStream wr = new DataOutputStream(connection.getOutputStream())) {
                 byte[] postData = payload.getBytes(StandardCharsets.UTF_8);

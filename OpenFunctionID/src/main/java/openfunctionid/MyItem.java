@@ -24,6 +24,7 @@ public class MyItem {
     private long fun_entry;
     private String tokgroup;
 	private String signature;
+	private String comment;
 
 
     public MyItem(String user, short codeUnitSize, long fullHash,
@@ -31,7 +32,7 @@ public class MyItem {
                   String libraryFamilyNameTextField, String versionTextField,
                   String variantTextField, String app_version, LanguageID lang_id,
                   int lang_ver, int lang_minor_ver, CompilerSpecID compiler_spec,
-                  String fun_name, long fun_entry, String signature, String tokgroup) {
+                  String fun_name, long fun_entry, String signature, String tokgroup, String comment) {
         this.user = user;
 
         this.codeUnitSize = codeUnitSize;
@@ -51,6 +52,7 @@ public class MyItem {
         this.signature = signature;
         this.fun_entry = fun_entry;
         this.tokgroup = tokgroup;
+        this.comment = comment;
     }
 
 
@@ -125,4 +127,7 @@ public class MyItem {
         return specificHash;
     }
 
+    public String getComment() {
+        return comment;
+    }
 }

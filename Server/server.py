@@ -104,6 +104,7 @@ def discuss():
     userto = payload['userto']
     userfrom = payload['userfrom']
     function = payload['funname'].strip()
+    message_to = payload['message']
 
     try :
         function = collection.find_one({'funName': function})
@@ -118,7 +119,7 @@ def discuss():
 
     recipient_email = userto["email"]
     email_from = userfrom["email"]
-    message = MIMEText(f'Hi, {email_from} want to discuss with you about your function : {function_decoded}')
+    message = MIMEText(f'Hi, {email_from} want to discuss with you about your function : {function_decoded} \n Here is his message : {message_to}')
     message['Subject'] = 'discussion request'
     message['From'] = FROM_EMAIL
     message['To'] = recipient_email
@@ -211,6 +212,7 @@ def receivefid():
     signature = payload['signature']
 
     Codec = payload['codeC']
+    comment = payload['comment']
     
     if not(user_name):
         response = make_response(f"No connected user", 409)
@@ -248,6 +250,7 @@ def receivefid():
                                "funName": funName,
                                "signature": signature,
                                "Codec": Codec,
+                               "comment": comment,
                                })
                 return Response("Function '" +funName+ "' uploaded successfully.")
 
@@ -276,6 +279,7 @@ def receivefid():
                                "funName": funName,
                                "signature": signature,
                                "Codec": Codec,
+                               "comment": comment,
                                })
         return Response("Function '" +funName+ "' uploaded successfully.")
     # else:
@@ -314,7 +318,8 @@ def download_files():
             item["Languageid"],
             item["funName"],
             item["signature"],
-            item["Codec"]
+            item["Codec"],
+            item["comment"]
         ]
         # Join the fields with commas and add a newline character
         csv_data.append(item_data)

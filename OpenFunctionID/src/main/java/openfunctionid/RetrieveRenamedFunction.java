@@ -274,7 +274,7 @@ public class RetrieveRenamedFunction extends GhidraScript {
                             libraryFamilyNameTextField, versionTextField,
                             variantTextField, app_version, lang_id,
                             lang_ver, lang_minor_ver, compiler_spec,
-                            fun_name, fun_entry, signature, tokgroup.getC().toString());
+                            fun_name, fun_entry, signature, tokgroup.getC().toString(),"");
                     output.add(item);
                     //sendPOST(hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction, fun_name, fun_entry, tokgroup);
 

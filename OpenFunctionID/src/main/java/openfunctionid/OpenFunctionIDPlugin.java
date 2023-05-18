@@ -76,7 +76,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
 
     private DockingAction loginAction;
     private DockingAction pullAction;
-    private DockingAction deleteAction;
     private DockingAction logoutAction;
     private DockingAction populateAction;
     private DockingAction removeAction;
@@ -101,7 +100,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
         logoutAction.setEnabled(false);
         populateAction.setEnabled(false);
         pullAction.setEnabled(false);
-        deleteAction.setEnabled(false);
         removeAction.setEnabled(false);
     }
 
@@ -117,7 +115,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
         action = new DockingAction("Login", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
-                new LoginDialog(loginAction, pullAction, deleteAction, logoutAction, removeAction, populateAction);
+                new LoginDialog(loginAction, pullAction, logoutAction, removeAction, populateAction);
             }
         };
         action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "login"));
@@ -213,22 +211,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "2"));
         this.tool.addAction(action);
         pullAction = action;
-
-        //Delete all openFiDb files
-        action = new DockingAction("Delete all openFiDb files", getName()) {
-            @Override
-            public void actionPerformed(ActionContext context) {
-                removeAndDeleteAll();
-            }
-        };
-        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "delete"));
-        action.setMenuBarData(new MenuData(
-                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
-                        "Delete all OpenFiDb files"},
-                null, MENU_GROUP_2, MenuData.NO_MNEMONIC, "1"));
-        this.tool.addAction(action);
-        deleteAction = action;
-
     }
 
     private void attachAll() {
@@ -258,26 +240,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
         ActiveFidConfigureDialog dialog =
                 new ActiveFidConfigureDialog(fidFileManager.getFidFiles());
         tool.showDialog(dialog);
-    }
-
-    private void removeAndDeleteAll() {
-        List<FidFile> fidFiles = fidFileManager.getFidFiles();
-        for (File openFiDbFile : openFiDbFiles) {
-            for (FidFile fidFile : fidFiles) {
-                if (openFiDbFile.getName().equals(fidFile.getName())) {
-                    fidFileManager.removeUserFile(fidFile);
-                    openFiDbFile.delete();
-                }
-            }
-        }
-        File gitDir = new File(Application.getMyModuleRootDirectory().getAbsolutePath() + "/data/" + REPO_NAME);
-        try {
-            FileUtils.deleteDirectory(gitDir);
-        } catch (IOException e) {
-            Msg.showError(getClass(), null, "Couldn't delete the directory", e);
-        }
-        println("OpenFiDb folder deleted.");
-        updateOpenFiDbFiles();
     }
 
     private void show(Selection dialog) {
@@ -315,6 +277,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
             String signature = field[15].replaceAll("\"", "").trim();
 
             String Codec = field[16].replaceAll("\"", "").trim();
+            String comment = field[17].replaceAll("\"", "").trim();
 
             System.out.println("|"+user+"|");
             
@@ -343,7 +306,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
                     library_name, library_version,
                     library_variant, Ghidraversion, new LanguageID(Languageid),
                     Integer.parseInt(Languageversion), Integer.parseInt(Languageminorversion),
-                    new CompilerSpecID(Compilerspecid), funName, Long.parseLong(Entrypoint), signature, Codec);
+                    new CompilerSpecID(Compilerspecid), funName, Long.parseLong(Entrypoint), signature, Codec, comment);
             output.add(item);
 
         }
@@ -370,7 +333,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
         logoutAction.setEnabled(false);
         populateAction.setEnabled(false);
         pullAction.setEnabled(false);
-        deleteAction.setEnabled(false);
         removeAction.setEnabled(false);
     }
 
@@ -379,7 +341,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
         logoutAction.setEnabled(true);
         populateAction.setEnabled(true);
         pullAction.setEnabled(true);
-        deleteAction.setEnabled(true);
         removeAction.setEnabled(true);
     }
 

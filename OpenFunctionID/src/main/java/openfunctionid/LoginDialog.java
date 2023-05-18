@@ -39,7 +39,6 @@ public class LoginDialog extends JDialog {
     private boolean succeeded;
     private DockingAction loginAction;
     private DockingAction pullAction;
-    private DockingAction deleteAction;
     private DockingAction pushAction;
     private DockingAction logoutAction;
     private DockingAction removeAction;
@@ -52,12 +51,11 @@ public class LoginDialog extends JDialog {
     Request request = new Request();
 
 
-    public LoginDialog(DockingAction loginAction, DockingAction pullAction, DockingAction deleteAction,
+    public LoginDialog(DockingAction loginAction, DockingAction pullAction,
                        DockingAction logoutAction, DockingAction removeAction, DockingAction populateAction) {
 
         this.loginAction = loginAction;
         this.pullAction = pullAction;
-        this.deleteAction = deleteAction;
         this.logoutAction = logoutAction;
         this.removeAction = removeAction;
         this.populateAction = populateAction;
@@ -170,7 +168,6 @@ public class LoginDialog extends JDialog {
                     loginAction.setEnabled(false);
                     pullAction.setEnabled(true);
                     populateAction.setEnabled(true);
-                    deleteAction.setEnabled(true);
                     logoutAction.setEnabled(true);
                     removeAction.setEnabled(true);
 

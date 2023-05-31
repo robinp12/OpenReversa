@@ -69,9 +69,6 @@ public class RetrieveRenamedFunction extends GhidraScript {
 
 
     private FidService service;
-    private MatchNameAnalysis matchAnalysis;
-    private FidDB fidDb = null;
-    private boolean isCancelled = false;
 
     private FileOutputStream outlog = null;
 
@@ -194,7 +191,6 @@ public class RetrieveRenamedFunction extends GhidraScript {
     public void pushToDB() throws MemoryAccessException {
         ArrayList<DomainFile> programs = new ArrayList<DomainFile>();
         service = new FidService();
-        matchAnalysis = new MatchNameAnalysis();
 
         try {
             findPrograms(programs, getProjectRootFolder());
@@ -243,20 +239,10 @@ public class RetrieveRenamedFunction extends GhidraScript {
                     digest.update(hashFunction.getFullHash());
 
                     FidHashQuad fid = new FidHashQuadImpl(hashFunction.getCodeUnitSize(), hashFunction.getFullHash(), hashFunction.getSpecificHashAdditionalSize(), hashFunction.getSpecificHash());
-                    //System.out.println(hashFunction.getCodeUnitSize());
-                    //System.out.println(hashFunction.getFullHash());
-                    //System.out.println(hashFunction.getSpecificHashAdditionalSize());
-                    //System.out.println(hashFunction.getSpecificHash());
 
                     String fun_name = function.getName();
                     long fun_entry = function.getEntryPoint().getOffset();
                     String signature = Base64.getEncoder().encodeToString(function.getSignature().toString().getBytes(StandardCharsets.UTF_8));
-                    //System.out.println(function.getEntryPoint());
-
-                    //System.out.println(fun_name);
-                    //System.out.println(function.getName().getBytes());
-                    //System.out.println(function.getSignature());
-                    //System.out.println("FID Hash for " + fun_name + " at " + function.getEntryPoint() + ": " + hashFunction.toString());
 
                     DecompInterface ifc = new DecompInterface();
                     ifc.openProgram(program);
@@ -267,7 +253,6 @@ public class RetrieveRenamedFunction extends GhidraScript {
                         return;
                     }
                     DecompiledFunction tokgroup = res.getDecompiledFunction();
-                    //System.out.println(tokgroup.getC());
 
                     item = new MyItem("", hashFunction.getCodeUnitSize(), hashFunction.getFullHash(),
                             hashFunction.getSpecificHashAdditionalSize(), hashFunction.getSpecificHash(),
@@ -301,7 +286,6 @@ public class RetrieveRenamedFunction extends GhidraScript {
 
     @Override
     protected void run() throws Exception {
-        //getAllModifiedFunc();
         pushToDB();
     }
 

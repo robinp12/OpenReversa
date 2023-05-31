@@ -33,12 +33,6 @@ public class CreateNewFidDatabase extends GhidraScript {
     protected void run() throws Exception {
 
         createFidDb();
-//        File d = askDirectory("FiDB path", "OK");
-//        String fidbName = askString("Enter name of Fidb file", "OK");
-//        File f = new File(d.getPath()+"/"+fidbName);
-//
-//        FidFileManager.getInstance().createNewFidDatabase(f);
-//        FidFile fidFile = FidFileManager.getInstance().addUserFidFile(f);
     }
 
     // FROM FidPlugin.java from the Extensions of JAVA

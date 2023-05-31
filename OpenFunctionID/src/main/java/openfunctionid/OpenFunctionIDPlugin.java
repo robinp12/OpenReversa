@@ -22,8 +22,6 @@ import docking.tool.ToolConstants;
 import generic.jar.ResourceFile;
 import ghidra.app.plugin.PluginCategoryNames;
 import ghidra.app.plugin.ProgramPlugin;
-import ghidra.feature.fid.db.FidFile;
-import ghidra.feature.fid.db.FidFileManager;
 import ghidra.framework.Application;
 import ghidra.framework.plugintool.PluginInfo;
 import ghidra.framework.plugintool.PluginTool;
@@ -32,14 +30,10 @@ import ghidra.program.model.lang.CompilerSpecID;
 import ghidra.program.model.lang.LanguageID;
 import ghidra.util.HelpLocation;
 import ghidra.util.Msg;
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import ghidra.feature.fid.plugin.ActiveFidConfigureDialog;
 
 
 /**
@@ -62,12 +56,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
     private static final String MENU_GROUP_0 = "group0";
     private static final String MENU_GROUP_1 = "group1";
     private static final String MENU_GROUP_2 = "group2";
-    //private static final String REPO_URL = "https://github.com/Cyjanss/OpenFiDb.git";
-    private static final String REPO_NAME = "OpenFiDb";
 
-
-    private FidFileManager fidFileManager;
-    private File file;
 
     Request request = new Request();
 
@@ -93,7 +82,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
     @Override
     public void init() {
         super.init();
-        fidFileManager = FidFileManager.getInstance();
         updateOpenFiDbFiles();
         createActions();
         loginAction.setEnabled(true);
@@ -213,39 +201,6 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
         pullAction = action;
     }
 
-    private void attachAll() {
-        List<FidFile> originalFidFiles = fidFileManager.getFidFiles();
-        List<String> originalFidFilesNames = new ArrayList<>();
-        originalFidFiles.forEach(originalFidFile -> originalFidFilesNames.add(originalFidFile.getName()));
-
-        for (File file : openFiDbFiles) {
-            if (file != null && !originalFidFilesNames.contains(file.getName())) {
-                fidFileManager.addUserFidFile(file);
-                println("FiDb file : " + file.getName() + " attached.");
-            }
-        }
-
-        //Set inactive, only for new fidbfiles
-        List<FidFile> fidFiles = fidFileManager.getFidFiles();
-
-        for (FidFile fidFile : fidFiles) {
-            String fidFileName = fidFile.getName();
-            if (openFiDbFilesNames.contains(fidFileName) && !originalFidFilesNames.contains(fidFileName)) {
-                fidFile.setActive(false);
-            }
-        }
-    }
-
-    private synchronized void chooseActive() {
-        ActiveFidConfigureDialog dialog =
-                new ActiveFidConfigureDialog(fidFileManager.getFidFiles());
-        tool.showDialog(dialog);
-    }
-
-    private void show(Selection dialog) {
-        tool.showDialog(dialog);
-    }
-
     public boolean pullDialog() throws Exception {
         List<List<String>> result = request.pullRequest();
 
@@ -336,16 +291,5 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
         removeAction.setEnabled(false);
     }
 
-    private void enableActions() {
-        loginAction.setEnabled(false);
-        logoutAction.setEnabled(true);
-        populateAction.setEnabled(true);
-        pullAction.setEnabled(true);
-        removeAction.setEnabled(true);
-    }
-
-    private void println(String s) {
-        OpenFunctionIDPackage.println(tool, "[OpenFunctionID] " + s);
-    }
 }
 

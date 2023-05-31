@@ -43,7 +43,6 @@ public class CustomPopulate extends GhidraScript {
     private JTextField variantTextField;
     private JTextField langTextField;
 
-    private FidService fidService;
     private JButton okBtn;
 
     public void libraryInput() {
@@ -53,7 +52,6 @@ public class CustomPopulate extends GhidraScript {
         dialog.setLocationRelativeTo(null); // center the dialog on the screen
 
         JPanel panel1 = new JPanel(new PairLayout());
-        JPanel panel2 = new JPanel(new BorderLayout());
 
         dialog.setSize(300, 150);
         dialog.setResizable(false);

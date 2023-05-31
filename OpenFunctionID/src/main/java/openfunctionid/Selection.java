@@ -30,7 +30,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 
 import docking.DialogComponentProvider;
 import ghidra.feature.fid.db.FidDB;
@@ -40,7 +39,6 @@ import ghidra.feature.fid.db.LibraryRecord;
 import ghidra.feature.fid.hash.FidHashQuad;
 import ghidra.feature.fid.plugin.FidPlugin;
 import ghidra.program.model.lang.LanguageID;
-import ghidra.program.model.listing.Program;
 import ghidra.util.HelpLocation;
 import ghidra.util.Msg;
 import ghidra.util.exception.CancelledException;
@@ -54,7 +52,6 @@ public class Selection extends DialogComponentProvider {
     private ArrayList<MyItem> output;
     private boolean isPush;
     private List<JCheckBox> checkboxes = new ArrayList<>();
-    private static String regmessage = "";
     private FidDB fidDb = null;
     Request request = new Request();
     private TaskMonitor monitor = new TaskMonitorAdapter();

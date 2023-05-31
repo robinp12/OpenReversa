@@ -39,7 +39,6 @@ public class LoginDialog extends JDialog {
     private boolean succeeded;
     private DockingAction loginAction;
     private DockingAction pullAction;
-    private DockingAction pushAction;
     private DockingAction logoutAction;
     private DockingAction removeAction;
     private DockingAction populateAction;
@@ -269,10 +268,10 @@ public class LoginDialog extends JDialog {
         confirmRegButt.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (nameRegField.getText().isEmpty()
-                        || passRegField.getPassword().length <= 4
-                        || confirmRegField.getPassword().length <= 4) {
+                        || passRegField.getPassword().length < 8
+                        || confirmRegField.getPassword().length < 8) {
                     JOptionPane.showMessageDialog(LoginDialog.this,
-                            "Please fill out all required fields to continue and make sure password is greater than 4.",
+                            "Please fill out all required fields to continue and make sure password is greater or equal to 8.",
                             "Error",
                             JOptionPane.ERROR_MESSAGE);
                     return;

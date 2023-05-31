@@ -1,4 +1,4 @@
-package openfunctionid;
+package openreversa;
 
 //TODO write a description for this script
 //@author 

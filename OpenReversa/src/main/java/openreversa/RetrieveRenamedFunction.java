@@ -1,4 +1,4 @@
-package openfunctionid;
+package openreversa;
 
 /* ###
  * IP: GHIDRA

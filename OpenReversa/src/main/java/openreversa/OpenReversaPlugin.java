@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package openfunctionid;
+package openreversa;
 
 import docking.ActionContext;
 import docking.action.DockingAction;
@@ -42,15 +42,15 @@ import java.util.List;
 //@formatter:off
 @PluginInfo(
         status = PluginStatus.STABLE,
-        packageName = OpenFunctionIDPackage.NAME,
+        packageName = OpenReversaPackage.NAME,
         category = PluginCategoryNames.SEARCH,
-        shortDescription = OpenFunctionIDPackage.SHORT_DESCRIPTION,
-        description = OpenFunctionIDPackage.SHORT_DESCRIPTION
+        shortDescription = OpenReversaPackage.SHORT_DESCRIPTION,
+        description = OpenReversaPackage.SHORT_DESCRIPTION
 )
 //@formatter:on
 
 
-public class OpenFunctionIDPlugin extends ProgramPlugin {
+public class OpenReversaPlugin extends ProgramPlugin {
 
     private static final String FUNCTION_ID_NAME = "Function ID";
     private static final String MENU_GROUP_0 = "group0";
@@ -74,7 +74,7 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
      *
      * @param tool The plugin tool that this plugin is added to.
      */
-    public OpenFunctionIDPlugin(PluginTool plugintool) {
+    public OpenReversaPlugin(PluginTool plugintool) {
         super(plugintool);
         // TODO Auto-generated constructor stub
     }
@@ -106,9 +106,9 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
                 new LoginDialog(loginAction, pullAction, logoutAction, removeAction, populateAction);
             }
         };
-        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "login"));
+        action.setHelpLocation(new HelpLocation(OpenReversaPackage.HELP_NAME, "login"));
         action.setMenuBarData(new MenuData(
-                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenReversaPackage.NAME,
                         "Login"},
                 null, MENU_GROUP_0, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
@@ -129,9 +129,9 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
                 }
             }
         };
-        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "delete function"));
+        action.setHelpLocation(new HelpLocation(OpenReversaPackage.HELP_NAME, "delete function"));
         action.setMenuBarData(new MenuData(
-                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenReversaPackage.NAME,
                         "Delete function from database"},
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "3"));
         this.tool.addAction(action);
@@ -144,9 +144,9 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
                 disableActions();
             }
         };
-        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "logout"));
+        action.setHelpLocation(new HelpLocation(OpenReversaPackage.HELP_NAME, "logout"));
         action.setMenuBarData(new MenuData(
-                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenReversaPackage.NAME,
                         "Logout"},
                 null, MENU_GROUP_2, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
@@ -170,9 +170,9 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
             }
 
         };
-        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "Add function to database"));
+        action.setHelpLocation(new HelpLocation(OpenReversaPackage.HELP_NAME, "Add function to database"));
         action.setMenuBarData(new MenuData(
-                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenReversaPackage.NAME,
                         "Share function in database"},
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
@@ -192,9 +192,9 @@ public class OpenFunctionIDPlugin extends ProgramPlugin {
                 }
             }
         };
-        action.setHelpLocation(new HelpLocation(OpenFunctionIDPackage.HELP_NAME, "pull function from database"));
+        action.setHelpLocation(new HelpLocation(OpenReversaPackage.HELP_NAME, "pull function from database"));
         action.setMenuBarData(new MenuData(
-                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenFunctionIDPackage.NAME,
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenReversaPackage.NAME,
                         "Pull database's function(s) in fidb"},
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "2"));
         this.tool.addAction(action);

@@ -1,4 +1,4 @@
-package openfunctionid;
+package openreversa;
 
 import java.awt.*;
 import java.awt.event.*;

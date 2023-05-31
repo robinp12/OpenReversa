@@ -1,4 +1,4 @@
-package openfunctionid;
+package openreversa;
 
 import ghidra.program.model.lang.CompilerSpecID;
 import ghidra.program.model.lang.LanguageID;

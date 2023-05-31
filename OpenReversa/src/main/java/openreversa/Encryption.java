@@ -1,4 +1,4 @@
-package openfunctionid;
+package openreversa;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;

@@ -1,4 +1,4 @@
-package openfunctionid;
+package openreversa;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;

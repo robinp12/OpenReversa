@@ -7,7 +7,7 @@ Before you proceed with the installation, ensure that you have the following pre
 - A complete Ghidra installation (version 10.2.3 or higher)
 - Active internet connection
 ## Download the latest version
-- In github, you can find the release where the extension is pre-built.
+- In Github, you can find the release where the extension is already built.
 - You can also build the latest version yourself, see last section below.
 
 ## Installation Steps
@@ -32,7 +32,7 @@ To install the **OpenReversa**, please follow these steps:
 5. Access the Extension:
 
     - Once Ghidra restarts, the installed extension should now be available for use.
-    - Click the "Yes" button to configure the extension and ckeck "OpenReversaPlugin".
+    - Click the "Yes" button to configure the extension and check "OpenReversaPlugin".
     - Now you can access the extension's features through the "Tools" menu then "Function ID".
 
 ## Building the project

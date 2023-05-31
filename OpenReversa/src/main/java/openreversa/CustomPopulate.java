@@ -1,6 +1,5 @@
 package openreversa;
 
-import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -26,15 +25,10 @@ import javax.swing.SwingConstants;
 import docking.widgets.label.GLabel;
 import ghidra.app.script.GhidraScript;
 import ghidra.feature.fid.db.*;
-import ghidra.feature.fid.plugin.IngestTask;
 import ghidra.feature.fid.service.FidPopulateResult;
 import ghidra.feature.fid.service.FidPopulateResultReporter;
-import ghidra.feature.fid.service.FidService;
 import ghidra.feature.fid.service.Location;
 import ghidra.feature.fid.service.FidPopulateResult.Disposition;
-import ghidra.util.task.Task;
-import ghidra.util.task.TaskMonitorAdapter;
-import ghidra.util.exception.CancelledException;
 import ghidra.util.layout.PairLayout;
 
 public class CustomPopulate extends GhidraScript {

@@ -462,7 +462,6 @@ public class Request {
             System.out.println(res);
 
             if (res == JOptionPane.YES_OPTION) {
-                System.out.println("ICI.");
                 URL url1 = new URL(POST_URL + "fid");
 
                 HttpURLConnection connection1 = (HttpURLConnection) url1.openConnection();

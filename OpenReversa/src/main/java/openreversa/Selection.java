@@ -111,7 +111,7 @@ public class Selection extends DialogComponentProvider {
         	                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
 
         	        if (choice == JOptionPane.YES_OPTION) {
-        	        	comment = messageTextArea.getText();
+        	        	comment = Base64.getEncoder().encodeToString(messageTextArea.getText().getBytes(StandardCharsets.UTF_8));
         	        }
         	        
                     try {
@@ -140,7 +140,6 @@ public class Selection extends DialogComponentProvider {
                         if (fidDb != null) {
                             FunctionsTable ft = new FunctionsTable(fidDb, fidDb != null ? fidDb.getDBHandle() : null);
                             int sizeFun = ft.getFunctionRecordsByFullHash(selected.getFullHash()).size();
-                            System.out.println("ici: \n" + ft.getFunctionRecordsByFullHash(selected.getFullHash()).size());
                             if (sizeFun == 0) {
                                 LibraryRecord newlib = fidDb.createNewLibrary(selected.getLibraryFamilyNameTextField(),
                                         selected.getVersionTextField(), selected.getVariantTextField(),
@@ -222,7 +221,6 @@ public class Selection extends DialogComponentProvider {
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         for (MyItem items : output) {
-            System.out.println("ici: \n" + new String(Base64.getDecoder().decode(items.getSignature()), StandardCharsets.UTF_8));
             JCheckBox checkbox = new JCheckBox(new String(Base64.getDecoder().decode(items.getSignature()), StandardCharsets.UTF_8));
             checkboxes.add(checkbox);
             panel.add(checkbox);
@@ -248,7 +246,7 @@ public class Selection extends DialogComponentProvider {
 			    checkbox.addMouseListener(new MouseAdapter() {
 			        public void mouseClicked(MouseEvent e) {
 			            if (e.getClickCount() == 2) {
-			            	String comment = "//" + items.getComment();
+			            	String comment = "//" + new String(Base64.getDecoder().decode(items.getComment()), StandardCharsets.UTF_8);
 			            	String existingText = new String(Base64.getDecoder().decode(items.getTokgroup().trim()), StandardCharsets.UTF_8);
 
 			            	StringBuilder textBuilder = new StringBuilder();

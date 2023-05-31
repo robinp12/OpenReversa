@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Iterator;
 import java.util.Map.Entry;
 
 import javax.swing.*;
@@ -191,6 +192,8 @@ public class RetrieveRenamedFunction extends GhidraScript {
     public void pushToDB() throws MemoryAccessException {
         ArrayList<DomainFile> programs = new ArrayList<DomainFile>();
         service = new FidService();
+        
+        ArrayList<String> thunkFunc = new ArrayList<>();
 
         try {
             findPrograms(programs, getProjectRootFolder());
@@ -221,6 +224,7 @@ public class RetrieveRenamedFunction extends GhidraScript {
                 MyItem item;
                 FunctionIterator functions = functionManager.getFunctions(true);
                 for (Function function : functions) {
+
                     if (monitor.isCancelled()) {
                         return;
                     }
@@ -228,44 +232,54 @@ public class RetrieveRenamedFunction extends GhidraScript {
                         continue;
                     }
 
+                    
                     FidHashQuad hashFunction = service.hashFunction(function);
                     if (hashFunction == null) {
                         System.out.println("passe pas : " + function.getName());
+                        thunkFunc.add(function.getSignature().toString());
+                        
+                    }else if(!thunkFunc.contains(function.getSignature().toString())){
+                        System.out.println("passe : " + function.getName());
 
-                        continue; // No body
+                    	MessageDigest digest = new FNV1a64MessageDigest();
+                        digest.update(function.getName().getBytes(), TaskMonitor.DUMMY);
+                        digest.update(hashFunction.getFullHash());
+
+                        FidHashQuad fid = new FidHashQuadImpl(hashFunction.getCodeUnitSize(), hashFunction.getFullHash(), hashFunction.getSpecificHashAdditionalSize(), hashFunction.getSpecificHash());
+
+                        String fun_name = function.getName();
+                        long fun_entry = function.getEntryPoint().getOffset();
+                        String signature = Base64.getEncoder().encodeToString(function.getSignature().toString().getBytes(StandardCharsets.UTF_8));
+
+                        DecompInterface ifc = new DecompInterface();
+                        ifc.openProgram(program);
+                        DecompileResults res = ifc.decompileFunction(function, 0, monitor);
+                        // Check for error conditions
+                        if (!res.decompileCompleted()) {
+                            System.out.println(res.getErrorMessage());
+                            return;
+                        }
+                        DecompiledFunction tokgroup = res.getDecompiledFunction();
+
+                        item = new MyItem("", hashFunction.getCodeUnitSize(), hashFunction.getFullHash(),
+                                hashFunction.getSpecificHashAdditionalSize(), hashFunction.getSpecificHash(),
+                                libraryFamilyNameTextField, versionTextField,
+                                variantTextField, app_version, lang_id,
+                                lang_ver, lang_minor_ver, compiler_spec,
+                                fun_name, fun_entry, signature, tokgroup.getC().toString(),"");
+                        output.add(item);
                     }
-                    MessageDigest digest = new FNV1a64MessageDigest();
-                    digest.update(function.getName().getBytes(), TaskMonitor.DUMMY);
-                    digest.update(hashFunction.getFullHash());
-
-                    FidHashQuad fid = new FidHashQuadImpl(hashFunction.getCodeUnitSize(), hashFunction.getFullHash(), hashFunction.getSpecificHashAdditionalSize(), hashFunction.getSpecificHash());
-
-                    String fun_name = function.getName();
-                    long fun_entry = function.getEntryPoint().getOffset();
-                    String signature = Base64.getEncoder().encodeToString(function.getSignature().toString().getBytes(StandardCharsets.UTF_8));
-
-                    DecompInterface ifc = new DecompInterface();
-                    ifc.openProgram(program);
-                    DecompileResults res = ifc.decompileFunction(function, 0, monitor);
-                    // Check for error conditions
-                    if (!res.decompileCompleted()) {
-                        System.out.println(res.getErrorMessage());
-                        return;
-                    }
-                    DecompiledFunction tokgroup = res.getDecompiledFunction();
-
-                    item = new MyItem("", hashFunction.getCodeUnitSize(), hashFunction.getFullHash(),
-                            hashFunction.getSpecificHashAdditionalSize(), hashFunction.getSpecificHash(),
-                            libraryFamilyNameTextField, versionTextField,
-                            variantTextField, app_version, lang_id,
-                            lang_ver, lang_minor_ver, compiler_spec,
-                            fun_name, fun_entry, signature, tokgroup.getC().toString(),"");
-                    output.add(item);
-                    //sendPOST(hashFunction.getFullHash(), libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id, lang_ver, lang_minor_ver, compiler_spec, hashFunction, fun_name, fun_entry, tokgroup);
-
+                    
                 }
                 Selection dialog = new Selection(output, true);
                 JDialog jDialog = new JDialog();
+                String excluded_func = "";
+                for (int i = 0; i < thunkFunc.size(); i++) {
+                	excluded_func += thunkFunc.get(i)+ "\n";
+				}
+                
+                Msg.showInfo(getClass(), null, "Function excluded", thunkFunc.size() + " function(s) excluded : \n" + excluded_func);
+
 
                 jDialog.setModal(true);
                 jDialog.setTitle("Select Functions to share");

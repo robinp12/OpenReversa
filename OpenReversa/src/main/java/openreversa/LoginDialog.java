@@ -152,6 +152,11 @@ public class LoginDialog extends JDialog {
         topPanel.add(passLogField);
 
         btnLogin = new JButton("Login");
+        btnRegister = new JButton("Register");
+        subPanel.add(new JLabel());
+        subPanel.add(btnRegister);
+        subPanel.add(new JLabel());
+
         btnCancel = new JButton("Cancel");
 
         topPanel.add(btnLogin);
@@ -161,6 +166,7 @@ public class LoginDialog extends JDialog {
         subPanel.setLayout(new GridLayout(1, 3, 5, 2));
 
         dialog.add(topPanel);
+        dialog.add(subPanel);
         dialog.add(subPanel);
 
         JRootPane rootPane = SwingUtilities.getRootPane(btnLogin);
@@ -331,12 +337,12 @@ public class LoginDialog extends JDialog {
                             "Registered",
                             JOptionPane.INFORMATION_MESSAGE);
                     dialog.dispose();
-                } else if (isRegistered == 2) {
+                } if (isRegistered == 2) {
                     JOptionPane.showMessageDialog(LoginDialog.this,
                             "Sorry, there was an error with the database connection. Please try again later",
                             "Database error",
                             JOptionPane.ERROR_MESSAGE);
-                } else if (isRegistered == 3) {
+                } if (isRegistered == 3) {
                     JOptionPane.showMessageDialog(LoginDialog.this,
                             regmessage,
                             "Not registered",

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Iterator;
 import java.util.Map.Entry;
 
 import javax.swing.*;
@@ -17,7 +16,6 @@ import ghidra.app.decompiler.DecompInterface;
 import ghidra.app.decompiler.DecompileResults;
 import ghidra.app.decompiler.DecompiledFunction;
 import ghidra.app.script.GhidraScript;
-import ghidra.feature.fid.db.FidDB;
 import ghidra.feature.fid.db.LibraryRecord;
 import ghidra.feature.fid.hash.FidHashQuad;
 import ghidra.feature.fid.service.FidPopulateResult;
@@ -25,7 +23,6 @@ import ghidra.feature.fid.service.FidPopulateResult.Disposition;
 import ghidra.feature.fid.service.FidPopulateResultReporter;
 import ghidra.feature.fid.service.FidService;
 import ghidra.feature.fid.service.Location;
-import ghidra.feature.fid.service.MatchNameAnalysis;
 import ghidra.framework.Application;
 import ghidra.framework.model.DomainFile;
 import ghidra.framework.model.DomainFolder;
@@ -296,84 +293,9 @@ public class RetrieveRenamedFunction extends GhidraScript {
         }
     }
 
-    /**
-     * Retrieves the root folder of the project.
-     *
-     * @return The root folder of the project, or null if it couldn't be determined.
-     */
-    public DomainFolder getProjectRootFolder() {
-        DomainFolder rootFolder = null;
-        try {
-            rootFolder = currentProgram.getDomainFile().getParent();
-            while (rootFolder.getParent() != null) {
-                rootFolder = rootFolder.getParent();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return rootFolder;
-    }
-
-    @Override
-    public void run() throws Exception {
-        DecompInterface ifc = new DecompInterface();
-        if (!ifc.openProgram(currentProgram)) {
-            println("Failed to initialize the Decompiler");
-            return;
-        }
-
-        service = new FidService();
-        ArrayList<MyItem> output = new ArrayList<MyItem>();
-        MyItem item;
-        FunctionIterator functions = currentProgram.getFunctionManager().getFunctions(true);
-        for (Function function : functions) {
-            if (monitor.isCancelled()) {
-                return;
-            }
-            if (function.getName().startsWith("FUN_") || function.getName().startsWith("Ordinal_")) {
-                continue;
-            }
-
-            FidHashQuad hashFunction = service.hashFunction(function);
-            if (hashFunction == null) {
-                continue;
-            }
-
-            MessageDigest digest = new FNV1a64MessageDigest();
-            digest.update(function.getName().getBytes(), TaskMonitor.DUMMY);
-            digest.update(hashFunction.getFullHash());
-
-            FidHashQuad fid = new FidHashQuadImpl(hashFunction.getCodeUnitSize(), hashFunction.getFullHash(),
-                    hashFunction.getSpecificHashAdditionalSize(), hashFunction.getSpecificHash());
-
-            String fun_name = function.getName();
-            long fun_entry = function.getEntryPoint().getOffset();
-            String signature = Base64.getEncoder()
-                    .encodeToString(function.getSignature().toString().getBytes(StandardCharsets.UTF_8));
-
-            DecompileResults res = ifc.decompileFunction(function, 0, monitor);
-            if (!res.decompileCompleted()) {
-                println(res.getErrorMessage());
-                return;
-            }
-            DecompiledFunction tokgroup = res.getDecompiledFunction();
-
-            item = new MyItem("", hashFunction.getCodeUnitSize(), hashFunction.getFullHash(),
-                    hashFunction.getSpecificHashAdditionalSize(), hashFunction.getSpecificHash(),
-                    libraryFamilyNameTextField, versionTextField, variantTextField, "Ghidra", getProgramLanguage(),
-                    currentProgram.getLanguage().getVersion(), currentProgram.getLanguage().getMinorVersion(),
-                    currentProgram.getCompilerSpec().getCompilerSpecID(), fun_name, fun_entry, signature,
-                    tokgroup.getC().toString(), "");
-            output.add(item);
-        }
-        Selection dialog = new Selection(output, false);
-        dialog.setModal(true);
-        dialog.setTitle("Select Functions to share");
-        JDialog jDialog = new JDialog();
-        jDialog.getContentPane().add(dialog.getComponent());
-        jDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        jDialog.pack();
-        jDialog.setLocationRelativeTo(null);
-        jDialog.setVisible(true);
-    }
+	@Override
+	protected void run() throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
 }

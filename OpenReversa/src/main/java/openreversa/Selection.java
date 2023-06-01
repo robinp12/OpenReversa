@@ -64,7 +64,7 @@ public class Selection extends DialogComponentProvider {
 	/**
 	 * Creates the dialog to show the functions
 	 *
-	 * @param output  List of funnctions to show
+	 * @param output  List of functions to show
 	 * @param isPush  To know is it is for a push or a pull
 	 */
 
@@ -129,7 +129,9 @@ public class Selection extends DialogComponentProvider {
         	        if (choice == JOptionPane.YES_OPTION) {
         	        	comment = Base64.getEncoder().encodeToString(messageTextArea.getText().getBytes(StandardCharsets.UTF_8));
         	        }
-        	        
+                    else if (choice == JOptionPane.NO_OPTION) {
+                    	comment = "";
+                    }
                     try {
                         boolean push = request.sendToDBrequest(selected.getCodeUnitSize(), selected.getFullHash(), selected.getSpecificHashAdditionalSize(),
                                 selected.getSpecificHash(), selected.getLibraryFamilyNameTextField(), selected.getVersionTextField(),

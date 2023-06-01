@@ -1,4 +1,4 @@
-/* ###
+/**
  * IP: GHIDRA
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,9 +35,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
- * TODO: Provide class-level documentation that describes what this plugin does.
+ * This is the main plugin class for the OpenReversa plugin.
+ * It extends the ProgramPlugin class provided by the GHIDRA framework.
  */
 //@formatter:off
 @PluginInfo(
@@ -48,26 +48,23 @@ import java.util.List;
         description = OpenReversaPackage.SHORT_DESCRIPTION
 )
 //@formatter:on
-
-
 public class OpenReversaPlugin extends ProgramPlugin {
 
+    // Constants for menu groups and action names
     private static final String FUNCTION_ID_NAME = "Function ID";
     private static final String MENU_GROUP_0 = "group0";
     private static final String MENU_GROUP_1 = "group1";
     private static final String MENU_GROUP_2 = "group2";
 
-
-    Request request = new Request();
-
+    // Instance variables
     private List<File> openFiDbFiles;
     private List<String> openFiDbFilesNames;
-
     private DockingAction loginAction;
     private DockingAction pullAction;
     private DockingAction logoutAction;
     private DockingAction populateAction;
     private DockingAction removeAction;
+    private Request request = new Request();
 
     /**
      * Plugin constructor.
@@ -76,13 +73,14 @@ public class OpenReversaPlugin extends ProgramPlugin {
      */
     public OpenReversaPlugin(PluginTool plugintool) {
         super(plugintool);
-        // TODO Auto-generated constructor stub
     }
 
+    /**
+     * Initializes the plugin by setting up actions and enabling only the login if user not connected.
+     */
     @Override
     public void init() {
         super.init();
-        updateOpenFiDbFiles();
         createActions();
         loginAction.setEnabled(true);
         logoutAction.setEnabled(false);
@@ -91,15 +89,21 @@ public class OpenReversaPlugin extends ProgramPlugin {
         removeAction.setEnabled(false);
     }
 
+    /**
+     * Performs cleanup operations when the plugin is unloaded or the application is closed.
+     */
     @Override
     protected void cleanup() {
         super.cleanup();
     }
 
+    /**
+     * Creates the actions for the plugin and associates them with menu items.
+     */
     private void createActions() {
         DockingAction action;
 
-        //Login 
+        // Login Action
         action = new DockingAction("Login", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
@@ -108,36 +112,32 @@ public class OpenReversaPlugin extends ProgramPlugin {
         };
         action.setHelpLocation(new HelpLocation(OpenReversaPackage.HELP_NAME, "login"));
         action.setMenuBarData(new MenuData(
-                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenReversaPackage.NAME,
-                        "Login"},
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenReversaPackage.NAME, "Login"},
                 null, MENU_GROUP_0, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
         loginAction = action;
 
-        //remove
-        action = new DockingAction("delete function", getName()) {
+        // Remove Action
+        action = new DockingAction("Delete Function", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
                 try {
                     Request request = new Request();
                     request.removeRequest(LoginDialog.getUserId());
                 } catch (Exception e) {
-                    Msg.showError(getClass(), null, "Server error", "Sorry, the server is currently unavailable. Please try again later.");
-
-                    // TODO Auto-generated catch block
+                    Msg.showError(getClass(), null, "Server Error", "Sorry, the server is currently unavailable. Please try again later.");
                     e.printStackTrace();
                 }
             }
         };
         action.setHelpLocation(new HelpLocation(OpenReversaPackage.HELP_NAME, "delete function"));
         action.setMenuBarData(new MenuData(
-                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenReversaPackage.NAME,
-                        "Delete function from database"},
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenReversaPackage.NAME, "Delete Function from Database"},
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "3"));
         this.tool.addAction(action);
         removeAction = action;
 
-        //Logout
+        // Logout Action
         action = new DockingAction("Logout", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
@@ -146,83 +146,69 @@ public class OpenReversaPlugin extends ProgramPlugin {
         };
         action.setHelpLocation(new HelpLocation(OpenReversaPackage.HELP_NAME, "logout"));
         action.setMenuBarData(new MenuData(
-                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenReversaPackage.NAME,
-                        "Logout"},
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenReversaPackage.NAME, "Logout"},
                 null, MENU_GROUP_2, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
         logoutAction = action;
 
-        //DB Populate
-        action = new DockingAction("Add function to database", getName()) {
+        // DB Populate Action
+        action = new DockingAction("Add Function to Database", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
-
                 CustomPopulate c = new CustomPopulate();
-
                 try {
                     c.libraryInput();
                 } catch (Exception e) {
-                    Msg.showError(getClass(), null, "Server error", "Sorry, the server is currently unavailable. Please try again later.");
-
-                    // TODO Auto-generated catch block
+                    Msg.showError(getClass(), null, "Server Error", "Sorry, the server is currently unavailable. Please try again later.");
                     e.printStackTrace();
                 }
             }
-
         };
         action.setHelpLocation(new HelpLocation(OpenReversaPackage.HELP_NAME, "Add function to database"));
         action.setMenuBarData(new MenuData(
-                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenReversaPackage.NAME,
-                        "Share function in database"},
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenReversaPackage.NAME, "Share Function in Database"},
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "1"));
         this.tool.addAction(action);
         populateAction = action;
 
-        //Pull the repo
-        action = new DockingAction("Pull function from database", getName()) {
+        // Pull Action
+        action = new DockingAction("Pull Function from Database", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
                 try {
                     pullDialog();
                 } catch (Exception e) {
-                    Msg.showError(getClass(), null, "Server error", "Sorry, the server is currently unavailable. Please try again later.");
-
-                    // TODO Auto-generated catch block
+                    Msg.showError(getClass(), null, "Server Error", "Sorry, the server is currently unavailable. Please try again later.");
                     e.printStackTrace();
                 }
             }
         };
         action.setHelpLocation(new HelpLocation(OpenReversaPackage.HELP_NAME, "pull function from database"));
         action.setMenuBarData(new MenuData(
-                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenReversaPackage.NAME,
-                        "Pull database's function(s) in fidb"},
+                new String[]{ToolConstants.MENU_TOOLS, FUNCTION_ID_NAME, OpenReversaPackage.NAME, "Pull Database's Function(s) in Fidb"},
                 null, MENU_GROUP_1, MenuData.NO_MNEMONIC, "2"));
         this.tool.addAction(action);
         pullAction = action;
     }
 
+    /**
+     * Show the functions from the database in order to be able to choose which ones to pull.
+     */
     public boolean pullDialog() throws Exception {
         List<List<String>> result = request.pullRequest();
-
         ArrayList<MyItem> output = new ArrayList<MyItem>();
 
         for (List<String> list : result) {
             String[] field = list.get(0).split(",");
             String user = field[0].replaceAll("\"", "").trim();
-
             String codeUnitSize = field[1].replaceAll("\"", "").trim();
             String fullHash = field[2].replaceAll("\"", "").trim();
             String specificHashAdditionalSize = field[3].replaceAll("\"", "").trim();
             String specificHash = field[4].replaceAll("\"", "").trim();
-
-
             String library_name = field[5].replaceAll("\"", "").trim();
             String library_version = field[6].replaceAll("\"", "").trim();
             String library_variant = field[7].replaceAll("\"", "").trim();
-
             String Ghidraversion = field[8].replaceAll("\"", "").trim();
-
-
             String Languageversion = field[9].replaceAll("\"", "").trim();
             String Languageminorversion = field[10].replaceAll("\"", "").trim();
             String Compilerspecid = field[11].replaceAll("\"", "").trim();
@@ -230,59 +216,24 @@ public class OpenReversaPlugin extends ProgramPlugin {
             String Languageid = field[13].replaceAll("\"", "").trim();
             String funName = field[14].replaceAll("\"", "").trim();
             String signature = field[15].replaceAll("\"", "").trim();
-
             String Codec = field[16].replaceAll("\"", "").trim();
             String comment = field[17].replaceAll("\"", "").trim();
 
-            System.out.println("|"+user+"|");
-            
-            System.out.println("|"+codeUnitSize+"|"+Short.parseShort(codeUnitSize));
-            System.out.println("|"+fullHash+"|"+Long.parseLong(fullHash));
-            System.out.println("|"+specificHashAdditionalSize+"|"+Byte.parseByte(specificHashAdditionalSize));
-            System.out.println("|"+specificHash+"|"+Long.parseLong(specificHash));
-            
-            System.out.println("|"+library_name+"|");
-            System.out.println("|"+library_version+"|");
-            System.out.println("|"+library_variant+"|");
-            
-            System.out.println("|"+Ghidraversion+"|");
-            System.out.println("|"+Languageversion+"|");
-            System.out.println("|"+Languageminorversion+"|"+ Integer.parseInt(Languageminorversion));
-            System.out.println("|"+Compilerspecid+"|"+new CompilerSpecID(Compilerspecid));
-            System.out.println("|"+Entrypoint+"|" + Long.parseLong(Entrypoint));
-            System.out.println("|"+Languageid+"|");
-            System.out.println("|"+funName+"|");
-            System.out.println("|"+signature+"|");
-            System.out.println("|"+Codec+"|");
-
-
             MyItem item = new MyItem(user, Short.parseShort(codeUnitSize), Long.parseLong(fullHash),
                     Byte.parseByte(specificHashAdditionalSize), Long.parseLong(specificHash),
-                    library_name, library_version,
-                    library_variant, Ghidraversion, new LanguageID(Languageid),
+                    library_name, library_version, library_variant, Ghidraversion, new LanguageID(Languageid),
                     Integer.parseInt(Languageversion), Integer.parseInt(Languageminorversion),
                     new CompilerSpecID(Compilerspecid), funName, Long.parseLong(Entrypoint), signature, Codec, comment);
             output.add(item);
-
         }
         Selection dialog = new Selection(output, false);
         tool.showDialog(dialog);
         return true;
     }
-
-
-    private void updateOpenFiDbFiles() {
-        List<ResourceFile> resourceFiles = Application.findFilesByExtensionInMyModule(".fidb");
-
-        openFiDbFiles = new ArrayList<>();
-        resourceFiles.forEach((resourceFile) -> {
-            openFiDbFiles.add(resourceFile.getFile(false));
-        });
-
-        openFiDbFilesNames = new ArrayList<>();
-        openFiDbFiles.forEach(dbFile -> openFiDbFilesNames.add(dbFile.getName()));
-    }
-
+    
+    /**
+     * disable all actions except login 
+     */
     private void disableActions() {
         loginAction.setEnabled(true);
         logoutAction.setEnabled(false);
@@ -290,6 +241,4 @@ public class OpenReversaPlugin extends ProgramPlugin {
         pullAction.setEnabled(false);
         removeAction.setEnabled(false);
     }
-
 }
-

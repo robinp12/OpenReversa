@@ -47,6 +47,11 @@ import ghidra.util.layout.VerticalLayout;
 import ghidra.util.task.TaskMonitor;
 import ghidra.util.task.TaskMonitorAdapter;
 
+/**
+ * The Selection class shows a pull-down menu for pull and populate,
+ * so you can choose which functions to push or pull.
+ */
+
 public class Selection extends DialogComponentProvider {
 
     private ArrayList<MyItem> output;
@@ -56,8 +61,14 @@ public class Selection extends DialogComponentProvider {
     Request request = new Request();
     private TaskMonitor monitor = new TaskMonitorAdapter();
 
+	/**
+	 * Creates the dialog to show the functions
+	 *
+	 * @param output  List of funnctions to show
+	 * @param isPush  To know is it is for a push or a pull
+	 */
 
-    public Selection(ArrayList<MyItem> output, boolean isPush) {
+	public Selection(ArrayList<MyItem> output, boolean isPush) {
         super("Select Functions (Double click to see entire function)", false);
 
         this.output = new ArrayList<>(output);
@@ -75,11 +86,16 @@ public class Selection extends DialogComponentProvider {
         setHelpLocation(new HelpLocation(FidPlugin.FID_HELP, "chooseactivemenu"));
     }
 
+	/**
+	 * Action when clicking on the okButton
+	 * Push to database if push condition
+	 * Pull to FiDb if pull condition
+	 */
     protected void okCallback() {
         StringBuilder sb = new StringBuilder();
         
         if (!isPush) {
-            CreateNewFidDatabase rrf = new CreateNewFidDatabase();
+            ChooseFidDatabase rrf = new ChooseFidDatabase();
             try {
                 fidDb = rrf.selectFidFile();
             } catch (CancelledException | VersionException | IOException e) {
@@ -199,12 +215,18 @@ public class Selection extends DialogComponentProvider {
         return panel;
     }
 
+	/**
+	 * To select all the functions
+	 */
     private void selectAllCheckboxes(boolean b) {
         for (JCheckBox jCheckBox : checkboxes) {
             jCheckBox.setSelected(b);
         }
     }
 
+	/**
+	 * construct the dialog on base of the isPush variable
+	 */
     private Component buildCheckboxPanelScroller() {
         JScrollPane scrollPane;
         if (isPush) {
@@ -215,6 +237,9 @@ public class Selection extends DialogComponentProvider {
         return scrollPane;
     }
 
+	/**
+	 * popup dialog in case of a push
+	 */
     private Component buildCheckBoxPanelPush() {
         JPanel panel = new JPanel(new VerticalLayout(5));
         panel.setOpaque(true);
@@ -228,6 +253,9 @@ public class Selection extends DialogComponentProvider {
         return panel;
     }
 
+	/**
+	 * popup dialog in case of a pull
+	 */
     private Component buildCheckBoxPanelPull() {
         JPanel panel = new JPanel(new VerticalLayout(5));
         panel.setOpaque(true);
@@ -240,13 +268,15 @@ public class Selection extends DialogComponentProvider {
         for (MyItem items : output) {
 			
 			if(items.getLang_id().equals(langId)){
-	            System.out.println("ici: \n" + new String(Base64.getDecoder().decode(items.getSignature()), StandardCharsets.UTF_8));
 
 			    JCheckBox checkbox = new JCheckBox(new String(Base64.getDecoder().decode(items.getSignature()), StandardCharsets.UTF_8));
 			    checkbox.addMouseListener(new MouseAdapter() {
 			        public void mouseClicked(MouseEvent e) {
+						//show the function overview when double clicking
 			            if (e.getClickCount() == 2) {
+							//add the comment
 			            	String comment = "//" + new String(Base64.getDecoder().decode(items.getComment()), StandardCharsets.UTF_8);
+							//add the body of the function
 			            	String existingText = new String(Base64.getDecoder().decode(items.getTokgroup().trim()), StandardCharsets.UTF_8);
 
 			            	StringBuilder textBuilder = new StringBuilder();
@@ -265,6 +295,7 @@ public class Selection extends DialogComponentProvider {
 			            messagePanel.add(scrollPane, BorderLayout.CENTER);
 			
 			            JPanel buttonPanel = new JPanel(new FlowLayout());
+						//remove button if a user clicks on its function
 			            if (items.getUser().equals(LoginDialog.getUserId())) {
 			                JButton deleteButton = new JButton("Remove function from database");
 			                deleteButton.addActionListener(new ActionListener() {
@@ -299,7 +330,7 @@ public class Selection extends DialogComponentProvider {
 			                });
 			                buttonPanel.add(deleteButton);
 			            } else {
-			
+							//discussion button
 			            	JButton discussionButton = new JButton("Send a discussion request");
 			            	discussionButton.addActionListener(new ActionListener() {
 			            	    @Override
@@ -314,6 +345,7 @@ public class Selection extends DialogComponentProvider {
 			            	            }
 			            	        });
 
+									//add the message area
 			            	        JTextArea messageTextArea = new JTextArea();
 			            	        messageTextArea.setLineWrap(true); // Enable line wrapping
 			            	        messageTextArea.setWrapStyleWord(true); // Wrap at word boundaries
@@ -328,6 +360,7 @@ public class Selection extends DialogComponentProvider {
 				                        if (choice2 == JOptionPane.YES_OPTION) {
 				            	            String message = messageTextArea.getText();
 				            	            try {
+												//make the discussion request
 				            	                boolean discuss = request.discuss(items, message);
 				            	                System.out.println(discuss);
 				            	            } catch (IOException e1) {
@@ -338,6 +371,7 @@ public class Selection extends DialogComponentProvider {
 			            	        }
 			            	    }
 			            	});
+							//report button
 			            	buttonPanel.add(discussionButton);
 			
 			                JButton reportButton = new JButton("Report function");
@@ -356,6 +390,7 @@ public class Selection extends DialogComponentProvider {
 			                        int choice = JOptionPane.showConfirmDialog(null, "Are you sure you want to report this user ?", "Confirmation", JOptionPane.YES_NO_OPTION);
 			                        if (choice == JOptionPane.YES_OPTION) {
 			                            try {
+											//make the report request
 			                                boolean report = request.report(items);
 			                                if (report) {
 			                                	JOptionPane.showMessageDialog(null, "Report successfully sent");

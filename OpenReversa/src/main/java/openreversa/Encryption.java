@@ -9,13 +9,22 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import java.util.Base64;
 
+/**
+ * The Encryption class provides methods for generating salt values, hashing passwords,
+ * encrypting passwords using a salt, and verifying password matches.
+ */
 public class Encryption {
     private static final Random random = new SecureRandom();
     private static final String characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
     private static final int iterations = 10000;
     private static final int keylength = 256;
 
-    /* Method to generate the salt value. */
+    /**
+     * Generates a salt value of the specified length.
+     *
+     * @param length  The length of the salt value to generate.
+     * @return The generated salt value as a string.
+     */
     public static String getSaltvalue(int length) {
         StringBuilder finalval = new StringBuilder(length);
 
@@ -26,7 +35,14 @@ public class Encryption {
         return new String(finalval);
     }
 
-    /* Method to generate the hash value */
+    /**
+     * Hashes a password using the provided salt value.
+     *
+     * @param password The password to hash.
+     * @param salt     The salt value used for hashing.
+     * @return The hashed password as a byte array.
+     * @throws AssertionError if an error occurs during hashing.
+     */
     public static byte[] hash(char[] password, byte[] salt) {
         PBEKeySpec spec = new PBEKeySpec(password, salt, iterations, keylength);
         Arrays.fill(password, Character.MIN_VALUE);
@@ -40,7 +56,13 @@ public class Encryption {
         }
     }
 
-    /* Method to encrypt the password using the original password and salt value. */
+    /**
+     * Encrypts a password using the original password and salt value.
+     *
+     * @param password The password to encrypt.
+     * @param salt     The salt value used for encryption.
+     * @return The encrypted password as a string.
+     */
     public static String generateSecurePassword(String password, String salt) {
         String finalval = null;
 
@@ -51,7 +73,14 @@ public class Encryption {
         return finalval;
     }
 
-    /* Method to verify if both password matches or not */
+    /**
+     * Verifies if a provided password matches the secured password using the salt value.
+     *
+     * @param providedPassword The password provided for verification.
+     * @param securedPassword  The secured password to compare against.
+     * @param salt             The salt value used for encryption.
+     * @return true if the passwords match, false otherwise.
+     */
     public static boolean verifyUserPassword(String providedPassword,
                                              String securedPassword, String salt) {
         boolean finalval = false;

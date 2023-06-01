@@ -4,24 +4,21 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 //TODO write a description for this script
-//@author Zina Rasoamanana 
+//@author Arnaud Delcorte and Robin Paquet
 //@category test
 //@keybinding 
 //@menupath 
 //@toolbar test.png
 
-
 //Headless
 import java.util.*;
 import java.util.Map.Entry;
-
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
-
 import docking.widgets.label.GLabel;
 import ghidra.app.script.GhidraScript;
 import ghidra.feature.fid.db.*;
@@ -32,26 +29,24 @@ import ghidra.feature.fid.service.FidPopulateResult.Disposition;
 import ghidra.util.layout.PairLayout;
 
 public class CustomPopulate extends GhidraScript {
+    // Define GUI components
     private JTextField libraryFamilyNameTextField;
     private JTextField versionTextField;
     private JTextField variantTextField;
     private JTextField langTextField;
-
     private JButton okBtn;
 
+    // Method for taking input from the user using a dialog
     public void libraryInput() {
-
         JDialog dialog = new JDialog();
         dialog.setModal(true);
         dialog.setLocationRelativeTo(null); // center the dialog on the screen
-
         JPanel panel1 = new JPanel(new PairLayout());
 
         dialog.setSize(300, 150);
         dialog.setResizable(false);
         dialog.setTitle("Share your function with others");
         panel1.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
 
         panel1.add(new GLabel("Library Family Name: ", SwingConstants.RIGHT));
         libraryFamilyNameTextField = new JTextField(20);
@@ -75,10 +70,11 @@ public class CustomPopulate extends GhidraScript {
         okBtn = new JButton("Confirm");
         dialog.getRootPane().setDefaultButton(okBtn);
 
+        // Action listener for the "Confirm" button
         okBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (isUserInputComplete()) {
-                	dialog.dispose();
+                    dialog.dispose();
                     new RetrieveRenamedFunction(
                             libraryFamilyNameTextField.getText().trim(),
                             versionTextField.getText().trim(),
@@ -100,7 +96,7 @@ public class CustomPopulate extends GhidraScript {
         dialog.setVisible(true);
     }
 
-
+    // Method to check if the user input is complete
     private boolean isUserInputComplete() {
         if (libraryFamilyNameTextField.getText().trim().isEmpty()) {
             return false;
@@ -114,43 +110,9 @@ public class CustomPopulate extends GhidraScript {
         return true;
     }
 
-    protected void run() throws Exception {
-    }
-}
-
-class MyFidPopulateResultReporter implements FidPopulateResultReporter {
-    @Override
-    public void report(FidPopulateResult result) {
-        if (result == null) {
-            return;
-        }
-        LibraryRecord libraryRecord = result.getLibraryRecord();
-        String libraryFamilyName = libraryRecord.getLibraryFamilyName();
-        String libraryVersion = libraryRecord.getLibraryVersion();
-        String libraryVariant = libraryRecord.getLibraryVariant();
-        outputLine(libraryFamilyName + ':' + libraryVersion + ':' + libraryVariant);
-
-        outputLine(result.getTotalAttempted() + " total functions visited");
-        outputLine(result.getTotalAdded() + " total functions added");
-        outputLine(result.getTotalExcluded() + " total functions excluded");
-        outputLine("Breakdown of exclusions:");
-        for (Entry<Disposition, Integer> entry : result.getFailures().entrySet()) {
-            if (entry.getKey() != Disposition.INCLUDED) {
-                outputLine("    " + entry.getKey() + ": " + entry.getValue());
-            }
-        }
-        outputLine("List of unresolved symbols:");
-        TreeSet<String> symbols = new TreeSet<>();
-        for (Location location : result.getUnresolvedSymbols()) {
-            symbols.add(location.getFunctionName());
-        }
-        for (String symbol : symbols) {
-            outputLine("    " + symbol);
-        }
-    }
-
-    protected void outputLine(String line) {
-        System.out.println(line);
-    }
-
+	@Override
+	protected void run() throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
 }

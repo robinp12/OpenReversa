@@ -153,23 +153,19 @@ public class SelectionDialog extends DialogComponentProvider {
                 } else {
                     try {
                         if (fidDb != null) {
-                            FunctionsTable ft = new FunctionsTable(fidDb, fidDb != null ? fidDb.getDBHandle() : null);
-                            int sizeFun = ft.getFunctionRecordsByFullHash(selected.getFullHash()).size();
-                            if (sizeFun == 0) {
-                                LibraryRecord newlib = fidDb.createNewLibrary(selected.getLibraryFamilyNameTextField(),
+                            LibraryRecord newlib = fidDb.createNewLibrary(selected.getLibraryFamilyNameTextField(),
                                         selected.getVersionTextField(), selected.getVariantTextField(),
                                         selected.getApp_version(), selected.getLang_id(), selected.getLang_ver(),
                                         selected.getLang_minor_ver(), selected.getCompiler_spec());
 
-                                FidHashQuad hashQuad = new FidHashQuadImpl(selected.getCodeUnitSize(),
-                                        selected.getFullHash(), selected.getSpecificHashAdditionalSize(),
-                                        selected.getSpecificHash());
+                            FidHashQuad hashQuad = new FidHashQuadImpl(selected.getCodeUnitSize(),
+                                    selected.getFullHash(), selected.getSpecificHashAdditionalSize(),
+                                    selected.getSpecificHash());
 
-                                FunctionRecord newfunc = fidDb.createNewFunction(newlib, hashQuad,
-                                        selected.getFun_name(), selected.getFun_entry(), "", false);
+                            FunctionRecord newfunc = fidDb.createNewFunction(newlib, hashQuad,
+                                    selected.getFun_name(), selected.getFun_entry(), "", false);
 
-                                fidDb.saveDatabase("Saving", monitor);
-                            }
+                            fidDb.saveDatabase("Saving", monitor);
                             JDialog dialog = (JDialog) SwingUtilities.getWindowAncestor(getComponent());
                             dialog.dispose();
                         }

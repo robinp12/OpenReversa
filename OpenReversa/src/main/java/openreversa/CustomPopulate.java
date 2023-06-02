@@ -3,31 +3,21 @@ package openreversa;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-//TODO write a description for this script
-//@author Arnaud Delcorte and Robin Paquet
-//@category test
-//@keybinding 
-//@menupath 
-//@toolbar test.png
-
-//Headless
-import java.util.*;
-import java.util.Map.Entry;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+
 import docking.widgets.label.GLabel;
 import ghidra.app.script.GhidraScript;
-import ghidra.feature.fid.db.*;
-import ghidra.feature.fid.service.FidPopulateResult;
-import ghidra.feature.fid.service.FidPopulateResultReporter;
-import ghidra.feature.fid.service.Location;
-import ghidra.feature.fid.service.FidPopulateResult.Disposition;
 import ghidra.util.layout.PairLayout;
 
+/**
+ * @author Robin Paquet and Arnaud Delcorte
+ *
+ */
 public class CustomPopulate extends GhidraScript {
     // Define GUI components
     private JTextField libraryFamilyNameTextField;
@@ -36,7 +26,7 @@ public class CustomPopulate extends GhidraScript {
     private JTextField langTextField;
     private JButton okBtn;
 
-    // Method for taking input from the user using a dialog
+    // Dialog to ask user input in order to add new function to database
     public void libraryInput() {
         JDialog dialog = new JDialog();
         dialog.setModal(true);
@@ -62,7 +52,7 @@ public class CustomPopulate extends GhidraScript {
 
         panel1.add(new GLabel("Language ID: ", SwingConstants.RIGHT));
         langTextField = new JTextField(20);
-        RetrieveRenamedFunction rrf = new RetrieveRenamedFunction();
+        Utils rrf = new Utils();
         langTextField.setText(rrf.getProgramLanguage().toString());
         langTextField.setEnabled(false);
         panel1.add(langTextField);
@@ -70,12 +60,12 @@ public class CustomPopulate extends GhidraScript {
         okBtn = new JButton("Confirm");
         dialog.getRootPane().setDefaultButton(okBtn);
 
-        // Action listener for the "Confirm" button
+        // Action listener for the "Confirm" button to check user input
         okBtn.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (isUserInputComplete()) {
                     dialog.dispose();
-                    new RetrieveRenamedFunction(
+                    new Utils(
                             libraryFamilyNameTextField.getText().trim(),
                             versionTextField.getText().trim(),
                             variantTextField.getText().trim());

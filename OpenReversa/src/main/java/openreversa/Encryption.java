@@ -4,12 +4,15 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Random;
+
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import java.util.Base64;
 
 /**
+ * @author Robin Paquet and Arnaud Delcorte
+ *
  * The Encryption class provides methods for generating salt values, hashing passwords,
  * encrypting passwords using a salt, and verifying password matches.
  */

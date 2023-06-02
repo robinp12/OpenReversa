@@ -29,10 +29,28 @@ import ghidra.program.model.lang.CompilerSpecID;
 import ghidra.program.model.lang.LanguageID;
 import ghidra.util.Msg;
 
+/**
+ * @author Robin Paquet and Arnaud Delcorte
+ * 
+ * This class is used to make request to the server
+ */
 public class Request {
 
     private static final String POST_URL = "https://glacial-springs-45246.herokuapp.com/";
     private static String regmessage = "";
+
+    /**
+     * Checks if the given email address is valid.
+     *
+     * @param email the email address to check
+     * @return true if the email address is valid, false otherwise
+     */
+    private static boolean isValidEmailAddress(String email) {
+        String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(email);
+        return matcher.matches();
+    }
 
     /**
      * Sends a login request to the server.
@@ -153,8 +171,6 @@ public class Request {
             in.close();
 
             regmessage = response.toString();
-            System.out.println(regmessage);
-            System.out.println(response.toString());
 
             if (response.toString().contains("Success!")) {
                 return 1;
@@ -172,19 +188,6 @@ public class Request {
             return 3;
         }
         return 3;
-    }
-
-    /**
-     * Checks if the given email address is valid.
-     *
-     * @param email the email address to check
-     * @return true if the email address is valid, false otherwise
-     */
-    private static boolean isValidEmailAddress(String email) {
-        String regex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$";
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(email);
-        return matcher.matches();
     }
 
     /**
@@ -263,7 +266,6 @@ public class Request {
             }
             in.close();
 
-            System.out.println(response.toString());
 
             // Parse the response as JSON using Gson
             Gson gson = new Gson();
@@ -316,7 +318,7 @@ public class Request {
                     "Server error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+
 
     /**
      * Deletes the selected item from the database with a request to the server.
@@ -536,8 +538,6 @@ public class Request {
             e.printStackTrace();
         }
 
-        System.out.println(connection.getResponseCode());
-
         if (connection.getResponseCode() == HttpURLConnection.HTTP_OK) {
             InputStream con = connection.getInputStream();
             Reader result = new BufferedReader(new InputStreamReader(con, StandardCharsets.UTF_8));
@@ -570,7 +570,6 @@ public class Request {
 
             // Ask the user if they want to add the function anyway
             int res = JOptionPane.showConfirmDialog(null, sb.toString() + " Do you want to add it anyway?", "Confirm", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-            System.out.println(res);
 
             if (res == JOptionPane.YES_OPTION) {
                 URL url1 = new URL(POST_URL + "fid");

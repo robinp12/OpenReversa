@@ -15,14 +15,15 @@
  */
 package openreversa;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import docking.ActionContext;
 import docking.action.DockingAction;
 import docking.action.MenuData;
 import docking.tool.ToolConstants;
-import generic.jar.ResourceFile;
 import ghidra.app.plugin.PluginCategoryNames;
 import ghidra.app.plugin.ProgramPlugin;
-import ghidra.framework.Application;
 import ghidra.framework.plugintool.PluginInfo;
 import ghidra.framework.plugintool.PluginTool;
 import ghidra.framework.plugintool.util.PluginStatus;
@@ -30,10 +31,6 @@ import ghidra.program.model.lang.CompilerSpecID;
 import ghidra.program.model.lang.LanguageID;
 import ghidra.util.HelpLocation;
 import ghidra.util.Msg;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This is the main plugin class for the OpenReversa plugin.
@@ -57,8 +54,6 @@ public class OpenReversaPlugin extends ProgramPlugin {
     private static final String MENU_GROUP_2 = "group2";
 
     // Instance variables
-    private List<File> openFiDbFiles;
-    private List<String> openFiDbFilesNames;
     private DockingAction loginAction;
     private DockingAction pullAction;
     private DockingAction logoutAction;
@@ -117,7 +112,7 @@ public class OpenReversaPlugin extends ProgramPlugin {
         this.tool.addAction(action);
         loginAction = action;
 
-        // Remove Action
+        // Delete function Action
         action = new DockingAction("Delete Function", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
@@ -151,7 +146,7 @@ public class OpenReversaPlugin extends ProgramPlugin {
         this.tool.addAction(action);
         logoutAction = action;
 
-        // DB Populate Action
+        // Adding function to DB Action
         action = new DockingAction("Add Function to Database", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
@@ -171,7 +166,7 @@ public class OpenReversaPlugin extends ProgramPlugin {
         this.tool.addAction(action);
         populateAction = action;
 
-        // Pull Action
+        // Retrieve function from database Action
         action = new DockingAction("Pull Function from Database", getName()) {
             @Override
             public void actionPerformed(ActionContext context) {
@@ -226,7 +221,7 @@ public class OpenReversaPlugin extends ProgramPlugin {
                     new CompilerSpecID(Compilerspecid), funName, Long.parseLong(Entrypoint), signature, Codec, comment);
             output.add(item);
         }
-        Selection dialog = new Selection(output, false);
+        SelectionDialog dialog = new SelectionDialog(output, false);
         tool.showDialog(dialog);
         return true;
     }

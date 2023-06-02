@@ -5,10 +5,9 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Map.Entry;
+import java.util.List;
 
-import javax.swing.*;
-import java.util.TreeSet;
+import javax.swing.JDialog;
 
 import generic.hash.FNV1a64MessageDigest;
 import generic.hash.MessageDigest;
@@ -16,13 +15,11 @@ import ghidra.app.decompiler.DecompInterface;
 import ghidra.app.decompiler.DecompileResults;
 import ghidra.app.decompiler.DecompiledFunction;
 import ghidra.app.script.GhidraScript;
-import ghidra.feature.fid.db.LibraryRecord;
+import ghidra.feature.fid.db.FidDB;
+import ghidra.feature.fid.db.FidFile;
+import ghidra.feature.fid.db.FidFileManager;
 import ghidra.feature.fid.hash.FidHashQuad;
-import ghidra.feature.fid.service.FidPopulateResult;
-import ghidra.feature.fid.service.FidPopulateResult.Disposition;
-import ghidra.feature.fid.service.FidPopulateResultReporter;
 import ghidra.feature.fid.service.FidService;
-import ghidra.feature.fid.service.Location;
 import ghidra.framework.Application;
 import ghidra.framework.model.DomainFile;
 import ghidra.framework.model.DomainFolder;
@@ -42,30 +39,39 @@ import ghidra.util.task.TaskMonitor;
 import ghidra.util.task.TaskMonitorAdapter;
 
 /**
- * This script retrieves renamed functions from a FID (Function ID) database.
+ * @author Robin Paquet and Arnaud Delcorte
+ * <p>
+ * This class is a toolbox with various method call
+ * Used to retrieves renamed functions from a FID (Function ID) database or get environment informations
  * It operates on multiple libraries in a single FID database.
  * A root folder is chosen within the active project, and subfolders at a specific depth from this root form the roots of individual libraries.
  * The Library Name, Version, and Variant are created from the directory path elements.
- *
  * @category FunctionID
  */
-public class RetrieveRenamedFunction extends GhidraScript {
+public class Utils extends GhidraScript {
 
     private FidService service;
     private FileOutputStream outlog = null;
     private TaskMonitor monitor = new TaskMonitorAdapter();
     private String libraryFamilyNameTextField;
     private String versionTextField;
+
     private String variantTextField;
 
     /**
-     * Constructor for RetrieveRenamedFunction class.
+     * Default constructor for Utils class.
+     */
+    public Utils() {
+    }
+
+    /**
+     * Constructor for Utils class.
      *
      * @param libraryFamilyNameTextField The library family name.
      * @param versionTextField           The library version.
      * @param variantTextField           The library variant.
      */
-    public RetrieveRenamedFunction(String libraryFamilyNameTextField, String versionTextField, String variantTextField) {
+    public Utils(String libraryFamilyNameTextField, String versionTextField, String variantTextField) {
         this.libraryFamilyNameTextField = libraryFamilyNameTextField;
         this.versionTextField = versionTextField;
         this.variantTextField = variantTextField;
@@ -79,71 +85,10 @@ public class RetrieveRenamedFunction extends GhidraScript {
     }
 
     /**
-     * Default constructor for RetrieveRenamedFunction class.
-     */
-    public RetrieveRenamedFunction() {
-        // TODO Auto-generated constructor stub
-    }
-
-    /**
-     * Outputs the provided line to the script console or log file.
-     *
-     * @param line The line to be outputted.
-     */
-    protected void outputLine(String line) {
-        if (outlog != null) {
-            try {
-                outlog.write(line.getBytes());
-                outlog.write('\n');
-                outlog.flush();
-            } catch (IOException e) {
-                println("Unable to write to log");
-            }
-        } else {
-            println(line);
-        }
-    }
-
-    /**
-     * Implementation of FidPopulateResultReporter interface to report FID population results.
-     */
-    class MyFidPopulateResultReporter implements FidPopulateResultReporter {
-        @Override
-        public void report(FidPopulateResult result) {
-            if (result == null) {
-                return;
-            }
-            LibraryRecord libraryRecord = result.getLibraryRecord();
-            String libraryFamilyName = libraryRecord.getLibraryFamilyName();
-            String libraryVersion = libraryRecord.getLibraryVersion();
-            String libraryVariant = libraryRecord.getLibraryVariant();
-            outputLine(libraryFamilyName + ':' + libraryVersion + ':' + libraryVariant);
-
-            outputLine(result.getTotalAttempted() + " total functions visited");
-            outputLine(result.getTotalAdded() + " total functions added");
-            outputLine(result.getTotalExcluded() + " total functions excluded");
-            outputLine("Breakdown of exclusions:");
-            for (Entry<Disposition, Integer> entry : result.getFailures().entrySet()) {
-                if (entry.getKey() != Disposition.INCLUDED) {
-                    outputLine("    " + entry.getKey() + ": " + entry.getValue());
-                }
-            }
-            outputLine("List of unresolved symbols:");
-            TreeSet<String> symbols = new TreeSet<String>();
-            for (Location location : result.getUnresolvedSymbols()) {
-                symbols.add(location.getFunctionName());
-            }
-            for (String symbol : symbols) {
-                outputLine("    " + symbol);
-            }
-        }
-    }
-
-    /**
      * Finds programs within the given folder and adds them to the provided programs list.
      *
-     * @param programs  The list to store the found programs.
-     * @param myFolder  The folder to search for programs.
+     * @param programs The list to store the found programs.
+     * @param myFolder The folder to search for programs.
      * @throws CancelledException If the operation is cancelled.
      */
     protected void findPrograms(ArrayList<DomainFile> programs, DomainFolder myFolder) throws CancelledException {
@@ -163,6 +108,7 @@ public class RetrieveRenamedFunction extends GhidraScript {
             findPrograms(programs, domainFolder);
         }
     }
+
 
     /**
      * Retrieves the language ID of the program.
@@ -192,7 +138,26 @@ public class RetrieveRenamedFunction extends GhidraScript {
     }
 
     /**
-     * Pushes the functions to the FID database.
+     * Outputs the provided line to the script console or log file.
+     *
+     * @param line The line to be outputted.
+     */
+    protected void outputLine(String line) {
+        if (outlog != null) {
+            try {
+                outlog.write(line.getBytes());
+                outlog.write('\n');
+                outlog.flush();
+            } catch (IOException e) {
+                println("Unable to write to log");
+            }
+        } else {
+            println(line);
+        }
+    }
+
+    /**
+     * Retrieve functions from program to send into the OpenReversa database.
      *
      * @throws MemoryAccessException If there is a memory access error.
      */
@@ -266,7 +231,7 @@ public class RetrieveRenamedFunction extends GhidraScript {
                         output.add(item);
                     }
                 }
-                Selection dialog = new Selection(output, true);
+                SelectionDialog dialog = new SelectionDialog(output, true);
                 JDialog jDialog = new JDialog();
                 String excluded_func = "";
                 for (int i = 0; i < thunkFunc.size(); i++) {
@@ -293,9 +258,28 @@ public class RetrieveRenamedFunction extends GhidraScript {
         }
     }
 
-	@Override
-	protected void run() throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
+    /**
+     * Choose fidb file to link in order to add function from database
+     *
+     * @return linked fidb file
+     * @throws CancelledException
+     * @throws VersionException
+     * @throws IOException
+     */
+    public FidDB selectFidFile() throws CancelledException, VersionException, IOException {
+        FidFileManager fidFileManager = FidFileManager.getInstance();
+        List<FidFile> userFid = fidFileManager.getUserAddedFiles();
+        if (userFid.isEmpty()) {
+            return null;
+        }
+        FidFile fidFile = askChoice("Choose Fidb file", "Choose FID database to populate", userFid, userFid.get(0));
+        FidDB fidDb = fidFile.getFidDB(true);
+        return fidDb;
+    }
+
+    @Override
+    protected void run() throws Exception {
+        // TODO Auto-generated method stub
+
+    }
 }

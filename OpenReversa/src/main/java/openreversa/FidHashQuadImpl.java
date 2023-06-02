@@ -18,6 +18,8 @@ package openreversa;
 import ghidra.feature.fid.hash.FidHashQuad;
 
 /**
+ * @author Robin Paquet and Arnaud Delcorte
+ *
  * Implementation container class for FidHashQuad.
  */
 class FidHashQuadImpl implements FidHashQuad {
@@ -28,6 +30,7 @@ class FidHashQuadImpl implements FidHashQuad {
 
     /**
      * Constructs a FidHashQuadImpl with the given values.
+     * Used in order to build hashQuad to add function into fid file
      *
      * @param codeUnitSize               the full hash size
      * @param fullHash                   the full hash

@@ -4,7 +4,9 @@ import ghidra.program.model.lang.CompilerSpecID;
 import ghidra.program.model.lang.LanguageID;
 
 /**
- * Represents a function with various properties.
+ * @author Robin Paquet and Arnaud Delcorte
+ * 
+ * Data structure for functions with various properties.
  */
 public class MyItem {
     private String user;

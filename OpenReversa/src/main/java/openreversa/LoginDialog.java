@@ -1,14 +1,25 @@
 package openreversa;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import docking.action.DockingAction;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.util.Base64;
+
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JRootPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
+import docking.action.DockingAction;
 
 /**
+ * @author Robin Paquet and Arnaud Delcorte
+ * 
  * A login dialog class that handles user login and registration.
  */
 public class LoginDialog extends JDialog {
@@ -17,7 +28,11 @@ public class LoginDialog extends JDialog {
      * Serialization version ID.
      */
     private static final long serialVersionUID = 1L;
-
+    // User ID and messages
+    public static String userId = "";
+    private static String message = "Verify credentials";
+    private static String regmessage = "";
+    Request request = new Request();
     // Login dialog components
     private JTextField nameLogField;
     private JPasswordField passLogField;
@@ -25,7 +40,6 @@ public class LoginDialog extends JDialog {
     private JLabel passLogLabel;
     private JButton btnLogin;
     private JButton btnCancel;
-
     // Registration dialog components
     private JTextField nameRegField;
     private JPasswordField passRegField;
@@ -35,20 +49,12 @@ public class LoginDialog extends JDialog {
     private JLabel confirmRegLabel;
     private JButton btnRegister;
     private JButton confirmRegButt;
-
     private boolean succeeded;
     private DockingAction loginAction;
     private DockingAction pullAction;
     private DockingAction logoutAction;
     private DockingAction removeAction;
     private DockingAction populateAction;
-
-    // User ID and messages
-    public static String userId = "";
-    private static String message = "Verify credentials";
-    private static String regmessage = "";
-
-    Request request = new Request();
 
     /**
      * Constructs a LoginDialog instance.
@@ -68,6 +74,15 @@ public class LoginDialog extends JDialog {
         this.populateAction = populateAction;
 
         loginDialog();
+    }
+
+    /**
+     * Gets the user ID.
+     *
+     * @return The user ID.
+     */
+    public static String getUserId() {
+        return userId;
     }
 
     /**
@@ -113,15 +128,6 @@ public class LoginDialog extends JDialog {
      */
     public String getConfirm() {
         return new String(confirmRegField.getPassword());
-    }
-
-    /**
-     * Gets the user ID.
-     *
-     * @return The user ID.
-     */
-    public static String getUserId() {
-        return userId;
     }
 
     /**
@@ -172,7 +178,7 @@ public class LoginDialog extends JDialog {
         JRootPane rootPane = SwingUtilities.getRootPane(btnLogin);
         rootPane.setDefaultButton(btnLogin);
 
-        // Login button action listener
+        // Login button action listener to check requiered input
         btnLogin.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 // Check if required fields are filled
@@ -337,12 +343,14 @@ public class LoginDialog extends JDialog {
                             "Registered",
                             JOptionPane.INFORMATION_MESSAGE);
                     dialog.dispose();
-                } if (isRegistered == 2) {
+                }
+                if (isRegistered == 2) {
                     JOptionPane.showMessageDialog(LoginDialog.this,
                             "Sorry, there was an error with the database connection. Please try again later",
                             "Database error",
                             JOptionPane.ERROR_MESSAGE);
-                } if (isRegistered == 3) {
+                }
+                if (isRegistered == 3) {
                     JOptionPane.showMessageDialog(LoginDialog.this,
                             regmessage,
                             "Not registered",

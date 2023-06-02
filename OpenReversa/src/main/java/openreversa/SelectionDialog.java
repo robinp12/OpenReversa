@@ -69,7 +69,7 @@ public class SelectionDialog extends DialogComponentProvider {
      * @param isPush To know is it is for a push or a pull
      */
     public SelectionDialog(ArrayList<MyItem> output, boolean isPush) {
-        super("Select Functions (Double click to see entire function)", false);
+        super("Select functions (Double click to see entire function)", true);
 
         this.output = new ArrayList<>(output);
         this.isPush = isPush;
@@ -121,7 +121,7 @@ public class SelectionDialog extends DialogComponentProvider {
                     messageTextArea.setWrapStyleWord(true);
                     messageTextArea.setRows(8);
                     messageTextArea.setColumns(40);
-                    comment = String.format("Comment on the function %s", selected.getFun_name());
+                    comment = String.format("Add comment for : %s", selected.getFun_name());
                     int choice = JOptionPane.showOptionDialog(null, new JScrollPane(messageTextArea), comment,
                             JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, null);
 
@@ -169,12 +169,10 @@ public class SelectionDialog extends DialogComponentProvider {
                                         selected.getFun_name(), selected.getFun_entry(), "", false);
 
                                 fidDb.saveDatabase("Saving", monitor);
-
                             }
+                            JDialog dialog = (JDialog) SwingUtilities.getWindowAncestor(getComponent());
+                            dialog.dispose();
                         }
-                        JDialog dialog = (JDialog) SwingUtilities.getWindowAncestor(getComponent());
-                        dialog.dispose();
-
 
                     } catch (CancelledException | IOException e1) {
                         // TODO Auto-generated catch block
@@ -248,7 +246,8 @@ public class SelectionDialog extends DialogComponentProvider {
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         for (MyItem items : output) {
-            JCheckBox checkbox = new JCheckBox(new String(Base64.getDecoder().decode(items.getSignature()), StandardCharsets.UTF_8));
+            String signature = new String(Base64.getDecoder().decode(items.getSignature()), StandardCharsets.UTF_8);
+            JCheckBox checkbox = new JCheckBox(signature);
             checkboxes.add(checkbox);
             panel.add(checkbox);
         }
@@ -279,7 +278,10 @@ public class SelectionDialog extends DialogComponentProvider {
                         //show the function overview when double clicking
                         if (e.getClickCount() == 2) {
                             //add the comment
-                            String comment = "//" + new String(Base64.getDecoder().decode(items.getComment()), StandardCharsets.UTF_8);
+                            String comment = "";
+                            if (items.getComment().length() >= 0) {
+                                comment = "//" + new String(Base64.getDecoder().decode(items.getComment()), StandardCharsets.UTF_8);
+                            }
                             //add the body of the function
                             String existingText = new String(Base64.getDecoder().decode(items.getTokgroup().trim()), StandardCharsets.UTF_8);
 

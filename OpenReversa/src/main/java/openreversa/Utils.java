@@ -242,7 +242,7 @@ public class Utils extends GhidraScript {
                         thunkFunc.size() + " function(s) excluded : \n" + excluded_func);
 
                 jDialog.setModal(true);
-                jDialog.setTitle("Select Functions to share");
+                jDialog.setTitle("Select Function(s) to share");
                 jDialog.getContentPane().add(dialog.getComponent());
                 jDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
                 jDialog.pack();

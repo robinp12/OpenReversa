@@ -1,12 +1,9 @@
 import json
 import os
-import zipfile
 import pymongo
-from bson import ObjectId, json_util
-from flask import Flask, request, jsonify, Response, abort, make_response
+from bson import ObjectId
+from flask import Flask, request, Response, abort, make_response
 from pymongo import MongoClient
-from bson.binary import Binary
-import io
 import uuid
 import datetime
 import smtplib
@@ -153,7 +150,7 @@ def discuss():
         return Response("Sorry, we were unable to send the email. Please try again later.")
 
     # Return a success response
-    return Response("Success! An email has been sent to their email address.")
+    return Response("Success! An email has been sent to user.")
 
 # report route
 @app.route("/report", methods=['POST'])
@@ -200,7 +197,7 @@ def report():
         return Response("Sorry, we were unable to send the email. Please try again later.")
 
     # Return a success response
-    return Response("Success! An email has been sent to the user's email address.")
+    return Response("Success! An email has been sent to user.")
 
 # Login route
 @app.route("/get_salt", methods=['POST'])

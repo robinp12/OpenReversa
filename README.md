@@ -1,9 +1,12 @@
 ﻿# OpenReversa : A collaborative function identification tool for Ghidra
 
+This work was inspired on the last year work [OpenFunctionID](https://github.com/Cyjanss/MasterThesis_Ghidra).
+
+
 ## Prerequisites
 Before you proceed with the installation, ensure that you have the following prerequisites met:
 
-- Compatible Operating System (e.g., Windows, macOS, Linux)
+- Compatible Operating System (Windows, macOS or Linux)
 - A complete Ghidra installation (version 10.2.3 or higher)
 - Active internet connection
 ## Download the latest version

@@ -37,7 +37,7 @@ import ghidra.util.Msg;
 public class Request {
 
     private static final String POST_URL = "https://glacial-springs-45246.herokuapp.com/";
-    private static String regmessage = "";
+    public static String regmessage = "";
 
     /**
      * Checks if the given email address is valid.

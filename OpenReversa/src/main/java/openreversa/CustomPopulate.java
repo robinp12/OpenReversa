@@ -16,7 +16,6 @@ import ghidra.util.layout.PairLayout;
 
 /**
  * @author Robin Paquet and Arnaud Delcorte
- *
  */
 public class CustomPopulate extends GhidraScript {
     // Define GUI components
@@ -35,7 +34,7 @@ public class CustomPopulate extends GhidraScript {
 
         dialog.setSize(300, 150);
         dialog.setResizable(false);
-        dialog.setTitle("Share your function with others");
+        dialog.setTitle("Add library information");
         panel1.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
         panel1.add(new GLabel("Library Family Name: ", SwingConstants.RIGHT));
@@ -100,9 +99,9 @@ public class CustomPopulate extends GhidraScript {
         return true;
     }
 
-	@Override
-	protected void run() throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    protected void run() throws Exception {
+        // TODO Auto-generated method stub
+
+    }
 }

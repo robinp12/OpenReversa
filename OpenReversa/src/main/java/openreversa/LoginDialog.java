@@ -19,7 +19,7 @@ import docking.action.DockingAction;
 
 /**
  * @author Robin Paquet and Arnaud Delcorte
- * 
+ * <p>
  * A login dialog class that handles user login and registration.
  */
 public class LoginDialog extends JDialog {
@@ -228,8 +228,8 @@ public class LoginDialog extends JDialog {
                     succeeded = false;
                 } else if (isLogged == 5) {
                     JOptionPane.showMessageDialog(LoginDialog.this,
-                            "Sorry, there was an error with the database connection. Please try again later",
-                            "database error",
+                            "Sorry, there was an error with the database connection. Please check your credentials",
+                            "Database error",
                             JOptionPane.ERROR_MESSAGE);
                     passLogField.setText("");
                     succeeded = false;
@@ -335,6 +335,10 @@ public class LoginDialog extends JDialog {
                     }
                 } catch (IOException e1) {
                     e1.printStackTrace();
+                    JOptionPane.showMessageDialog(LoginDialog.this,
+                            "Sorry, the server is currently unavailable. Please try again later.",
+                            "Server error",
+                            JOptionPane.ERROR_MESSAGE);
                 }
 
                 if (isRegistered == 1) {
@@ -352,7 +356,7 @@ public class LoginDialog extends JDialog {
                 }
                 if (isRegistered == 3) {
                     JOptionPane.showMessageDialog(LoginDialog.this,
-                            regmessage,
+                            Request.regmessage,
                             "Not registered",
                             JOptionPane.ERROR_MESSAGE);
                 }

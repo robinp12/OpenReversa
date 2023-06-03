@@ -8,7 +8,7 @@ import ghidra.program.model.lang.LanguageID;
  * 
  * Data structure for functions with various properties.
  */
-public class MyItem {
+public class FunctionItem {
     private String user;
     private Long fullHash;
     private short codeUnitSize;
@@ -28,7 +28,7 @@ public class MyItem {
     private String signature;
     private String comment;
 
-    public MyItem(String user, short codeUnitSize, long fullHash,
+    public FunctionItem(String user, short codeUnitSize, long fullHash,
                   byte specificHashAdditionalSize, long specificHash,
                   String libraryFamilyNameTextField, String versionTextField,
                   String variantTextField, String app_version, LanguageID lang_id,

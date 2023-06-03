@@ -191,7 +191,7 @@ public class OpenReversaPlugin extends ProgramPlugin {
      */
     public boolean pullDialog() throws Exception {
         List<List<String>> result = request.pullRequest();
-        ArrayList<MyItem> output = new ArrayList<MyItem>();
+        ArrayList<FunctionItem> output = new ArrayList<FunctionItem>();
 
         for (List<String> list : result) {
             String[] field = list.get(0).split(",");
@@ -214,7 +214,7 @@ public class OpenReversaPlugin extends ProgramPlugin {
             String Codec = field[16].replaceAll("\"", "").trim();
             String comment = field[17].replaceAll("\"", "").trim();
 
-            MyItem item = new MyItem(user, Short.parseShort(codeUnitSize), Long.parseLong(fullHash),
+            FunctionItem item = new FunctionItem(user, Short.parseShort(codeUnitSize), Long.parseLong(fullHash),
                     Byte.parseByte(specificHashAdditionalSize), Long.parseLong(specificHash),
                     library_name, library_version, library_variant, Ghidraversion, new LanguageID(Languageid),
                     Integer.parseInt(Languageversion), Integer.parseInt(Languageminorversion),

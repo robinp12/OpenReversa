@@ -100,6 +100,7 @@ public class Request {
             }
 
             String[] userAndPwdHash = response.toString().split(",");
+            //Check if the provided password is correct
             boolean decrypt = Encryption.verifyUserPassword(password,userAndPwdHash[0]);
             if (decrypt) {
                 LoginDialog.userId = userAndPwdHash[1];
@@ -132,6 +133,7 @@ public class Request {
             return 3;
         }
 
+        //Encrypt the password
         String encryptedpassword = Encryption.generateSecurePassword(password);
         URL obj = new URL(POST_URL + "register");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -379,7 +381,7 @@ public class Request {
      * @return true if the item is reported successfully, false otherwise
      * @throws IOException if an error occurs while reporting the item
      */
-    public boolean report(MyItem item) throws IOException {
+    public boolean report(FunctionItem item) throws IOException {
         URL obj = new URL(POST_URL + "report");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
@@ -434,7 +436,7 @@ public class Request {
      * @return true if the message is sent successfully, false otherwise
      * @throws IOException if an error occurs while sending the message
      */
-    public boolean discuss(MyItem item, String message) throws IOException {
+    public boolean discuss(FunctionItem item, String message) throws IOException {
         URL obj = new URL(POST_URL + "discuss");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");

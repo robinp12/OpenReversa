@@ -185,8 +185,8 @@ public class Utils extends GhidraScript {
                 int lang_minor_ver = program.getLanguage().getMinorVersion();
                 CompilerSpecID compiler_spec = program.getCompilerSpec().getCompilerSpecID();
 
-                ArrayList<MyItem> output = new ArrayList<MyItem>();
-                MyItem item;
+                ArrayList<FunctionItem> output = new ArrayList<FunctionItem>();
+                FunctionItem item;
                 FunctionIterator functions = functionManager.getFunctions(true);
                 for (Function function : functions) {
 
@@ -223,7 +223,7 @@ public class Utils extends GhidraScript {
                         }
                         DecompiledFunction tokgroup = res.getDecompiledFunction();
 
-                        item = new MyItem("", hashFunction.getCodeUnitSize(), hashFunction.getFullHash(),
+                        item = new FunctionItem("", hashFunction.getCodeUnitSize(), hashFunction.getFullHash(),
                                 hashFunction.getSpecificHashAdditionalSize(), hashFunction.getSpecificHash(),
                                 libraryFamilyNameTextField, versionTextField, variantTextField, app_version, lang_id,
                                 lang_ver, lang_minor_ver, compiler_spec, fun_name, fun_entry, signature,

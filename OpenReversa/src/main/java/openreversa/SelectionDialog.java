@@ -56,7 +56,7 @@ import ghidra.util.task.TaskMonitorAdapter;
 public class SelectionDialog extends DialogComponentProvider {
 
     Request request = new Request();
-    private ArrayList<MyItem> output;
+    private ArrayList<FunctionItem> output;
     private boolean isPush;
     private List<JCheckBox> checkboxes = new ArrayList<>();
     private FidDB fidDb = null;
@@ -68,7 +68,7 @@ public class SelectionDialog extends DialogComponentProvider {
      * @param output List of functions to show
      * @param isPush To know is it is for a push or a pull
      */
-    public SelectionDialog(ArrayList<MyItem> output, boolean isPush) {
+    public SelectionDialog(ArrayList<FunctionItem> output, boolean isPush) {
         super("Select functions (Double click to see entire function)", true);
 
         this.output = new ArrayList<>(output);
@@ -111,7 +111,7 @@ public class SelectionDialog extends DialogComponentProvider {
                 checkIfSelected += 1;
                 String itemName = Base64.getEncoder().encodeToString(checkbox.getText().getBytes(StandardCharsets.UTF_8));
 
-                MyItem selected = output.stream()
+                FunctionItem selected = output.stream()
                         .filter(item -> item.getSignature().equals(itemName))
                         .findFirst().orElse(null);
                 if (isPush) {
@@ -241,7 +241,7 @@ public class SelectionDialog extends DialogComponentProvider {
         panel.setOpaque(true);
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        for (MyItem items : output) {
+        for (FunctionItem items : output) {
             String signature = new String(Base64.getDecoder().decode(items.getSignature()), StandardCharsets.UTF_8);
             JCheckBox checkbox = new JCheckBox(signature);
             checkboxes.add(checkbox);
@@ -264,7 +264,7 @@ public class SelectionDialog extends DialogComponentProvider {
         Utils rrf = new Utils();
         LanguageID langId = rrf.getProgramLanguage();
 
-        for (MyItem items : output) {
+        for (FunctionItem items : output) {
 
             if (items.getLang_id().equals(langId)) {
 

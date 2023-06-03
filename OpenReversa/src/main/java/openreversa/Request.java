@@ -36,7 +36,7 @@ import ghidra.util.Msg;
  */
 public class Request {
 
-    private static final String POST_URL = "https://glacial-springs-45246.herokuapp.com/";
+    private static final String POST_URL = "https://enigmatic-bayou-51531.herokuapp.com/";
     public static String regmessage = "";
 
     /**
@@ -99,10 +99,10 @@ public class Request {
                 return 2;
             }
 
-            String[] saltAndPwdHash = response.toString().split(",");
-            boolean decrypt = Encryption.verifyUserPassword(password, saltAndPwdHash[1], saltAndPwdHash[0]);
+            String[] userAndPwdHash = response.toString().split(",");
+            boolean decrypt = Encryption.verifyUserPassword(password,userAndPwdHash[0]);
             if (decrypt) {
-                LoginDialog.userId = saltAndPwdHash[2];
+                LoginDialog.userId = userAndPwdHash[1];
                 return 1;
             }
             return 3;
@@ -132,16 +132,15 @@ public class Request {
             return 3;
         }
 
-        String saltvalue = Encryption.getSaltvalue(30);
-        String encryptedpassword = Encryption.generateSecurePassword(password, saltvalue);
+        String encryptedpassword = Encryption.generateSecurePassword(password);
         URL obj = new URL(POST_URL + "register");
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
         con.setRequestMethod("POST");
         con.setRequestProperty("Content-Type", "application/json");
         String payload;
         try {
-            payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\",\"salt\":\"%s\"}", username,
-                    encryptedpassword, saltvalue);
+            payload = String.format("{\"username\":\"%s\",\"pwdHash\":\"%s\"}", username,
+                    encryptedpassword);
             con.setDoOutput(true);
             try (DataOutputStream wr = new DataOutputStream(con.getOutputStream())) {
                 byte[] postData = payload.getBytes(StandardCharsets.UTF_8);

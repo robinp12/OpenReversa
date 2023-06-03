@@ -36,7 +36,6 @@ def register():
     # Extract the required data from the payload
     email = payload['username']
     hash = payload['pwdHash']
-    salt = payload['salt']
 
     # Check if user already exists
     try:
@@ -71,7 +70,6 @@ def register():
     try:
         users.insert_one({
             "pwdHash": hash,
-            "salt": salt,
             "email": email,
             "verification_token": verification_token,
             "verification_expiration": expiration_time
@@ -213,7 +211,7 @@ def get_salt():
         return Response("You didn't verify your email address")
 
     # Construct the salt and password hash string
-    salt_and_pwd_hash = f"{user['salt']},{user['pwdHash']},{user['_id']}"
+    salt_and_pwd_hash = f"{user['pwdHash']},{user['_id']}"
 
     # Return the salt and password hash as a response
     return Response(salt_and_pwd_hash)

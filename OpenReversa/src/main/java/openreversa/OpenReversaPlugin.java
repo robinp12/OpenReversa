@@ -61,6 +61,8 @@ public class OpenReversaPlugin extends ProgramPlugin {
     private DockingAction removeAction;
     private Request request = new Request();
 
+    public static PluginTool plugin = null;
+
     /**
      * Plugin constructor.
      *
@@ -68,6 +70,7 @@ public class OpenReversaPlugin extends ProgramPlugin {
      */
     public OpenReversaPlugin(PluginTool plugintool) {
         super(plugintool);
+        plugin = plugintool;
     }
 
     /**
@@ -225,7 +228,7 @@ public class OpenReversaPlugin extends ProgramPlugin {
         tool.showDialog(dialog);
         return true;
     }
-    
+
     /**
      * disable all actions except login 
      */

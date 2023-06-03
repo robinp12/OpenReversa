@@ -15,6 +15,7 @@ import ghidra.app.decompiler.DecompInterface;
 import ghidra.app.decompiler.DecompileResults;
 import ghidra.app.decompiler.DecompiledFunction;
 import ghidra.app.script.GhidraScript;
+import ghidra.app.services.ProgramManager;
 import ghidra.feature.fid.db.FidDB;
 import ghidra.feature.fid.db.FidFile;
 import ghidra.feature.fid.db.FidFileManager;
@@ -71,17 +72,29 @@ public class Utils extends GhidraScript {
      * @param versionTextField           The library version.
      * @param variantTextField           The library variant.
      */
+
     public Utils(String libraryFamilyNameTextField, String versionTextField, String variantTextField) {
         this.libraryFamilyNameTextField = libraryFamilyNameTextField;
         this.versionTextField = versionTextField;
         this.variantTextField = variantTextField;
-
         try {
             pushToDB();
         } catch (MemoryAccessException e) {
             Msg.showError(getClass(), null, "Server error", "Sorry, the server is currently unavailable. Please try again later.");
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Get the currently open program using the ProgramManager service.
+     */
+    public Program getProgram() {
+
+        ProgramManager pm = OpenReversaPlugin.plugin.getService(ProgramManager.class);
+        if (pm != null) {
+            return pm.getCurrentProgram();
+        }
+        return null;
     }
 
     /**
@@ -119,14 +132,19 @@ public class Utils extends GhidraScript {
         ArrayList<DomainFile> programs = new ArrayList<DomainFile>();
         try {
             findPrograms(programs, getProjectRootFolder());
-            DomainObject domainObject = null;
-            domainObject = programs.get(0).getDomainObject(this, false, true, TaskMonitor.DUMMY);
-            if (!(domainObject instanceof Program)) {
-                return null;
-            }
+            for (DomainFile program1 : programs) {
+                DomainObject domainObject = null;
+                domainObject = program1.getDomainObject(this, false, true, TaskMonitor.DUMMY);
+                if (!(domainObject instanceof Program)) {
+                    return null;
+                }
 
-            Program program = (Program) domainObject;
-            return program.getLanguageID();
+                Program program = (Program) domainObject;
+                if (!program.getName().equals(getProgram().getName())) {
+                    continue;
+                }
+                return program.getLanguageID();
+            }
         } catch (CancelledException e) {
             e.printStackTrace();
         } catch (VersionException e) {
@@ -177,13 +195,17 @@ public class Utils extends GhidraScript {
                 }
 
                 Program program = (Program) domainObject;
-                FunctionManager functionManager = program.getFunctionManager();
+                if (!program.getName().equals(getProgram().getName())) {
+                    continue;
+                }
+
+                FunctionManager functionManager = getProgram().getFunctionManager();
 
                 String app_version = Application.getApplicationVersion();
-                LanguageID lang_id = program.getLanguageID();
-                int lang_ver = program.getLanguage().getVersion();
-                int lang_minor_ver = program.getLanguage().getMinorVersion();
-                CompilerSpecID compiler_spec = program.getCompilerSpec().getCompilerSpecID();
+                LanguageID lang_id = getProgram().getLanguageID();
+                int lang_ver = getProgram().getLanguage().getVersion();
+                int lang_minor_ver = getProgram().getLanguage().getMinorVersion();
+                CompilerSpecID compiler_spec = getProgram().getCompilerSpec().getCompilerSpecID();
 
                 ArrayList<FunctionItem> output = new ArrayList<FunctionItem>();
                 FunctionItem item;

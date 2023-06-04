@@ -52,7 +52,7 @@ def register():
 
     # Create verification email
     recipient_email = email
-    message = MIMEText(f'Hi {email}, please click the following link to verify your email address: https://glacial-springs-45246.herokuapp.com/verify_email?token={verification_token}')
+    message = MIMEText(f'Hi {email}, please click the following link to verify your email address: https://enigmatic-bayou-51531.herokuapp.com/verify_email?token={verification_token}')
     message['Subject'] = 'Verify Your Email Address'
     message['From'] = FROM_EMAIL
     message['To'] = recipient_email

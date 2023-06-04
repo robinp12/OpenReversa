@@ -35,7 +35,8 @@ import ghidra.util.Msg;
  * This class is used to make request to the server
  */
 public class Request {
-
+	
+	// private static final String POST_URL = " http://127.0.0.1:5000/";
     private static final String POST_URL = "https://enigmatic-bayou-51531.herokuapp.com/";
     public static String regmessage = "";
 
